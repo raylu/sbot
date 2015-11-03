@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+
+import urllib
+
+import discord
+import requests
+
+import config
+
+client = discord.Client()
+
+@client.event
+def on_message(message):
+    text = message.content
+    if text.startswith('!'):
+        split = text.split(' ', 1)
+        command = split[0][1:]
+        handler = commands.get(command)
+        if handler:
+            args = None
+            if len(split) > 1:
+                args = split[1]
+            handler(message, args)
+
+@client.event
+def on_ready():
+    print('Logged in as', client.user.name, client.user.id)
+
+rs = requests.Session()
+
+def roll(message, args):
+    if not args:
+        args = '1d6'
+    response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
+    split = response.text.split('\n')
+    details = split[2].split('=', 1)[1].strip()
+    details = details.replace(' +', ' + ').replace(' +  ', ' + ')
+    result = split[1].split('=', 1)[1]
+    client.send_message(message.channel, '%s %s' % (result, details))
+
+commands = {
+    'roll': roll,
+}
+
+client.login(config.email, config.password)
+client.run()
