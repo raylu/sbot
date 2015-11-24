@@ -28,6 +28,10 @@ def on_ready():
 
 rs = requests.Session()
 
+def calc(message, args):
+    response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': args})
+    client.send_message(message.channel, response.text.rstrip())
+
 def roll(message, args):
     if not args:
         args = '1d6'
@@ -39,6 +43,7 @@ def roll(message, args):
     client.send_message(message.channel, '%s %s' % (result, details))
 
 commands = {
+    'calc': calc,
     'roll': roll,
 }
 
