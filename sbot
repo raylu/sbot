@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import urllib
-
 import discord
-import requests
 
 import config
+import commands
 
 client = discord.Client()
 
@@ -15,37 +13,16 @@ def on_message(message):
     if text.startswith('!'):
         split = text.split(' ', 1)
         command = split[0][1:]
-        handler = commands.get(command)
+        handler = commands.handlers.get(command)
         if handler:
             args = None
             if len(split) > 1:
                 args = split[1]
-            handler(message, args)
+            handler(client, message, args)
 
 @client.event
 def on_ready():
     print('Logged in as', client.user.name, client.user.id)
-
-rs = requests.Session()
-
-def calc(message, args):
-    response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': args})
-    client.send_message(message.channel, response.text.rstrip())
-
-def roll(message, args):
-    if not args:
-        args = '1d6'
-    response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
-    split = response.text.split('\n')
-    details = split[2].split('=', 1)[1].strip()
-    details = details.replace(' +', ' + ').replace(' +  ', ' + ')
-    result = split[1].split('=', 1)[1]
-    client.send_message(message.channel, '%s %s' % (result, details))
-
-commands = {
-    'calc': calc,
-    'roll': roll,
-}
 
 client.login(config.email, config.password)
 client.run()
