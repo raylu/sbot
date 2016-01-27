@@ -1,3 +1,4 @@
+import operator
 import urllib
 
 import psycopg2
@@ -116,8 +117,49 @@ def price_check(client, message, args):
 	amarr = format_prices(amarr_prices)
 	client.send_message(message.channel, '%s - Jita: %s ; Amarr: %s' % (item_name, jita, amarr))
 
+def jumps(client, message, args):
+	split = args.split()
+	if len(split) != 2:
+		client.send_message(message.channel, 'usage: `!jumps [from] [to]`')
+		return
+	with db.cursor() as curs:
+		curs.execute('''
+				SELECT "solarSystemName" FROM "mapSolarSystems"
+				WHERE LOWER("solarSystemName") LIKE %s OR LOWER("solarSystemName") LIKE %s
+				''', (split[0].lower() + '%', split[1].lower() + '%')
+		)
+		results = list(map(operator.itemgetter(0), curs.fetchmany(2)))
+	query = [None, None]
+	for i, s in enumerate(split):
+		s = s.lower()
+		for r in results:
+			if r.lower().startswith(s):
+				query[i] = r
+				break
+		else:
+			client.send_message(message.channel, 'could not find system starting with ' + s)
+			break
+	if None in query:
+		return
+	r = rs.get('http://api.eve-central.com/api/route/from/%s/to/%s' % (query[0], query[1]))
+	try:
+		jumps = r.json()
+	except ValueError:
+		client.send_message(message.channel, 'error getting jumps')
+		return
+	jumps_split = []
+	for j in jumps:
+		j_str = j['to']['name']
+		from_sec = j['from']['security']
+		to_sec = j['to']['security']
+		if from_sec != to_sec:
+			j_str += ' (%0.1g)' % to_sec
+		jumps_split.append(j_str)
+	client.send_message(message.channel, '%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
+
 handlers = {
     'calc': calc,
     'pc': price_check,
     'roll': roll,
+    'jumps': jumps,
 }
