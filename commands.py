@@ -52,9 +52,10 @@ def price_check(client, message, args):
 
 		return bid, ask, volume
 	def __item_info(curs, query):
-		curs.execute(
-				'SELECT "typeID", "typeName" FROM "invTypes" WHERE LOWER("typeName") LIKE %s',
-				(query.lower(),))
+		curs.execute('''
+			SELECT "typeID", "typeName" FROM "invTypes"
+			WHERE LOWER("typeName") LIKE %s AND "marketGroupID" IS NOT NULL
+			''', (query.lower(),))
 		results = curs.fetchmany(3)
 		if len(results) == 1:
 			return results[0]
@@ -160,6 +161,7 @@ def jumps(client, message, args):
 handlers = {
     'calc': calc,
     'pc': price_check,
+    'price': price_check,
     'roll': roll,
     'jumps': jumps,
 }
