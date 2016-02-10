@@ -1,4 +1,5 @@
 import operator
+import time
 import urllib
 
 import psycopg2
@@ -24,6 +25,7 @@ def roll(client, message, args):
     result = split[1].split('=', 1)[1]
     client.send_message(message.channel, '%s %s' % (result, details))
 
+crest_price_cache = {'last_update': 0, 'items': {}}
 def price_check(client, message, args):
 	def get_prices(typeid, system=None, region=None):
 		from xml.dom import minidom
@@ -103,6 +105,25 @@ def price_check(client, message, args):
 			return 'bid {0:g} ask {1:g} vol {2:,d}'.format(*prices)
 		prices = map(int, prices)
 		return 'bid {0:,d} ask {1:,d} vol {2:,d}'.format(*prices)
+	def get_crest_price(typeid):
+		now = time.time()
+		if crest_price_cache['last_update'] < now - 60 * 60 * 2:
+			res = rs.get('https://public-crest.eveonline.com/market/prices/')
+			if res.status_code == 200:
+				crest_price_cache['items'].clear()
+				for item in res.json()['items']:
+					crest_price_cache['items'][item['type']['id']] = item
+					del item['type']
+				crest_price_cache['last_update'] = now
+		prices = crest_price_cache['items'].get(typeid)
+		if prices:
+			if prices['adjustedPrice'] < 1000.0:
+				return 'avg {averagePrice:g} adj {adjustedPrice:g}'.format(**prices)
+			for k, v in prices.items():
+				prices[k] = int(v)
+			return 'avg {averagePrice:,d} adj {adjustedPrice:,d}'.format(**prices)
+		else:
+			return 'n/a'
 
 	if args.lower() == 'plex':
 		args = "30 Day Pilot's License Extension (PLEX)"
@@ -116,7 +137,8 @@ def price_check(client, message, args):
 	amarr_prices = get_prices(typeid, system=amarr_system)
 	jita = format_prices(jita_prices)
 	amarr = format_prices(amarr_prices)
-	client.send_message(message.channel, '%s - Jita: %s ; Amarr: %s' % (item_name, jita, amarr))
+	crest = get_crest_price(typeid)
+	client.send_message(message.channel, '%s\nJita: %s\nAmarr: %s\nCREST: %s' % (item_name, jita, amarr, crest))
 
 def jumps(client, message, args):
 	split = args.split()
