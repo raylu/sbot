@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+import _thread
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+
 import discord
 
 import config
@@ -9,20 +13,44 @@ client = discord.Client()
 
 @client.event
 def on_message(message):
-    text = message.content
-    if text.startswith('!'):
-        split = text.split(' ', 1)
-        command = split[0][1:]
-        handler = commands.handlers.get(command)
-        if handler:
-            args = None
-            if len(split) > 1:
-                args = split[1]
-            handler(client, message, args)
+	text = message.content
+	if text.startswith('!'):
+		split = text.split(' ', 1)
+		command = split[0][1:]
+		handler = commands.handlers.get(command)
+		if handler:
+			args = None
+			if len(split) > 1:
+				args = split[1]
+			handler(client, message, args)
 
 @client.event
 def on_ready():
-    print('Logged in as', client.user.name, client.user.id)
+	print('Logged in as', client.user.name, client.user.id)
+
+class GitHubHandler(BaseHTTPRequestHandler):
+	def do_POST(self):
+		clength = int(self.headers['Content-Length'])
+		content = self.rfile.read(clength)
+		data = json.loads(content.decode('utf-8'))
+
+		if self.headers['X-GitHub-Event'] == 'push':
+			message = []
+			branch = data['ref']
+			if branch.startswith('refs/heads/'):
+				branch = branch[len('refs/heads/'):]
+			message.append('%s pushed to `%s`: %s' % (data['pusher']['name'], branch, data['compare']))
+			for commit in data['commits']:
+				message.append('`%s` (%s): %s' % (commit['id'][:7], commit['author']['name'], commit['message']))
+			channel = client.get_channel('156656432874389504') # PyBuddies#github
+			client.send_message(channel, '\n'.join(message))
+
+		self.send_response(200)
+		self.send_header('Content-Length', '0')
+		self.end_headers()
+
+httpd = HTTPServer(('', 8009), GitHubHandler)
+_thread.start_new_thread(httpd.serve_forever, ())
 
 client.login(config.email, config.password)
 client.run()

@@ -12,18 +12,18 @@ rs.headers.update({'User-Agent': 'sbot'})
 db = psycopg2.connect(config.eve_dsn)
 
 def calc(client, message, args):
-    response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': args})
-    client.send_message(message.channel, response.text.rstrip())
+	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': args})
+	client.send_message(message.channel, response.text.rstrip())
 
 def roll(client, message, args):
-    if not args:
-        args = '1d6'
-    response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
-    split = response.text.split('\n')
-    details = split[2].split('=', 1)[1].strip()
-    details = details.replace(' +', ' + ').replace(' +  ', ' + ')
-    result = split[1].split('=', 1)[1]
-    client.send_message(message.channel, '%s %s' % (result, details))
+	if not args:
+		args = '1d6'
+	response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
+	split = response.text.split('\n')
+	details = split[2].split('=', 1)[1].strip()
+	details = details.replace(' +', ' + ').replace(' +  ', ' + ')
+	result = split[1].split('=', 1)[1]
+	client.send_message(message.channel, '%s %s' % (result, details))
 
 crest_price_cache = {'last_update': 0, 'items': {}}
 def price_check(client, message, args):
@@ -181,9 +181,9 @@ def jumps(client, message, args):
 	client.send_message(message.channel, '%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
 
 handlers = {
-    'calc': calc,
-    'pc': price_check,
-    'price': price_check,
-    'roll': roll,
-    'jumps': jumps,
+	'calc': calc,
+	'pc': price_check,
+	'price': price_check,
+	'roll': roll,
+	'jumps': jumps,
 }
