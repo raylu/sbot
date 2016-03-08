@@ -3,6 +3,7 @@
 import _thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
+import urllib.parse
 
 import discord
 
@@ -24,17 +25,26 @@ def on_message(message):
 				args = split[1]
 			handler(client, message, args)
 
+channel = None
+
 @client.event
 def on_ready():
+	global channel
 	print('Logged in as', client.user.name, client.user.id)
+	channel = client.get_channel('156656432874389504') # PyBuddies#github
 
 class GitHubHandler(BaseHTTPRequestHandler):
 	def do_POST(self):
 		clength = int(self.headers['Content-Length'])
-		content = self.rfile.read(clength)
-		data = json.loads(content.decode('utf-8'))
+		content = self.rfile.read(clength).decode('utf-8')
+		github_event = self.headers.get('X-GitHub-Event')
+		if github_event:
+			data = json.loads(content)
+		else: # travisci
+			params = urllib.parse.parse_qs(content, strict_parsing=True)
+			data = json.loads(params['payload'][0])
 
-		if self.headers['X-GitHub-Event'] == 'push':
+		if github_event == 'push':
 			message = []
 			branch = data['ref']
 			if branch.startswith('refs/heads/'):
@@ -42,8 +52,12 @@ class GitHubHandler(BaseHTTPRequestHandler):
 			message.append('%s pushed to `%s`: %s' % (data['pusher']['name'], branch, data['compare']))
 			for commit in data['commits']:
 				message.append('`%s` (%s): %s' % (commit['id'][:7], commit['author']['name'], commit['message']))
-			channel = client.get_channel('156656432874389504') # PyBuddies#github
 			client.send_message(channel, '\n'.join(message))
+		elif not github_event: # travisci
+			status = data.get('status_message') or data['result_message']
+			# data['type'] is 'push' or 'pull_request'
+			client.send_message(channel, '%s build for %s on `%s` by %s: %s' % (
+					status, data['type'], data['branch'], data['author_name'], data['build_url']))
 
 		self.send_response(200)
 		self.send_header('Content-Length', '0')
