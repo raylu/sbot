@@ -51,7 +51,8 @@ class GitHubHandler(BaseHTTPRequestHandler):
 				branch = branch[len('refs/heads/'):]
 			message.append('%s pushed to `%s`: %s' % (data['pusher']['name'], branch, data['compare']))
 			for commit in data['commits']:
-				message.append('`%s` (%s): %s' % (commit['id'][:7], commit['author']['name'], commit['message']))
+				if commit['distinct']:
+					message.append('`%s` (%s): %s' % (commit['id'][:7], commit['author']['name'], commit['message']))
 			client.send_message(channel, '\n'.join(message))
 		elif not github_event: # travisci
 			status = data.get('status_message') or data['result_message']
