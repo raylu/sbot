@@ -2,6 +2,8 @@ import operator
 import time
 import urllib
 
+import dateutil.parser
+import dateutil.tz
 import psycopg2
 import requests
 
@@ -180,10 +182,23 @@ def jumps(client, message, args):
 		jumps_split.append(j_str)
 	client.send_message(message.channel, '%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
 
+pacific = dateutil.tz.gettz('America/Los_Angeles')
+eastern = dateutil.tz.gettz('America/New_York')
+utc = dateutil.tz.tzutc()
+korean = dateutil.tz.gettz('Asia/Seoul')
+def time(client, message, args):
+	dt = dateutil.parser.parse(args)
+	if not dt.tzinfo:
+		dt = dt.replace(tzinfo=utc)
+	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n{:%a %-d %H:%M %Z}'.format(
+			dt.astimezone(pacific), dt.astimezone(eastern), dt.astimezone(utc), dt.astimezone(korean))
+	client.send_message(message.channel, response)
+
 handlers = {
 	'calc': calc,
 	'pc': price_check,
 	'price': price_check,
 	'roll': roll,
 	'jumps': jumps,
+	'time': time,
 }
