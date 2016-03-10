@@ -186,12 +186,15 @@ pacific = dateutil.tz.gettz('America/Los_Angeles')
 eastern = dateutil.tz.gettz('America/New_York')
 utc = dateutil.tz.tzutc()
 korean = dateutil.tz.gettz('Asia/Seoul')
-def time(client, message, args):
+australian = dateutil.tz.gettz('Australia/Sydney')
+def timezones(client, message, args):
 	dt = dateutil.parser.parse(args)
 	if not dt.tzinfo:
 		dt = dt.replace(tzinfo=utc)
-	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n{:%a %-d %H:%M %Z}'.format(
-			dt.astimezone(pacific), dt.astimezone(eastern), dt.astimezone(utc), dt.astimezone(korean))
+	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n'
+	response += '{:%a %-d %H:%M %Z}\n{:%a %-d %-I:%M %p %Z}'
+	response = response.format(dt.astimezone(pacific), dt.astimezone(eastern), dt.astimezone(utc),
+			dt.astimezone(korean), dt.astimezone(australian))
 	client.send_message(message.channel, response)
 
 handlers = {
@@ -200,5 +203,5 @@ handlers = {
 	'price': price_check,
 	'roll': roll,
 	'jumps': jumps,
-	'time': time,
+	'time': timezones,
 }
