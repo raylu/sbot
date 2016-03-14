@@ -1,3 +1,4 @@
+from math import sqrt
 import operator
 import time
 import urllib
@@ -188,7 +189,11 @@ utc = dateutil.tz.tzutc()
 korean = dateutil.tz.gettz('Asia/Seoul')
 australian = dateutil.tz.gettz('Australia/Sydney')
 def timezones(client, message, args):
-	dt = dateutil.parser.parse(args)
+	try:
+		dt = dateutil.parser.parse(args)
+	except ValueError as e:
+		client.send_message(message.channel, str(e))
+		return
 	if not dt.tzinfo:
 		dt = dt.replace(tzinfo=utc)
 	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n'
@@ -197,6 +202,41 @@ def timezones(client, message, args):
 			dt.astimezone(korean), dt.astimezone(australian))
 	client.send_message(message.channel, response)
 
+def lightyears(client, message, args):
+	split = [n + '%' for n in args.lower().split()]
+	if len(split) != 2:
+		client.send_message(message.channel, 'usage: !ly [from] [to]')
+		return
+
+	with db.cursor() as curs:
+		curs.execute('''
+				SELECT x, y, z FROM "mapSolarSystems"
+				WHERE LOWER("solarSystemName") LIKE %s OR LOWER("solarSystemName") LIKE %s
+				''', split)
+		result = curs.fetchmany(2)
+	if len(result) != 2:
+		client.send_message(message.channel, 'ERROR: one or more systems not found!')
+		return
+
+	dist = 0
+	for d1, d2 in zip(result[0], result[1]):
+		dist += (d1 - d2)**2
+	dist = sqrt(dist) / 9.4605284e15 # meters to lightyears
+	ship_ranges = [
+		('CAP:', 2.5), # jump range for all other ships
+		('BO:', 4.0), # blackops
+		('JF:', 5.0), # jump freighters
+	]
+	jdc = []
+	for ship, jump_range in ship_ranges:
+		for level in range(0, 6):
+			if dist <= jump_range * (1 + level * 0.2):
+				jdc.append('%s %d' % (ship, level))
+				break
+		else:
+			jdc.append(ship + ' N/A')
+	client.send_message(message.channel, '%.3f ly\n%s' % (dist,'\n'.join(jdc)))
+
 handlers = {
 	'calc': calc,
 	'pc': price_check,
@@ -204,4 +244,5 @@ handlers = {
 	'roll': roll,
 	'jumps': jumps,
 	'time': timezones,
+	'ly': lightyears,
 }
