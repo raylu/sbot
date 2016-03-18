@@ -3,6 +3,7 @@
 import _thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
+import traceback
 import urllib.parse
 
 import discord
@@ -11,6 +12,15 @@ import config
 import commands
 
 client = discord.Client()
+
+channel = raylu = None
+
+@client.event
+def on_ready():
+	global channel, raylu
+	print('Logged in as', client.user.name, client.user.id)
+	channel = client.get_channel('156656432874389504') # PyBuddies#github
+	raylu = client.get_channel('160454259375079424')
 
 @client.event
 def on_message(message):
@@ -23,15 +33,10 @@ def on_message(message):
 			args = None
 			if len(split) > 1:
 				args = split[1]
-			handler(client, message, args)
-
-channel = None
-
-@client.event
-def on_ready():
-	global channel
-	print('Logged in as', client.user.name, client.user.id)
-	channel = client.get_channel('156656432874389504') # PyBuddies#github
+			try:
+				handler(client, message, args)
+			except:
+				client.send_message(raylu, '```\n%s\n```' % traceback.format_exc())
 
 class GitHubHandler(BaseHTTPRequestHandler):
 	def do_POST(self):
