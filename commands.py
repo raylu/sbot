@@ -210,16 +210,20 @@ def lightyears(client, message, args):
 
 	with db.cursor() as curs:
 		curs.execute('''
-				SELECT x, y, z FROM "mapSolarSystems"
+				SELECT "solarSystemName", x, y, z FROM "mapSolarSystems"
 				WHERE LOWER("solarSystemName") LIKE %s OR LOWER("solarSystemName") LIKE %s
 				''', split)
-		result = curs.fetchmany(2)
-	if len(result) != 2:
-		client.send_message(message.channel, 'ERROR: one or more systems not found!')
+		result = curs.fetchmany(6)
+	if len(result) < 2:
+		client.send_message(message.channel, 'error: one or both systems not found')
+		return
+	elif len(result) > 2:
+		client.send_message(message.channel,
+				'error: found too many systems: ' + ' '.join(map(operator.itemgetter(0), result)))
 		return
 
 	dist = 0
-	for d1, d2 in zip(result[0], result[1]):
+	for d1, d2 in zip(result[0][1:], result[1][1:]):
 		dist += (d1 - d2)**2
 	dist = sqrt(dist) / 9.4605284e15 # meters to lightyears
 	ship_ranges = [
@@ -235,7 +239,7 @@ def lightyears(client, message, args):
 				break
 		else:
 			jdc.append(ship + ' N/A')
-	client.send_message(message.channel, '%.3f ly\n%s' % (dist,'\n'.join(jdc)))
+	client.send_message(message.channel, '%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist,'\n'.join(jdc)))
 
 handlers = {
 	'calc': calc,
