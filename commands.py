@@ -119,8 +119,8 @@ def price_check(client, message, args):
 					del item['type']
 				crest_price_cache['last_update'] = now
 		prices = crest_price_cache['items'].get(typeid)
-		if prices:
-			if prices['adjustedPrice'] < 1000.0:
+		if prices and 'averagePrice' in prices:
+			if prices['averagePrice'] < 1000.0:
 				return 'avg {averagePrice:g} adj {adjustedPrice:g}'.format(**prices)
 			for k, v in prices.items():
 				prices[k] = int(v)
@@ -189,9 +189,11 @@ utc = dateutil.tz.tzutc()
 korean = dateutil.tz.gettz('Asia/Seoul')
 australian = dateutil.tz.gettz('Australia/Sydney')
 def timezones(client, message, args):
+	if not args:
+		return
 	try:
 		dt = dateutil.parser.parse(args)
-	except ValueError as e:
+	except (ValueError, AttributeError) as e:
 		client.send_message(message.channel, str(e))
 		return
 	if not dt.tzinfo:
