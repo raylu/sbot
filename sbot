@@ -9,14 +9,25 @@ import requests
 import websocket
 
 import config
+import eve
+import utils
 
 def main():
-	bot = Bot()
+	bot = Bot({
+		'calc': utils.calc,
+		'roll': utils.roll,
+		'time': utils.timezones,
+
+		'pc': eve.price_check,
+		'price': eve.price_check,
+		'jumps': eve.jumps,
+		'ly': eve.lightyears,
+	})
 	bot.connect()
 	bot.run_forever()
 
 class Bot:
-	def __init__(self):
+	def __init__(self, commands):
 		self.ws = None
 		self.rs = requests.Session()
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
@@ -33,6 +44,7 @@ class Bot:
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
 		}
+		self.commands = commands
 
 	def connect(self):
 		if config.state.gateway_url is None:
@@ -108,14 +120,41 @@ class Bot:
 
 	def handle_message_create(self, d):
 		print('%s> %s' % (d['author']['username'], d['content']))
-		if d['content'] == 'test':
-			self.send_message(d['channel_id'], 'ahoy!')
+
+		content = d['content']
+		if len(content) < 20 or not content.startswith('<@'):
+			return
+		for mention in d['mentions']:
+			if mention['id'] == self.user_id:
+				break
+		else: # we are not mentioned
+			return
+
+		message = content[content.find('>') + 2:]
+		split = message.split(' ', 1)
+		handler = self.commands.get(split[0])
+		if handler:
+			arg = ''
+			if len(split) == 2:
+				arg = split[1]
+			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
+			handler(cmd)
 
 	def heartbeat_loop(self, interval_ms):
 		interval_s = interval_ms / 1000
 		while True:
 			time.sleep(interval_s)
 			self.send(OP.HEARTBEAT, self.seq)
+
+class CommandEvent:
+	def __init__(self, channel_id, sender, args, bot):
+		self.channel_id = channel_id
+		self.sender = sender
+		self.args = args
+		self.bot = bot
+
+	def reply(self, message):
+		self.bot.send_message(self.channel_id, message)
 
 class OP:
 	DISPATCH              = 0

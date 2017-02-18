@@ -1,3 +1,4 @@
 token: null
 err_channel: null
+eve_dsn: 'dbname=ykill user=ykill'
 debug: false

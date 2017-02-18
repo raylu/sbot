@@ -1,10 +1,7 @@
 from math import sqrt
 import operator
 import time
-import urllib
 
-import dateutil.parser
-import dateutil.tz
 import psycopg2
 import requests
 
@@ -12,24 +9,10 @@ import config
 
 rs = requests.Session()
 rs.headers.update({'User-Agent': 'sbot'})
-db = psycopg2.connect(config.eve_dsn)
-
-def calc(client, message, args):
-	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': args})
-	client.send_message(message.channel, response.text.rstrip())
-
-def roll(client, message, args):
-	if not args:
-		args = '1d6'
-	response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
-	split = response.text.split('\n')
-	details = split[2].split('=', 1)[1].strip()
-	details = details.replace(' +', ' + ').replace(' +  ', ' + ')
-	result = split[1].split('=', 1)[1]
-	client.send_message(message.channel, '%s %s' % (result, details))
+db = psycopg2.connect(config.bot.eve_dsn)
 
 crest_price_cache = {'last_update': 0, 'items': {}}
-def price_check(client, message, args):
+def price_check(cmd):
 	def get_prices(typeid, system=None, region=None):
 		from xml.dom import minidom
 		import xml.parsers.expat
@@ -89,7 +72,7 @@ def price_check(client, message, args):
 				return results
 			if results:
 				names = map(lambda r: r[1], results)
-				client.send_message(message.channel, 'Found items: ' + ', '.join(names))
+				cmd.reply('Found items: ' + ', '.join(names))
 				return
 
 			# substring match
@@ -98,9 +81,9 @@ def price_check(client, message, args):
 				return results
 			if results:
 				names = map(lambda r: r[1], results)
-				client.send_message(message.channel, 'Found items: ' + ', '.join(names))
+				cmd.reply('Found items: ' + ', '.join(names))
 				return
-			client.send_message(message.channel, 'Item not found')
+			cmd.reply('Item not found')
 	def format_prices(prices):
 		if prices is None:
 			return 'n/a'
@@ -128,6 +111,7 @@ def price_check(client, message, args):
 		else:
 			return 'n/a'
 
+	args = cmd.args
 	if args.lower() == 'plex':
 		args = "30 Day Pilot's License Extension (PLEX)"
 	result = item_info(args)
@@ -141,12 +125,12 @@ def price_check(client, message, args):
 	jita = format_prices(jita_prices)
 	amarr = format_prices(amarr_prices)
 	crest = get_crest_price(typeid)
-	client.send_message(message.channel, '%s\nJita: %s\nAmarr: %s\nCREST: %s' % (item_name, jita, amarr, crest))
+	cmd.reply('%s\nJita: %s\nAmarr: %s\nCREST: %s' % (item_name, jita, amarr, crest))
 
-def jumps(client, message, args):
-	split = args.split()
+def jumps(cmd):
+	split = cmd.args.split()
 	if len(split) != 2:
-		client.send_message(message.channel, 'usage: `!jumps [from] [to]`')
+		cmd.reply('usage: `!jumps [from] [to]`')
 		return
 	with db.cursor() as curs:
 		curs.execute('''
@@ -163,7 +147,7 @@ def jumps(client, message, args):
 				query[i] = r
 				break
 		else:
-			client.send_message(message.channel, 'could not find system starting with ' + s)
+			cmd.reply('could not find system starting with ' + s)
 			break
 	if None in query:
 		return
@@ -171,7 +155,7 @@ def jumps(client, message, args):
 	try:
 		jumps = r.json()
 	except ValueError:
-		client.send_message(message.channel, 'error getting jumps')
+		cmd.reply('error getting jumps')
 		return
 	jumps_split = []
 	for j in jumps:
@@ -181,33 +165,12 @@ def jumps(client, message, args):
 		if from_sec != to_sec:
 			j_str += ' (%0.1g)' % to_sec
 		jumps_split.append(j_str)
-	client.send_message(message.channel, '%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
+	cmd.reply('%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
 
-pacific = dateutil.tz.gettz('America/Los_Angeles')
-eastern = dateutil.tz.gettz('America/New_York')
-utc = dateutil.tz.tzutc()
-korean = dateutil.tz.gettz('Asia/Seoul')
-australian = dateutil.tz.gettz('Australia/Sydney')
-def timezones(client, message, args):
-	if not args:
-		return
-	try:
-		dt = dateutil.parser.parse(args)
-	except (ValueError, AttributeError) as e:
-		client.send_message(message.channel, str(e))
-		return
-	if not dt.tzinfo:
-		dt = dt.replace(tzinfo=utc)
-	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n'
-	response += '{:%a %-d %H:%M %Z}\n{:%a %-d %-I:%M %p %Z}'
-	response = response.format(dt.astimezone(pacific), dt.astimezone(eastern), dt.astimezone(utc),
-			dt.astimezone(korean), dt.astimezone(australian))
-	client.send_message(message.channel, response)
-
-def lightyears(client, message, args):
-	split = [n + '%' for n in args.lower().split()]
+def lightyears(cmd):
+	split = [n + '%' for n in cmd.args.lower().split()]
 	if len(split) != 2:
-		client.send_message(message.channel, 'usage: !ly [from] [to]')
+		cmd.reply('usage: !ly [from] [to]')
 		return
 
 	with db.cursor() as curs:
@@ -217,11 +180,10 @@ def lightyears(client, message, args):
 				''', split)
 		result = curs.fetchmany(6)
 	if len(result) < 2:
-		client.send_message(message.channel, 'error: one or both systems not found')
+		cmd.reply('error: one or both systems not found')
 		return
 	elif len(result) > 2:
-		client.send_message(message.channel,
-				'error: found too many systems: ' + ' '.join(map(operator.itemgetter(0), result)))
+		cmd.reply('error: found too many systems: ' + ' '.join(map(operator.itemgetter(0), result)))
 		return
 
 	dist = 0
@@ -241,14 +203,4 @@ def lightyears(client, message, args):
 				break
 		else:
 			jdc.append(ship + ' N/A')
-	client.send_message(message.channel, '%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist,'\n'.join(jdc)))
-
-handlers = {
-	'calc': calc,
-	'pc': price_check,
-	'price': price_check,
-	'roll': roll,
-	'jumps': jumps,
-	'time': timezones,
-	'ly': lightyears,
-}
+	cmd.reply('%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist,'\n'.join(jdc)))
