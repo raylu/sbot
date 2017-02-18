@@ -111,7 +111,7 @@ def price_check(client, message, args):
 	def get_crest_price(typeid):
 		now = time.time()
 		if crest_price_cache['last_update'] < now - 60 * 60 * 2:
-			res = rs.get('https://public-crest.eveonline.com/market/prices/')
+			res = rs.get('https://crest-tq.eveonline.com/market/prices/')
 			if res.status_code == 200:
 				crest_price_cache['items'].clear()
 				for item in res.json()['items']:
