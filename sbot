@@ -10,6 +10,7 @@ import _thread
 import requests
 import websocket
 
+import code_eval
 import config
 import eve
 import utils
@@ -24,6 +25,10 @@ def main():
 		'price': eve.price_check,
 		'jumps': eve.jumps,
 		'ly': eve.lightyears,
+
+		'js': code_eval.nodejs,
+		'ruby': code_eval.irb,
+		'python3': code_eval.python3,
 	})
 	bot.connect()
 	bot.run_forever()
@@ -160,6 +165,12 @@ class Bot:
 class CommandEvent:
 	def __init__(self, channel_id, sender, args, bot):
 		self.channel_id = channel_id
+		# sender = {
+		#     'username': 'raylu',
+		#     'id': '109405765848088576',
+		#     'discriminator': '8396',
+		#     'avatar': '464d73d2ca17733636282ab58b8cc3f5',
+		# }
 		self.sender = sender
 		self.args = args
 		self.bot = bot
