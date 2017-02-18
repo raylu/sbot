@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import json
+import sys
 import time
+import traceback
 import zlib
 import _thread
 
@@ -70,7 +72,16 @@ class Bot:
 			self.seq = data['s']
 			handler = self.handlers.get(data['op'])
 			if handler:
-				handler(data['t'], data['d'])
+				try:
+					handler(data['t'], data['d'])
+				except:
+					tb = traceback.format_exc()
+					if config.bot.err_channel:
+						try:
+							self.send_message(config.bot.err_channel, '```\n%s\n```' % tb[:2000])
+						except Exception as e:
+							print('error sending to err_channel: %r' % e, file=sys.stderr)
+					print(tb, file=sys.stderr)
 
 	def get(self, path):
 		response = self.rs.get('https://discordapp.com/api' + path)
