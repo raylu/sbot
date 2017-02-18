@@ -1,76 +1,125 @@
 #!/usr/bin/env python3
 
-import _thread
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
-import traceback
-import urllib.parse
+import zlib
 
-import discord
+import requests
+import websocket
 
 import config
-import commands
 
-client = discord.Client()
+def main():
+	bot = Bot()
+	bot.connect()
+	bot.run_forever()
 
-channel = raylu = None
+class Bot:
+	def __init__(self):
+		self.ws = None
+		self.rs = requests.Session()
+		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
+		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot 0.0'
+		self.heartbeat_interval = None # in ms
+		self.user_id = None
 
-@client.event
-def on_ready():
-	global channel, raylu
-	print('Logged in as', client.user.name, client.user.id)
-	channel = client.get_channel('156656432874389504') # PyBuddies#github
-	raylu = client.get_channel('160454259375079424')
+		self.handlers = {
+			OP.HELLO: self.handle_hello,
+			OP.DISPATCH: self.handle_dispatch,
+		}
+		self.events = {
+			'READY': self.handle_ready,
+			'MESSAGE_CREATE': self.handle_message_create,
+		}
 
-@client.event
-def on_message(message):
-	text = message.content
-	if text.startswith('!'):
-		split = text.split(' ', 1)
-		command = split[0][1:]
-		handler = commands.handlers.get(command)
+	def connect(self):
+		if config.state.gateway_url is None:
+			data = self.get('/gateway/bot')
+			config.state.gateway_url = data['url']
+			config.state.save()
+
+		url = config.state.gateway_url + '?v=5&encoding=json'
+		self.ws = websocket.create_connection(url)
+
+	def run_forever(self):
+		while True:
+			raw_data = self.ws.recv()
+			# one might think that after sending "compress": true, we can expect to only receive
+			# compressed data. one would be underestimating discord's incompetence
+			if isinstance(raw_data, bytes):
+				raw_data = zlib.decompress(raw_data).decode('utf-8')
+			if not raw_data:
+				break
+			if config.bot.debug:
+				print('<-', raw_data)
+			data = json.loads(raw_data)
+			handler = self.handlers.get(data['op'])
+			if handler:
+				handler(data['t'], data['d'])
+
+	def get(self, path):
+		response = self.rs.get('https://discordapp.com/api' + path)
+		response.raise_for_status()
+		return response.json()
+
+	def post(self, path, data):
+		if config.bot.debug:
+			print('=>', path, data)
+		response = self.rs.post('https://discordapp.com/api' + path, json=data)
+		response.raise_for_status()
+		return response.json()
+
+	def send(self, op, d):
+		raw_data = json.dumps({'op': op, 'd': d})
+		if config.bot.debug:
+			print('->', raw_data)
+		self.ws.send(raw_data)
+
+	def send_message(self, channel_id, text):
+		self.post('/channels/%s/messages' % channel_id, {
+			'content': text,
+		})
+
+	def handle_hello(self, _, d):
+		print('connected to', d['_trace'])
+		self.heartbeat_interval = d['heartbeat_interval']
+		self.send(OP.IDENTIFY, {
+			'token': config.bot.token,
+			'properties': {
+				'$browser': 'github.com/raylu/sbot',
+				'$device': 'github.com/raylu/sbot',
+			},
+			'compress': True,
+			'large_threshold': 50,
+			'shard': [0, 1]
+		})
+
+	def handle_dispatch(self, event, d):
+		handler = self.events.get(event)
 		if handler:
-			args = None
-			if len(split) > 1:
-				args = split[1]
-			try:
-				handler(client, message, args)
-			except:
-				client.send_message(raylu, '```\n%s\n```' % traceback.format_exc())
+			handler(d)
 
-class GitHubHandler(BaseHTTPRequestHandler):
-	def do_POST(self):
-		clength = int(self.headers['Content-Length'])
-		content = self.rfile.read(clength).decode('utf-8')
-		github_event = self.headers.get('X-GitHub-Event')
-		if github_event:
-			data = json.loads(content)
-		else: # travisci
-			params = urllib.parse.parse_qs(content, strict_parsing=True)
-			data = json.loads(params['payload'][0])
+	def handle_ready(self, d):
+		print('connected as', d['user']['username'])
+		self.user_id = d['user']['id']
 
-		if github_event == 'push':
-			message = []
-			branch = data['ref']
-			if branch.startswith('refs/heads/'):
-				branch = branch[len('refs/heads/'):]
-			message.append('%s pushed to `%s`: %s' % (data['pusher']['name'], branch, data['compare']))
-			for commit in data['commits']:
-				if commit['distinct']:
-					message.append('`%s` (%s): %s' % (commit['id'][:7], commit['author']['name'], commit['message']))
-			client.send_message(channel, '\n'.join(message))
-		elif not github_event: # travisci
-			status = data.get('status_message') or data['result_message']
-			# data['type'] is 'push' or 'pull_request'
-			client.send_message(channel, '%s build for %s on `%s` by %s: %s' % (
-					status, data['type'], data['branch'], data['author_name'], data['build_url']))
+	def handle_message_create(self, d):
+		print('%s> %s' % (d['author']['username'], d['content']))
+		if d['content'] == 'test':
+			self.send_message(d['channel_id'], 'ahoy!')
 
-		self.send_response(200)
-		self.send_header('Content-Length', '0')
-		self.end_headers()
+class OP:
+	DISPATCH              = 0
+	HEARTBEAT             = 1
+	IDENTIFY              = 2
+	STATUS_UPDATE         = 3
+	VOICE_STATE_UPDATE    = 4
+	VOICE_SERVER_PING     = 5
+	RESUME                = 6
+	RECONNECT             = 7
+	REQUEST_GUILD_MEMBERS = 8
+	INVALID_SESSION       = 9
+	HELLO                 = 10
+	HEARTBEAT_ACK         = 11
 
-httpd = HTTPServer(('', 8009), GitHubHandler)
-_thread.start_new_thread(httpd.serve_forever, ())
-
-client.login(config.email, config.password)
-client.run()
+if __name__ == '__main__':
+	main()
