@@ -154,19 +154,19 @@ def jumps(cmd):
 		return
 	r = rs.get('http://api.eve-central.com/api/route/from/%s/to/%s' % (query[0], query[1]))
 	try:
-		jumps = r.json()
+		data = r.json()
 	except ValueError:
 		cmd.reply('error getting jumps')
 		return
 	jumps_split = []
-	for j in jumps:
+	for j in data:
 		j_str = j['to']['name']
 		from_sec = j['from']['security']
 		to_sec = j['to']['security']
 		if from_sec != to_sec:
 			j_str += ' (%0.1g)' % to_sec
 		jumps_split.append(j_str)
-	cmd.reply('%d jumps: %s' % (len(jumps), ', '.join(jumps_split)))
+	cmd.reply('%d jumps: %s' % (len(data), ', '.join(jumps_split)))
 
 def lightyears(cmd):
 	split = [n + '%' for n in cmd.args.lower().split()]
@@ -204,4 +204,4 @@ def lightyears(cmd):
 				break
 		else:
 			jdc.append(ship + ' N/A')
-	cmd.reply('%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist,'\n'.join(jdc)))
+	cmd.reply('%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist, '\n'.join(jdc)))
