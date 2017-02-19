@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
+from collections import defaultdict
+import imp
 import json
+import os
 import sys
 import time
 import traceback
@@ -52,6 +55,17 @@ class Bot:
 			'MESSAGE_CREATE': self.handle_message_create,
 		}
 		self.commands = commands
+
+		if config.bot.autoreload:
+			self.mtimes = {}
+			self.modules = defaultdict(list)
+			for trigger, handler in commands.items():
+				module_name = handler.__module__
+				module = sys.modules[module_name]
+				path = module.__file__
+				if module_name not in self.mtimes:
+					self.mtimes[module_name] = os.stat(path).st_mtime
+				self.modules[module_name].append(trigger)
 
 	def connect(self):
 		if config.state.gateway_url is None:
@@ -150,6 +164,20 @@ class Bot:
 		split = message.split(' ', 1)
 		handler = self.commands.get(split[0])
 		if handler:
+			if config.bot.autoreload:
+				module_name = handler.__module__
+				module = sys.modules[module_name]
+				path = module.__file__
+				new_mtime = os.stat(path).st_mtime
+				if new_mtime > self.mtimes[module_name]:
+					imp.reload(module)
+					self.mtimes[module_name] = new_mtime
+					for trigger in self.modules[module_name]:
+						handler_name = self.commands[trigger].__name__
+						self.commands[trigger] = getattr(module, handler_name)
+						if trigger == split[0]:
+							handler = self.commands[trigger]
+
 			arg = ''
 			if len(split) == 2:
 				arg = split[1]

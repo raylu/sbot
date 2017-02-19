@@ -1,4 +1,7 @@
 token: null
 err_channel: null
 eve_dsn: 'dbname=ykill user=ykill'
+autoreload: false
 debug: false
+
+# vim: set ft=yaml:
