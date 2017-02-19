@@ -4,7 +4,7 @@ def nodejs(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--rlimit_as', '700', '--chroot', 'chroot',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo', '--',
-			'/usr/bin/nodejs', '--print', cmd.args]
+			'/usr/bin/nodejs', '--print', cmd.args.strip('`')]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = proc.communicate()
@@ -17,7 +17,7 @@ def nodejs(cmd):
 			output = stderr.split('\n', 5)[4]
 		except IndexError:
 			output = 'unknown error'
-	cmd.reply('%s: %s' % (cmd.sender['username'], output[:500]))
+	reply(cmd, output)
 
 def irb(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', '',
@@ -25,7 +25,7 @@ def irb(cmd):
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo', '--',
 			'/usr/bin/irb', '-f', '--noprompt']
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-	stdout, _ = proc.communicate(cmd.args)
+	stdout, _ = proc.communicate(cmd.args.strip('`'))
 	if proc.returncode == 109:
 		output = 'timed out after 2 seconds'
 	else:
@@ -34,7 +34,7 @@ def irb(cmd):
 			output = output.split('\n', 1)[0]
 		except IndexError:
 			output = 'unknown error'
-	cmd.reply('%s: %s' % (cmd.sender['username'], output[:500]))
+	reply(cmd, output)
 
 def python3(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', 'chroot', '-E', 'LANG=en_US.UTF-8',
@@ -43,7 +43,7 @@ def python3(cmd):
 			'/usr/bin/python3', '-ISqi']
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
-	stdout, stderr = proc.communicate(cmd.args + '\n')
+	stdout, stderr = proc.communicate(cmd.args.strip('`') + '\n')
 	if proc.returncode == 0:
 		if stderr != '>>> >>> \n':
 			try:
@@ -56,4 +56,8 @@ def python3(cmd):
 		output = 'timed out after 2 seconds'
 	else:
 		output = 'unknown error'
-	cmd.reply('%s: %s' % (cmd.sender['username'], output[:500]))
+	reply(cmd, output)
+
+def reply(cmd, output):
+	message = '%s:\n```\n%s\n```' % (cmd.sender['username'], output[:500])
+	cmd.reply(message)
