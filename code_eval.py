@@ -4,12 +4,12 @@ def nodejs(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--rlimit_as', '700', '--chroot', 'chroot',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo', '--',
-			'/usr/bin/nodejs', '--print', cmd.args.strip('`')]
+			'/usr/bin/nodejs', '--print', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = proc.communicate()
 	if proc.returncode == 0:
-		output = stdout.split('\n', 1)[0]
+		output = stdout
 	elif proc.returncode == 109:
 		output = 'timed out after 2 seconds'
 	else:
@@ -23,17 +23,17 @@ def irb(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', '',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo', '--',
-			'/usr/bin/irb', '-f', '--noprompt']
+			'/usr/bin/irb', '-f', '--simple-prompt']
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-	stdout, _ = proc.communicate(cmd.args.strip('`'))
+	stdout, _ = proc.communicate(prep_input(cmd.args))
 	if proc.returncode == 109:
 		output = 'timed out after 2 seconds'
 	else:
-		try:
-			output = stdout.split('\n', 2)[2].lstrip('\n')
-			output = output.split('\n', 1)[0]
-		except IndexError:
-			output = 'unknown error'
+		lines = stdout.split('\n')
+		output = ''
+		for line in lines[1:]:
+			if not line.startswith('>> ') and not line.startswith('?>'):
+				output += line + '\n'
 	reply(cmd, output)
 
 def python3(cmd):
@@ -43,21 +43,29 @@ def python3(cmd):
 			'/usr/bin/python3', '-ISqi']
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
-	stdout, stderr = proc.communicate(cmd.args.strip('`') + '\n')
+	stdout, stderr = proc.communicate(prep_input(cmd.args) + '\n')
 	if proc.returncode == 0:
-		if stderr != '>>> >>> \n':
+		if stdout == '':
 			try:
 				output = stderr.split('\n')[-3]
 			except IndexError:
 				output = ''
 		else:
-			output = stdout.split('\n', 1)[0]
+			output = stdout
 	elif proc.returncode == 109:
 		output = 'timed out after 2 seconds'
 	else:
 		output = 'unknown error'
 	reply(cmd, output)
 
+def prep_input(args):
+	return args.strip('`').strip()
+
 def reply(cmd, output):
-	message = '%s:\n```\n%s\n```' % (cmd.sender['username'], output[:500])
+	split = output.split('\n', 10)
+	output = '\n'.join(split[:10])
+	output = output[:500]
+	if len(split) == 11:
+		output += '\n(too many output lines)'
+	message = '%s:\n```\n%s\n```' % (cmd.sender['username'], output)
 	cmd.reply(message)

@@ -161,7 +161,8 @@ class Bot:
 			return
 
 		message = content[content.find('>') + 2:]
-		split = message.split(' ', 1)
+		lines = message.split('\n', 1)
+		split = lines[0].split(' ', 1)
 		handler = self.commands.get(split[0])
 		if handler:
 			if config.bot.autoreload:
@@ -181,6 +182,8 @@ class Bot:
 			arg = ''
 			if len(split) == 2:
 				arg = split[1]
+			if len(lines) == 2:
+				arg += lines[1]
 			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
 			handler(cmd)
 
