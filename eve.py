@@ -9,7 +9,8 @@ import config
 
 rs = requests.Session()
 rs.headers.update({'User-Agent': 'sbot'})
-db = psycopg2.connect(config.bot.eve_dsn)
+if config.bot.eve_dsn is not None:
+	db = psycopg2.connect(config.bot.eve_dsn)
 
 crest_price_cache = {'last_update': 0, 'items': {}}
 def price_check(cmd):
