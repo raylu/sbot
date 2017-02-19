@@ -126,8 +126,6 @@ class Bot:
 		self.user_id = d['user']['id']
 
 	def handle_message_create(self, d):
-		print('%s> %s' % (d['author']['username'], d['content']))
-
 		content = d['content']
 		if len(content) < 20 or not content.startswith('<@'):
 			return
