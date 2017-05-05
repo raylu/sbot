@@ -18,8 +18,9 @@ def nodejs(cmd):
 	elif proc.returncode == 109:
 		output = 'timed out'
 	else:
+		split = stderr.split('\n', 5)
 		try:
-			output = stderr.split('\n', 5)[4]
+			output = split[4]
 		except IndexError:
 			if split[0].startswith('FATAL ERROR:'):
 				output = split[0]

@@ -127,16 +127,10 @@ class Bot:
 
 	def handle_message_create(self, d):
 		content = d['content']
-		if len(content) < 20 or not content.startswith('<@'):
-			return
-		for mention in d['mentions']:
-			if mention['id'] == self.user_id:
-				break
-		else: # we are not mentioned
+		if not content.startswith('!'):
 			return
 
-		message = content[content.find('>') + 2:]
-		lines = message.split('\n', 1)
+		lines = content[1:].split('\n', 1)
 		split = lines[0].split(' ', 1)
 		handler = self.commands.get(split[0])
 		if handler:

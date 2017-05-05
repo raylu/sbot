@@ -18,8 +18,8 @@ def main():
 
 		'js': code_eval.nodejs,
 		'ruby': code_eval.irb,
-		'python2': code_eval.python2,
-		'python3': code_eval.python3,
+		'py2': code_eval.python2,
+		'py3': code_eval.python3,
 	})
 	bot.connect()
 	bot.run_forever()
