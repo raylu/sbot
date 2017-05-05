@@ -173,9 +173,18 @@ class Bot:
 
 class Guild:
 	def __init__(self, d):
-		self.roles = {} # name -> id
+		self.roles = {} # name -> {
+		#	'color': 0,
+		#	'hoist': False,
+		#	'id': '282441120896516096',
+		#	'managed': True,
+		#	'mentionable': False,
+		#	'name': 'sbot',
+		#	'permissions': 805637184,
+		#	'position': 5,
+		# }
 		for role in d['roles']:
-			self.roles[role['name']] = role['id']
+			self.roles[role['name']] = role
 
 class CommandEvent:
 	def __init__(self, channel_id, sender, args, bot):

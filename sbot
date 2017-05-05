@@ -24,6 +24,8 @@ def main():
 
 		'join': management.join,
 		'leave': management.leave,
+		'roles': management.list_roles,
+		'groups': management.list_roles,
 	})
 	bot.connect()
 	bot.run_forever()
