@@ -3,6 +3,7 @@
 from bot import Bot
 import code_eval
 import eve
+import management
 import utils
 
 def main():
@@ -20,6 +21,9 @@ def main():
 		'ruby': code_eval.irb,
 		'py2': code_eval.python2,
 		'py3': code_eval.python3,
+
+		'join': management.join,
+		'leave': management.leave,
 	})
 	bot.connect()
 	bot.run_forever()

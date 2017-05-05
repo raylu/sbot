@@ -22,6 +22,8 @@ class Bot:
 		self.heartbeat_thread = None
 		self.user_id = None
 		self.seq = None
+		self.guilds = {} # guild id -> Guild
+		self.channels = {} # channel id -> guild id
 
 		self.handlers = {
 			OP.HELLO: self.handle_hello,
@@ -30,6 +32,7 @@ class Bot:
 		self.events = {
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
+			'GUILD_CREATE': self.handle_guild_create,
 		}
 		self.commands = commands
 
@@ -84,12 +87,13 @@ class Bot:
 		response.raise_for_status()
 		return response.json()
 
-	def post(self, path, data):
+	def post(self, path, data, method='POST'):
 		if config.bot.debug:
 			print('=>', path, data)
-		response = self.rs.post('https://discordapp.com/api' + path, json=data)
+		response = self.rs.request(method, 'https://discordapp.com/api' + path, json=data)
 		response.raise_for_status()
-		return response.json()
+		if response.status_code != 204: # No Content
+			return response.json()
 
 	def send(self, op, d):
 		raw_data = json.dumps({'op': op, 'd': d})
@@ -156,11 +160,22 @@ class Bot:
 			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
 			handler(cmd)
 
+	def handle_guild_create(self, d):
+		self.guilds[d['id']] = Guild(d)
+		for channel in d['channels']:
+			self.channels[channel['id']] = d['id']
+
 	def heartbeat_loop(self, interval_ms):
 		interval_s = interval_ms / 1000
 		while True:
 			time.sleep(interval_s)
 			self.send(OP.HEARTBEAT, self.seq)
+
+class Guild:
+	def __init__(self, d):
+		self.roles = {} # name -> id
+		for role in d['roles']:
+			self.roles[role['name']] = role['id']
 
 class CommandEvent:
 	def __init__(self, channel_id, sender, args, bot):
