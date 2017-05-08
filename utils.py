@@ -1,4 +1,5 @@
 import urllib.parse
+import subprocess
 
 import dateutil.parser
 import dateutil.tz
@@ -10,6 +11,12 @@ rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
 def calc(cmd):
 	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': cmd.args})
 	cmd.reply(response.text.rstrip())
+
+def units(cmd):
+	command = ['units', '--compact', '--one-line', '--quiet'] + cmd.args.split(' in ', 1)
+	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
+	output, _ = proc.communicate()
+	cmd.reply(output)
 
 def roll(cmd):
 	args = cmd.args or '1d6'

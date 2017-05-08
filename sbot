@@ -9,6 +9,7 @@ import utils
 def main():
 	bot = Bot({
 		'calc': utils.calc,
+		'units': utils.units,
 		'roll': utils.roll,
 		'time': utils.timezones,
 
