@@ -113,8 +113,6 @@ def price_check(cmd):
 			return 'n/a'
 
 	args = cmd.args
-	if args.lower() == 'plex':
-		args = "30 Day Pilot's License Extension (PLEX)"
 	result = item_info(args)
 	if not result:
 		return
