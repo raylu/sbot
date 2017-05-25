@@ -189,9 +189,10 @@ def lightyears(cmd):
 		dist += (d1 - d2)**2
 	dist = sqrt(dist) / 9.4605284e15 # meters to lightyears
 	ship_ranges = [
-		('CAP:', 2.5), # jump range for all other ships
-		('BO:', 4.0), # blackops
-		('JF:', 5.0), # jump freighters
+		('other:', 3.5),
+		('blackops:', 4.0),
+		('jump freighter:', 5.0),
+		('super:', 3.0),
 	]
 	jdc = []
 	for ship, jump_range in ship_ranges:
