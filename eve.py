@@ -1,6 +1,8 @@
 from math import sqrt
 import operator
 import time
+from xml.dom import minidom
+import xml.parsers.expat
 
 import psycopg2
 import requests
@@ -15,27 +17,24 @@ if config.bot.eve_dsn is not None:
 crest_price_cache = {'last_update': 0, 'items': {}}
 def price_check(cmd):
 	def get_prices(typeid, system=None, region=None):
-		from xml.dom import minidom
-		import xml.parsers.expat
-
 		url = 'http://api.eve-central.com/api/marketstat'
 		params = {'typeid': typeid}
 		if system: params['usesystem'] = system
 		if region: params['regionlimit'] = region
 		try:
-			xml = minidom.parseString(rs.get(url, params=params).text)
+			dom = minidom.parseString(rs.get(url, params=params).text)
 		except xml.parsers.expat.ExpatError:
 			return None
 
-		buy = xml.getElementsByTagName('buy')[0]
+		buy = dom.getElementsByTagName('buy')[0]
 		buy_max = buy.getElementsByTagName('max')[0]
 		bid = float(buy_max.childNodes[0].data)
 
-		sell = xml.getElementsByTagName('sell')[0]
+		sell = dom.getElementsByTagName('sell')[0]
 		sell_min = sell.getElementsByTagName('min')[0]
 		ask = float(sell_min.childNodes[0].data)
 
-		all_orders = xml.getElementsByTagName('all')[0]
+		all_orders = dom.getElementsByTagName('all')[0]
 		all_volume = all_orders.getElementsByTagName('volume')[0]
 		volume = int(all_volume.childNodes[0].data)
 
@@ -203,3 +202,42 @@ def lightyears(cmd):
 		else:
 			jdc.append(ship + ' N/A')
 	cmd.reply('%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist, '\n'.join(jdc)))
+
+def who(cmd):
+	try:
+		r = rs.get('https://api.eveonline.com/eve/CharacterId.xml.aspx', params={'names': cmd.args})
+		r.raise_for_status()
+		dom = minidom.parseString(r.text)
+		row = dom.getElementsByTagName('row')[0]
+		char_id = int(row.attributes['characterID'].nodeValue)
+
+		r = rs.get('https://esi.tech.ccp.is/v4/characters/%d/' % char_id)
+		r.raise_for_status()
+		data = r.json()
+		char_name = data['name']
+		corp_id = int(data['corporation_id'])
+		birthday = data['birthday']
+		security_status = data['security_status']
+		output = '%s: born %s, security status %.2f' % (char_name, birthday, security_status)
+
+		r = rs.get('https://esi.tech.ccp.is/v3/corporations/%d/' % corp_id)
+		r.raise_for_status()
+		data = r.json()
+		corp_name = data['corporation_name']
+		creation_date = data.get('creation_date', '?') # NPC corps have no creation_date
+		members = data['member_count']
+		alliance_id = data.get('alliance_id')
+		output += '\n%s: created %s, %s members' % (corp_name, creation_date, members)
+
+		if alliance_id:
+			alliance_id = int(alliance_id)
+			r = rs.get('https://esi.tech.ccp.is/v2/alliances/%d/' % alliance_id)
+			r.raise_for_status()
+			data = r.json()
+			alliance_name = data['alliance_name']
+			founding_date = data['date_founded']
+			output += '\n%s: founded %s' % (alliance_name, founding_date)
+
+		cmd.reply(output)
+	except requests.exceptions.HTTPError:
+		cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['username'])

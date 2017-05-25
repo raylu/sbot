@@ -17,6 +17,7 @@ def main():
 		'price': eve.price_check,
 		'jumps': eve.jumps,
 		'ly': eve.lightyears,
+		'who': eve.who,
 
 		'js': code_eval.nodejs,
 		'ruby': code_eval.irb,
