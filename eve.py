@@ -1,3 +1,4 @@
+import datetime
 from math import sqrt
 import operator
 import time
@@ -205,6 +206,7 @@ def lightyears(cmd):
 	cmd.reply('%s ⟷ %s: %.3f ly\n%s' % (result[0][0], result[1][0], dist, '\n'.join(jdc)))
 
 def who(cmd):
+	dt_format = '%Y-%m-%dT%H:%M:%SZ'
 	try:
 		r = rs.get('https://api.eveonline.com/eve/CharacterId.xml.aspx', params={'names': cmd.args})
 		r.raise_for_status()
@@ -218,6 +220,7 @@ def who(cmd):
 		char_name = data['name']
 		corp_id = int(data['corporation_id'])
 		birthday = data['birthday']
+		birthday = datetime.datetime.strptime(birthday, dt_format).date()
 		security_status = data['security_status']
 		output = '%s: born %s, security status %.2f' % (char_name, birthday, security_status)
 
@@ -225,7 +228,11 @@ def who(cmd):
 		r.raise_for_status()
 		data = r.json()
 		corp_name = data['corporation_name']
-		creation_date = data.get('creation_date', '?') # NPC corps have no creation_date
+		creation_date = data.get('creation_date') # NPC corps have no creation_date
+		if creation_date:
+			creation_date = datetime.datetime.strptime(creation_date, dt_format).date()
+		else:
+			creation_date = '?'
 		members = data['member_count']
 		alliance_id = data.get('alliance_id')
 		output += '\n%s: created %s, %s members' % (corp_name, creation_date, members)
@@ -237,6 +244,7 @@ def who(cmd):
 			data = r.json()
 			alliance_name = data['alliance_name']
 			founding_date = data['date_founded']
+			founding_date = datetime.datetime.strptime(founding_date, dt_format).date()
 			output += '\n%s: founded %s' % (alliance_name, founding_date)
 
 		cmd.reply(output)
