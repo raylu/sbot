@@ -25,4 +25,4 @@ class YamlAttrs:
 		return '%s %s' % (self.__class__, self.__dict__)
 
 bot = YamlAttrs('config.yaml')
-state = YamlAttrs('state.yaml', defaults={'gateway_url': None})
+state = YamlAttrs('state.yaml', defaults={'gateway_url': None, 'timers': {}})

@@ -1,17 +1,21 @@
 from collections import defaultdict
+import copy
+import datetime
 import imp
 import json
 import os
 import sys
+import _thread
+import threading
 import time
 import traceback
 import zlib
-import _thread
-
-import config
 
 import requests
 import websocket
+
+import config
+from utils import readable_rel
 
 class Bot:
 	def __init__(self, commands):
@@ -20,6 +24,8 @@ class Bot:
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
 		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot 0.0'
 		self.heartbeat_thread = None
+		self.timer_thread = None
+		self.timer_condvar = threading.Condition()
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
@@ -128,6 +134,7 @@ class Bot:
 	def handle_ready(self, d):
 		print('connected as', d['user']['username'])
 		self.user_id = d['user']['id']
+		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
 
 	def handle_message_create(self, d):
 		content = d['content']
@@ -170,6 +177,29 @@ class Bot:
 		while True:
 			time.sleep(interval_s)
 			self.send(OP.HEARTBEAT, self.seq)
+
+	def timer_loop(self):
+		while True:
+			wakeups = []
+			now = datetime.datetime.utcnow()
+			hour_from_now = now + datetime.timedelta(hours=1)
+			for name, time in copy.copy(config.state.timers).items():
+				if time <= now:
+					self.send_message(config.bot.timer_channel, 'removing expired timer "%s" for %s' %
+							(name, time.strftime('%Y-%m-%d %H:%M:%S')))
+					del config.state.timers[name]
+					config.state.save()
+				elif time <= hour_from_now:
+					self.send_message(config.bot.timer_channel, '%s until %s' % (readable_rel(time - now), name))
+					wakeups.append(time)
+				else:
+					wakeups.append(time - datetime.timedelta(hours=1))
+			wakeup = None
+			if wakeups:
+				wakeups.sort()
+				wakeup = (wakeups[0] - now).total_seconds()
+			with self.timer_condvar:
+				self.timer_condvar.wait(wakeup)
 
 class Guild:
 	def __init__(self, d):
