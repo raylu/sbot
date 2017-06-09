@@ -26,6 +26,7 @@ class Bot:
 		self.heartbeat_thread = None
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
+		self.zkill_thread = None
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
@@ -135,6 +136,8 @@ class Bot:
 		print('connected as', d['user']['username'])
 		self.user_id = d['user']['id']
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
+		if config.bot.zkillboard is not None:
+			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
 
 	def handle_message_create(self, d):
 		content = d['content']
@@ -200,6 +203,33 @@ class Bot:
 				wakeup = (wakeups[0] - now).total_seconds()
 			with self.timer_condvar:
 				self.timer_condvar.wait(wakeup)
+
+	def zkill_loop(self):
+		while True:
+			r = self.rs.get('https://redisq.zkillboard.com/listen.php', params={'ttw': 30})
+			if r.ok:
+				data = r.json()
+				killmail = data['package']['killmail']
+				victim = killmail['victim']
+
+				characters = killmail['attackers']
+				characters.append(victim)
+				for char in characters:
+					if 'alliance' in char and char['alliance']['id'] == config.bot.zkillboard['alliance']:
+						break
+				else: # alliance not involved in kill
+					continue
+
+				victim_name = victim['character']['name']
+				ship = victim['shipType']['name']
+				cost = data['package']['zkb']['totalValue'] / 1000000
+				url = 'https://zkillboard.com/kill/%d/' % killmail['killID']
+				self.send_message(config.bot.zkillboard['channel'],
+						"%s's **%s** (%d mil) %s" % (victim_name, ship, cost, url))
+				break
+			else:
+				print('zkill:', r.text[:1000], file=sys.stderr)
+				time.sleep(30)
 
 class Guild:
 	def __init__(self, d):
