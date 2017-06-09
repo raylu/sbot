@@ -222,7 +222,8 @@ def who(cmd):
 		birthday = data['birthday']
 		birthday = datetime.datetime.strptime(birthday, dt_format).date()
 		security_status = data['security_status']
-		output = '%s: born %s, security status %.2f' % (char_name, birthday, security_status)
+		output = '%s: born %s, security status %.2f  ' % (char_name, birthday, security_status)
+		output += 'https://zkillboard.com/character/%d/' % char_id
 
 		r = rs.get('https://esi.tech.ccp.is/v3/corporations/%d/' % corp_id)
 		r.raise_for_status()
@@ -235,7 +236,8 @@ def who(cmd):
 			creation_date = '?'
 		members = data['member_count']
 		alliance_id = data.get('alliance_id')
-		output += '\n%s: created %s, %s members' % (corp_name, creation_date, members)
+		output += '\n%s: created %s, %s members  ' % (corp_name, creation_date, members)
+		output += 'https://zkillboard.com/corporation/%d/' % (corp_id)
 
 		if alliance_id:
 			alliance_id = int(alliance_id)
