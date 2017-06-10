@@ -93,6 +93,11 @@ def python3(cmd):
 	reply(cmd, output)
 
 def prep_input(args):
+	if args.startswith('```') and args.endswith('```'):
+		language, other_lines = args[3:].split('\n', 1)
+		if language in ['python', 'py', 'javascript', 'js', 'ruby', 'rb']:
+			return other_lines[:-3]
+		# otherwise, after backticks was code, not language:  '```print(1)```'
 	return args.strip('`').strip()
 
 def reply(cmd, output):
@@ -102,6 +107,6 @@ def reply(cmd, output):
 	if len(split) == 11:
 		output += '\n(too many output lines)'
 	message = cmd.sender['username'] + ':'
-	output = '```\n%s\n```' % output
+	output = '```\n%s\n```' % output.replace('```', r'\`\`\`')
 	embed = {'description': output}
 	cmd.reply(message, embed)

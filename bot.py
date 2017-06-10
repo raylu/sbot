@@ -167,7 +167,7 @@ class Bot:
 			if len(split) == 2:
 				arg = split[1]
 			if len(lines) == 2:
-				arg += lines[1]
+				arg += '\n' + lines[1]
 			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
 			handler(cmd)
 
