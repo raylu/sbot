@@ -101,5 +101,7 @@ def reply(cmd, output):
 	output = output[:500]
 	if len(split) == 11:
 		output += '\n(too many output lines)'
-	message = '%s:\n```\n%s\n```' % (cmd.sender['username'], output)
-	cmd.reply(message)
+	message = cmd.sender['username'] + ':'
+	output = '```\n%s\n```' % output
+	embed = {'description': output}
+	cmd.reply(message, embed)

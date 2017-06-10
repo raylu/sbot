@@ -108,10 +108,11 @@ class Bot:
 			print('->', raw_data)
 		self.ws.send(raw_data)
 
-	def send_message(self, channel_id, text):
-		self.post('/channels/%s/messages' % channel_id, {
-			'content': text,
-		})
+	def send_message(self, channel_id, text, embed=None):
+		data = {'content': text}
+		if embed is not None:
+			data['embed'] = embed
+		self.post('/channels/%s/messages' % channel_id, data)
 
 	def handle_hello(self, _, d):
 		print('connected to', d['_trace'])
@@ -262,8 +263,8 @@ class CommandEvent:
 		self.args = args
 		self.bot = bot
 
-	def reply(self, message):
-		self.bot.send_message(self.channel_id, message)
+	def reply(self, message, embed=None):
+		self.bot.send_message(self.channel_id, message, embed)
 
 class OP:
 	DISPATCH              = 0
