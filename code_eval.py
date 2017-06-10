@@ -33,7 +33,7 @@ def ruby(cmd):
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
-			'/usr/bin/ruby', '-e', prep_input(cmd.args)]
+			'/usr/bin/ruby', '-Ue', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = proc.communicate()
@@ -90,6 +90,7 @@ def python3(cmd):
 	reply(cmd, output)
 
 def prep_input(args):
+	args = args.lstrip()
 	if args.startswith('```') and args.endswith('```'):
 		language, other_lines = args[3:].split('\n', 1)
 		if language in ['python', 'py', 'javascript', 'js', 'ruby', 'rb']:
