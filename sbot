@@ -21,7 +21,7 @@ def main():
 		'who': eve.who,
 
 		'js': code_eval.nodejs,
-		'ruby': code_eval.irb,
+		'ruby': code_eval.ruby,
 		'py2': code_eval.python2,
 		'py3': code_eval.python3,
 

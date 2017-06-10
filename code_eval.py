@@ -28,22 +28,21 @@ def nodejs(cmd):
 				output = 'unknown error'
 	reply(cmd, output)
 
-def irb(cmd):
+def ruby(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', '',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
-			'/usr/bin/irb', '-f', '--simple-prompt']
-	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, universal_newlines=True)
-	stdout, _ = proc.communicate(prep_input(cmd.args))
+			'/usr/bin/ruby', '-e', prep_input(cmd.args)]
+	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+			stderr=subprocess.PIPE, universal_newlines=True)
+	stdout, stderr = proc.communicate()
 	if proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:
-		lines = stdout.split('\n')
-		output = ''
-		for line in lines[1:]:
-			if not line.startswith('>> ') and not line.startswith('?>'):
-				output += line + '\n'
+		output = stdout
+		if stderr:
+			output += '\n' + stderr
 	reply(cmd, output)
 
 def python2(cmd):
@@ -51,18 +50,17 @@ def python2(cmd):
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
-			'/usr/bin/python2', '-ESsi']
+			'/usr/bin/python2', '-ESs', '-c', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
-	stdout, stderr = proc.communicate(prep_input(cmd.args) + '\n')
+	stdout, stderr = proc.communicate()
 	if proc.returncode == 0:
-		if stdout == '':
-			try:
-				output = stderr.split('\n')[-3]
-			except IndexError:
-				output = ''
-		else:
-			output = stdout
+		output = stdout
+	elif proc.returncode == 1:
+		try:
+			output = stderr.split('\n')[-2]
+		except IndexError:
+			output = ''
 	elif proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:
@@ -74,18 +72,17 @@ def python3(cmd):
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
-			'/usr/bin/python3', '-ISqi']
+			'/usr/bin/python3', '-ISq', '-c', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
-	stdout, stderr = proc.communicate(prep_input(cmd.args) + '\n')
+	stdout, stderr = proc.communicate()
 	if proc.returncode == 0:
-		if stdout == '':
-			try:
-				output = stderr.split('\n')[-3]
-			except IndexError:
-				output = ''
-		else:
-			output = stdout
+		output = stdout
+	elif proc.returncode == 1:
+		try:
+			output = stderr.split('\n')[-2]
+		except IndexError:
+			output = ''
 	elif proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:
