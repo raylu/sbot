@@ -209,6 +209,9 @@ class Bot:
 			r = self.rs.get('https://redisq.zkillboard.com/listen.php', params={'ttw': 30})
 			if r.ok:
 				data = r.json()
+				if not data or not data['package']:
+					time.sleep(10)
+					continue
 				killmail = data['package']['killmail']
 				victim = killmail['victim']
 
@@ -228,7 +231,7 @@ class Bot:
 						"%s's **%s** (%d mil) %s" % (victim_name, ship, cost, url))
 				break
 			else:
-				print('zkill:', r.text[:1000], file=sys.stderr)
+				print('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]), file=sys.stderr)
 				time.sleep(30)
 
 class Guild:
