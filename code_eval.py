@@ -16,7 +16,7 @@ def nodejs(cmd):
 	if proc.returncode == 0:
 		output = stdout
 	elif proc.returncode == 109:
-		output = 'timed out'
+		output = 'timed out' # pylint: disable=redefined-variable-type
 	else:
 		split = stderr.split('\n', 5)
 		try:
@@ -40,7 +40,7 @@ def ruby(cmd):
 	if proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:
-		output = stdout
+		output = stdout # pylint: disable=redefined-variable-type
 		if stderr:
 			output += '\n' + stderr
 	reply(cmd, output)
@@ -60,7 +60,7 @@ def python2(cmd):
 		try:
 			output = stderr.split('\n')[-2]
 		except IndexError:
-			output = ''
+			output = '' # pylint: disable=redefined-variable-type
 	elif proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:
@@ -82,7 +82,7 @@ def python3(cmd):
 		try:
 			output = stderr.split('\n')[-2]
 		except IndexError:
-			output = ''
+			output = '' # pylint: disable=redefined-variable-type
 	elif proc.returncode == 109:
 		output = 'timed out or memory limit exceeded'
 	else:

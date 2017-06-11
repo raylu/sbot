@@ -20,8 +20,10 @@ def price_check(cmd):
 	def get_prices(typeid, system=None, region=None):
 		url = 'http://api.eve-central.com/api/marketstat'
 		params = {'typeid': typeid}
-		if system: params['usesystem'] = system
-		if region: params['regionlimit'] = region
+		if system:
+			params['usesystem'] = system
+		if region:
+			params['regionlimit'] = region
 		try:
 			dom = minidom.parseString(rs.get(url, params=params).text)
 		except xml.parsers.expat.ExpatError:
@@ -231,7 +233,7 @@ def who(cmd):
 		corp_name = data['corporation_name']
 		creation_date = data.get('creation_date') # NPC corps have no creation_date
 		if creation_date:
-			creation_date = datetime.datetime.strptime(creation_date, dt_format).date()
+			creation_date = str(datetime.datetime.strptime(creation_date, dt_format).date())
 		else:
 			creation_date = '?'
 		members = data['member_count']

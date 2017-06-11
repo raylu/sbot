@@ -5,11 +5,11 @@ import imp
 import json
 import os
 import sys
-import _thread
 import threading
 import time
 import traceback
 import zlib
+import _thread
 
 import requests
 import websocket
@@ -187,17 +187,17 @@ class Bot:
 			wakeups = []
 			now = datetime.datetime.utcnow()
 			hour_from_now = now + datetime.timedelta(hours=1)
-			for name, time in copy.copy(config.state.timers).items():
-				if time <= now:
+			for name, dt in copy.copy(config.state.timers).items():
+				if dt <= now:
 					self.send_message(config.bot.timer_channel, 'removing expired timer "%s" for %s' %
-							(name, time.strftime('%Y-%m-%d %H:%M:%S')))
+							(name, dt.strftime('%Y-%m-%d %H:%M:%S')))
 					del config.state.timers[name]
 					config.state.save()
-				elif time <= hour_from_now:
-					self.send_message(config.bot.timer_channel, '%s until %s' % (readable_rel(time - now), name))
-					wakeups.append(time)
+				elif dt <= hour_from_now:
+					self.send_message(config.bot.timer_channel, '%s until %s' % (readable_rel(dt - now), name))
+					wakeups.append(dt)
 				else:
-					wakeups.append(time - datetime.timedelta(hours=1))
+					wakeups.append(dt - datetime.timedelta(hours=1))
 			wakeup = None
 			if wakeups:
 				wakeups.sort()
@@ -266,7 +266,7 @@ class CommandEvent:
 	def reply(self, message, embed=None):
 		self.bot.send_message(self.channel_id, message, embed)
 
-class OP:
+class OP: # pylint: disable=bad-whitespace
 	DISPATCH              = 0
 	HEARTBEAT             = 1
 	IDENTIFY              = 2
