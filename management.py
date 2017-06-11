@@ -1,7 +1,11 @@
+import config
+
 def join(cmd):
 	if cmd.args == '@everyone':
 		return
 	guild_id, role_id = _ids(cmd)
+	if guild_id != config.bot.role_server:
+		return
 	if role_id is None:
 		cmd.reply('no role named %s' % cmd.args)
 	else:
@@ -13,6 +17,8 @@ def leave(cmd):
 	if cmd.args == '@everyone':
 		return
 	guild_id, role_id = _ids(cmd)
+	if guild_id != config.bot.role_server:
+		return
 	if role_id is None:
 		cmd.reply('no role named %s' % cmd.args)
 	else:
@@ -23,6 +29,8 @@ def leave(cmd):
 def list_roles(cmd):
 	bot = cmd.bot
 	guild_id = bot.channels[cmd.channel_id]
+	if guild_id != config.bot.role_server:
+		return
 	roles = bot.guilds[guild_id].roles
 	sbot_position = roles['sbot']['position']
 	listing = []
