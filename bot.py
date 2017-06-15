@@ -224,13 +224,14 @@ class Bot:
 				else: # alliance not involved in kill
 					continue
 
+				if 'character' not in victim:
+					continue
 				victim_name = victim['character']['name']
 				ship = victim['shipType']['name']
 				cost = data['package']['zkb']['totalValue'] / 1000000
 				url = 'https://zkillboard.com/kill/%d/' % killmail['killID']
 				self.send_message(config.bot.zkillboard['channel'],
 						"%s's **%s** (%d mil) %s" % (victim_name, ship, cost, url))
-				break
 			else:
 				print('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]), file=sys.stderr)
 				time.sleep(30)
