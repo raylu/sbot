@@ -79,7 +79,7 @@ def _timer_list(cmd, split):
 
 def _timer_add(cmd, split):
 	try:
-		name, arg = split[1].split(' in ')
+		name, arg = split[1].rsplit(' in ', 1)
 	except IndexError:
 		cmd.reply('%s: missing args to `add`; %s' % (cmd.sender['username'], timer_usage))
 		return
