@@ -11,6 +11,18 @@ import config
 rs = requests.Session()
 rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
 
+def help(cmd):
+	commands = set(cmd.bot.commands.keys())
+	guild_id = cmd.bot.channels[cmd.channel_id]
+	if cmd.channel_id != config.bot.timer_channel:
+		commands.remove('timer')
+	if guild_id != config.bot.role_server:
+		for name, func in cmd.bot.commands.items():
+			if func.__module__ == 'management':
+				commands.remove(name)
+	reply = 'commands: `!%s`' % '`, `!'.join(commands)
+	cmd.reply(reply)
+
 def calc(cmd):
 	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': cmd.args})
 	cmd.reply(response.text.rstrip())
