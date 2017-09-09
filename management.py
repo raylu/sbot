@@ -1,7 +1,7 @@
 import config
 
 def join(cmd):
-	if cmd.args == '@everyone':
+	if cmd.args == 'everyone':
 		return
 	guild_id, role_id = _ids(cmd)
 	if guild_id != config.bot.role_server:
@@ -14,7 +14,7 @@ def join(cmd):
 		cmd.reply('put <@!%s> in %s' % (cmd.sender['id'], cmd.args))
 
 def leave(cmd):
-	if cmd.args == '@everyone':
+	if cmd.args == 'everyone':
 		return
 	guild_id, role_id = _ids(cmd)
 	if guild_id != config.bot.role_server:
