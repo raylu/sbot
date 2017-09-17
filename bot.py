@@ -88,9 +88,10 @@ class Bot:
 						try:
 							# messages can be up to 2000 characters
 							self.send_message(config.bot.err_channel,
-									'```\n%s\n```\n```\n%s\n```' % (data[:800], tb[:1000]))
-						except Exception as e:
-							print('error sending to err_channel: %r' % e, file=sys.stderr)
+									'```\n%s\n```\n```\n%s\n```' % (raw_data[:800], tb[:1000]))
+						except Exception:
+							print('error sending to err_channel:', file=sys.stderr)
+							traceback.print_exc(file=sys.stderr)
 
 	def get(self, path):
 		response = self.rs.get('https://discordapp.com/api' + path)
