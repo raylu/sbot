@@ -1,4 +1,5 @@
 import datetime
+import random
 import subprocess
 import urllib.parse
 
@@ -158,3 +159,8 @@ def readable_rel(rel):
 	if not s:
 		return '%d seconds' % seconds
 	return ' '.join(s)
+
+def ohno(cmd):
+	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 53)
+	embed = {'image': {'url': url, 'width': 200, 'height': 200}}
+	cmd.reply('', embed)
