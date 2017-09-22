@@ -24,8 +24,13 @@ def help(cmd):
 	cmd.reply(reply)
 
 def calc(cmd):
+	if not cmd.args:
+		return
 	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': cmd.args})
-	cmd.reply(response.text.rstrip())
+	if response.status_code == 200:
+		cmd.reply(response.text.rstrip()[:1000])
+	else:
+		cmd.reply('<@!%s>: error calculating' % cmd.sender['id'])
 
 def units(cmd):
 	command = ['units', '--compact', '--one-line', '--quiet'] + cmd.args.split(' in ', 1)
