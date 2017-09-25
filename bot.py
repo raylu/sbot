@@ -40,6 +40,7 @@ class Bot:
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
 			'GUILD_CREATE': self.handle_guild_create,
+			'GUILD_MEMBER_ADD': self.handle_guild_member_add
 		}
 		self.commands = commands
 
@@ -183,6 +184,15 @@ class Bot:
 		self.guilds[d['id']] = Guild(d)
 		for channel in d['channels']:
 			self.channels[channel['id']] = d['id']
+
+	def handle_guild_member_add(self, d):
+		guild_id = d['guild_id']
+		if guild_id != config.bot.role_server:
+			return
+		user_id = d['user']['id']
+		humans_role_id = self.guilds[guild_id].roles['humans']['id']
+		self.post('/guilds/%s/members/%s/roles/%s' % (guild_id, user_id, humans_role_id), None,
+				method='PUT')
 
 	def heartbeat_loop(self, interval_ms):
 		interval_s = interval_ms / 1000

@@ -1,26 +1,24 @@
 import config
 
 def join(cmd):
-	if cmd.args == 'everyone':
-		return
 	guild_id, role_id = _ids(cmd)
 	if guild_id != config.bot.role_server:
 		return
-	if role_id is None:
-		cmd.reply('no role named %s' % cmd.args)
+	roles = cmd.bot.guilds[guild_id].roles
+	if role_id is None or cmd.args not in _allowed_role_names(roles):
+		cmd.reply('no joinable role named %s' % cmd.args)
 	else:
 		cmd.bot.post('/guilds/%s/members/%s/roles/%s' % (guild_id, cmd.sender['id'], role_id), None,
 				method='PUT')
 		cmd.reply('put <@!%s> in %s' % (cmd.sender['id'], cmd.args))
 
 def leave(cmd):
-	if cmd.args == 'everyone':
-		return
 	guild_id, role_id = _ids(cmd)
 	if guild_id != config.bot.role_server:
 		return
-	if role_id is None:
-		cmd.reply('no role named %s' % cmd.args)
+	roles = cmd.bot.guilds[guild_id].roles
+	if role_id is None or cmd.args not in _allowed_role_names(roles):
+		cmd.reply('no joinable role named %s' % cmd.args)
 	else:
 		cmd.bot.post('/guilds/%s/members/%s/roles/%s' % (guild_id, cmd.sender['id'], role_id), None,
 				method='DELETE')
@@ -32,12 +30,7 @@ def list_roles(cmd):
 	if guild_id != config.bot.role_server:
 		return
 	roles = bot.guilds[guild_id].roles
-	sbot_position = roles['sbot']['position']
-	listing = []
-	for role in roles.values():
-		if 0 < role['position'] < sbot_position: # don't include @everyone or roles higher than ours
-			listing.append(role['name'])
-	cmd.reply(', '.join(listing))
+	cmd.reply(', '.join(_allowed_role_names(roles)))
 
 def _ids(cmd):
 	bot = cmd.bot
@@ -48,3 +41,12 @@ def _ids(cmd):
 		return guild_id, role_id
 	except KeyError:
 		return guild_id, None
+
+def _allowed_role_names(roles):
+	sbot_position = roles['sbot']['position']
+	arns = []
+	for role in roles.values():
+		# exclude roles higher than ours, @everyone (position 0), humans, and bots
+		if 0 < role['position'] < sbot_position and role['name'] not in ('humans', 'bots'):
+			arns.append(role['name'])
+	return arns
