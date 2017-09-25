@@ -187,7 +187,7 @@ class Bot:
 
 	def handle_guild_member_add(self, d):
 		guild_id = d['guild_id']
-		if guild_id != config.bot.role_server:
+		if guild_id != config.bot.role_server or d['user'].get('bot'):
 			return
 		user_id = d['user']['id']
 		humans_role_id = self.guilds[guild_id].roles['humans']['id']
