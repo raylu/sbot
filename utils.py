@@ -13,6 +13,8 @@ rs = requests.Session()
 rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
 
 def help(cmd):
+	if cmd.args: # only reply on "!help"
+		return
 	commands = set(cmd.bot.commands.keys())
 	guild_id = cmd.bot.channels[cmd.channel_id]
 	if cmd.channel_id != config.bot.timer_channel:
