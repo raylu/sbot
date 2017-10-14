@@ -15,6 +15,7 @@ import requests
 import websocket
 
 import config
+import log
 from utils import readable_rel
 
 class Bot:
@@ -83,16 +84,15 @@ class Bot:
 					handler(data['t'], data['d'])
 				except:
 					tb = traceback.format_exc()
-					print(data)
-					print(tb, file=sys.stderr)
+					log.write(data)
+					log.write(tb)
 					if config.bot.err_channel:
 						try:
 							# messages can be up to 2000 characters
 							self.send_message(config.bot.err_channel,
 									'```\n%s\n```\n```\n%s\n```' % (raw_data[:800], tb[:1000]))
 						except Exception:
-							print('error sending to err_channel:', file=sys.stderr)
-							traceback.print_exc(file=sys.stderr)
+							log.write('error sending to err_channel:\n' + traceback.format_exc())
 
 	def get(self, path):
 		response = self.rs.get('https://discordapp.com/api' + path)
@@ -120,7 +120,7 @@ class Bot:
 		self.post('/channels/%s/messages' % channel_id, data)
 
 	def handle_hello(self, _, d):
-		print('connected to', d['_trace'])
+		log.write('connected to %s' % d['_trace'])
 		self.heartbeat_thread = _thread.start_new_thread(self.heartbeat_loop, (d['heartbeat_interval'],))
 		self.send(OP.IDENTIFY, {
 			'token': config.bot.token,
@@ -139,7 +139,7 @@ class Bot:
 			handler(d)
 
 	def handle_ready(self, d):
-		print('connected as', d['user']['username'])
+		log.write('connected as ' + d['user']['username'])
 		self.user_id = d['user']['id']
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
 		if config.bot.zkillboard is not None:
@@ -251,7 +251,7 @@ class Bot:
 				self.send_message(config.bot.zkillboard['channel'],
 						"%s's **%s** (%d mil) %s" % (victim_name, ship, cost, url))
 			else:
-				print('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]), file=sys.stderr)
+				log.write('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]))
 				time.sleep(30)
 
 class Guild:

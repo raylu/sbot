@@ -1,5 +1,7 @@
 import yaml
 
+import log
+
 class YamlAttrs:
 	def __init__(self, filename, defaults=None):
 		self.filename = filename
@@ -9,7 +11,7 @@ class YamlAttrs:
 				doc = yaml.load(f)
 		except FileNotFoundError:
 			doc = defaults
-			print('creating', self.filename)
+			log.write('creating ' + self.filename)
 			self.save()
 
 		for k, v in doc.items():
