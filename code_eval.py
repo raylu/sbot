@@ -8,7 +8,7 @@ def nodejs(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--rlimit_as', '700', '--chroot', chroot_dir,
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/nodejs', '--print', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
@@ -32,7 +32,7 @@ def ruby(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', '',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/ruby', '-Ue', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
@@ -49,7 +49,7 @@ def python2(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/python2', '-ESs', '-c', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
@@ -71,7 +71,7 @@ def python3(cmd):
 	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/python3', '-ISq', '-c', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
