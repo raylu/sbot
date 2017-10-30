@@ -14,6 +14,7 @@ def main():
 	bot = Bot({
 		'help': utils.help,
 		'calc': utils.calc,
+		'unicode': utils.unicode,
 		'units': utils.units,
 		'roll': utils.roll,
 		'time': utils.timezones,

@@ -35,6 +35,13 @@ def calc(cmd):
 	else:
 		cmd.reply('<@!%s>: error calculating' % cmd.sender['id'])
 
+def unicode(cmd):
+	command = ['unicode', '--max', '5', '--color', '0',
+			'--format', '{pchar} U+{ordc:04X} {name} (UTF-8: {utf8})\\n', cmd.args]
+	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
+	output, _ = proc.communicate()
+	cmd.reply(output)
+
 def units(cmd):
 	command = ['units', '--compact', '--one-line', '--quiet'] + cmd.args.split(' in ', 1)
 	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
