@@ -62,7 +62,7 @@ class Bot:
 			config.state.gateway_url = data['url']
 			config.state.save()
 
-		url = config.state.gateway_url + '?v=5&encoding=json'
+		url = config.state.gateway_url + '?v=6&encoding=json'
 		self.ws = websocket.create_connection(url)
 
 	def run_forever(self):
