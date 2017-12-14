@@ -14,7 +14,6 @@ def weather(cmd):
 	response = rs.get('https://api.wunderground.com/api/%s/conditions/q/%s.json' %
 			  (config.bot.weather_key, cmd.args))
 	report = response.json()
-	print(report)
 	if response.status_code == 200 and 'current_observation' in report:
 		report = report['current_observation']
 		cmd.reply('%s: %s, feels like %s. %s. (%s)'
