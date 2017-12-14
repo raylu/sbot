@@ -169,6 +169,26 @@ def readable_rel(rel):
 		return '%d seconds' % seconds
 	return ' '.join(s)
 
+def weather(cmd):
+	if config.bot.weather_key is None or not cmd.args:
+		return
+	url = 'https://api.wunderground.com/api/%s/conditions/q/%s.json' % (
+			config.bot.weather_key, urllib.parse.quote_plus(cmd.args.replace(' ', '_')))
+	response = rs.get(url)
+	response.raise_for_status()
+	data = response.json()
+	if 'current_observation' in data:
+		current = data['current_observation']
+		output = '%s: %s, feels like %s. %s\n%s' % (
+				current['display_location']['full'], current['temperature_string'], current['feelslike_string'],
+				current['weather'], current['forecast_url'])
+		cmd.reply(output)
+	elif 'results' in data['response']:
+		cmd.reply('%s: got %s results. try narrowing your search' % (
+				cmd.sender['username'], len(data['response']['results'])))
+	else:
+		cmd.reply('%s: error fetching results' % cmd.sender['username'])
+
 def ohno(cmd):
 	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 53)
 	embed = {'image': {'url': url, 'width': 200, 'height': 200}}

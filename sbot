@@ -19,6 +19,7 @@ def main():
 		'roll': utils.roll,
 		'time': utils.timezones,
 		'timer': utils.timer,
+		'weather': utils.weather,
 		'ohno': utils.ohno,
 
 		'pc': eve.price_check,
