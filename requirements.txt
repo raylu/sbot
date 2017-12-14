@@ -1,3 +1,4 @@
+psycopg2
 python-dateutil
 PyYAML
 websocket-client
