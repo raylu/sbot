@@ -1,5 +1,4 @@
 import requests
-import json
 
 import config
 
@@ -27,4 +26,3 @@ def weather(cmd):
 			  % len(report['response']['results']))
 	else:
 		cmd.reply('Error fetching results')
-		
