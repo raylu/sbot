@@ -33,7 +33,7 @@ def main():
 		'py2': code_eval.python2,
 		'py3': code_eval.python3,
 
-                'weather': weather.weather,
+		'weather': weather.weather,
 
 		'join': management.join,
 		'leave': management.leave,
