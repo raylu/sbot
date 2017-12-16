@@ -59,6 +59,7 @@ def price_check(cmd):
 				return results[0]
 		if len(results) >= 2:
 			return results
+		return None
 	def item_info(item_name):
 		with db.cursor() as curs:
 			# exact match
@@ -76,7 +77,7 @@ def price_check(cmd):
 			if results:
 				names = map(lambda r: r[1], results)
 				cmd.reply('Found items: ' + ', '.join(names))
-				return
+				return None
 
 			# substring match
 			results = __item_info(curs, '%' + item_name + '%')
@@ -85,8 +86,9 @@ def price_check(cmd):
 			if results:
 				names = map(lambda r: r[1], results)
 				cmd.reply('Found items: ' + ', '.join(names))
-				return
+				return None
 			cmd.reply('Item not found')
+			return None
 	def format_prices(prices):
 		if prices is None:
 			return 'n/a'

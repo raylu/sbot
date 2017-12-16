@@ -106,6 +106,7 @@ class Bot:
 		response.raise_for_status()
 		if response.status_code != 204: # No Content
 			return response.json()
+		return None
 
 	def send(self, op, d):
 		raw_data = json.dumps({'op': op, 'd': d})
