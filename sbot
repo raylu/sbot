@@ -7,6 +7,7 @@ import code_eval
 import eve
 import management
 import utils
+import weather
 
 def main():
 	locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -31,6 +32,8 @@ def main():
 		'ruby': code_eval.ruby,
 		'py2': code_eval.python2,
 		'py3': code_eval.python3,
+
+		'weather': weather.weather,
 
 		'join': management.join,
 		'leave': management.leave,

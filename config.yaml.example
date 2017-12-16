@@ -6,6 +6,8 @@ eve_dsn: 'dbname=ykill user=ykill'
 zkillboard: # set this to null to disable
     alliance: 99002172
     channel: '282441291327864834'
+# key can be received at https://www.wunderground.com/weather/api/ or set to null to disable
+weather_key: "123456" 
 autoreload: false
 debug: false
 
