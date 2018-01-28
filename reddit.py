@@ -7,10 +7,17 @@ rs.headers['User-Agent'] = 'python:sbot:v0 (by /u/raylu)'
 
 def headpat(cmd):
 	items = _reddit_request('/r/headpats/random')
-	resolutions = items[0]['data']['children'][0]['data']['preview']['images'][0]['resolutions']
+	item = items[0]['data']['children'][0]['data']
+
+	resolutions = item['preview']['images'][0]['resolutions']
 	image = resolutions[1]
 	image_url = image['url'].replace('&amp;', '&')
-	embed = {'image': {'url': image_url, 'width': image['width'], 'height': image['height']}}
+
+	embed = {
+		'title': item['title'],
+		'url': 'https://www.reddit.com/' + item['permalink'],
+		'image': {'url': image_url, 'width': image['width'], 'height': image['height']},
+	}
 	cmd.reply('', embed)
 
 def _reddit_request(path):
