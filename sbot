@@ -6,6 +6,7 @@ from bot import Bot
 import code_eval
 import eve
 import management
+import reddit
 import utils
 
 def main():
@@ -37,6 +38,8 @@ def main():
 		'leave': management.leave,
 		'roles': management.list_roles,
 		'groups': management.list_roles,
+
+		'headpat': reddit.headpat,
 	})
 	bot.connect()
 	bot.run_forever()

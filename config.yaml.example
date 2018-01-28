@@ -7,6 +7,9 @@ zkillboard: # set this to null to disable
     alliance: 99002172
     channel: '282441291327864834'
 weather_key: null # https://www.wunderground.com/weather/api/
+reddit:
+    api_id: null
+    api_secret: null
 autoreload: false
 debug: false
 
