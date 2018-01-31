@@ -6,7 +6,7 @@ rs = requests.Session()
 rs.headers['User-Agent'] = 'python:sbot:v0 (by /u/raylu)'
 
 def headpat(cmd):
-	items = _reddit_request('/r/headpats/random')
+	items = _reddit_request('/r/wholesomememes/random')
 	item = items[0]['data']['children'][0]['data']
 
 	resolutions = item['preview']['images'][0]['resolutions']

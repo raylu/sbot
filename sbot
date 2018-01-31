@@ -22,6 +22,7 @@ def main():
 		'timer': utils.timer,
 		'weather': utils.weather,
 		'ohno': utils.ohno,
+		'blyat': utils.blyat,
 
 		'pc': eve.price_check,
 		'price': eve.price_check,
