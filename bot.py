@@ -17,7 +17,7 @@ import websocket
 import config
 import log
 from utils import readable_rel
-from warframe_world import alertAnalysis
+from warframe_world import alert_analysis
 
 class Bot:
 	def __init__(self, commands):
@@ -261,7 +261,7 @@ class Bot:
 				
 	def warframe_loop(self):
 		while True:
-			self.send_message("326069638477774861", alertAnalysis(), embed = None)
+			self.send_message("326069638477774861", alert_analysis(), embed = None)
 			time.sleep(1800)
 			
 class Guild:
