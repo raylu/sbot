@@ -1,8 +1,6 @@
 from urllib.request import urlopen
 import json
 
-helmet_name = "No"
-
 def world_state_pull(url):
 	world_state_file = urlopen(url)
 	world_state_json = world_state_file.read().decode("utf-8")
@@ -10,9 +8,8 @@ def world_state_pull(url):
 
 def alert_analysis():
 	url = "http://content.warframe.com/dynamic/worldState.php"
-	global helmet_name
+	helmet_names = []
 	orokin_available = False
-	helmet_available = False
 	nitain_available = False
 	warframe_state = world_state_pull(url)
 
@@ -22,23 +19,27 @@ def alert_analysis():
 		if "items" in reward:
 			if orokin_search(reward["items"]):
 				orokin_available = True
-			if helm_search(reward["items"]):
-				helmet_available = True
+			helm = helm_search(reward['items'])
+			if helm is not None:
+				helmet_names.append(helm)
 		elif "countedItems" in reward:
 			if nitain_search(reward["countedItems"]):
 				nitain_available = True
 
-	post_string = ""
+	post_parts = []
 	if orokin_available:
-		post_string = post_string + "Orokin catalysts or reactors are available. "
-	if helmet_available:
-		post_string = post_string + helmet_name, "helmet is available. "
+		post_parts.append("Orokin catalysts or reactors are available.")
+
 	if nitain_available:
-		post_string = post_string + "REEEEEEE Nitain is available. "
+		post_parts.append("REEEEEEE Nitain is available.")
 
-	post_string = post_string + "Credits are always available."
+	if len(helmet_names) > 0:
+		post_parts.append(", ".join(helmet_names[:5]) + ' helmets are available.')
 
-	return post_string
+	post_parts.append("Credits are always available.")
+
+	print("\n".join(post_parts))
+	return "\n".join(post_parts)
 
 def nitain_search(reward_check):
 
@@ -53,20 +54,14 @@ def orokin_search(reward_check):
 		return False
 
 def helm_search(reward_check):
-	global helmet_name
-	helmet_flag = reward_check[0].find("Helmets")
-	vauban_flag = reward_check[0].find("Trapper")
+	reward = reward_check[0]
 
-	if helmet_flag > 0 and vauban_flag < 0:
-		item_string_table = reward_check[0].split("/")
-		if helmet_name != "No":
-			helmet_name = "Multiple"
-			return True
-		else:
-			helmet_name = item_string_table[-1]
-			return True
-	else:
-		return False
+	if 'Trapper' in reward:
+		return None
+	if 'Helmets' not in reward:
+		return None
+	item_string_table = reward.split('/')
+	return item_string_table[-1]
 
 
 alert_analysis()
