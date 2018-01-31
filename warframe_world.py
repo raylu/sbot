@@ -42,7 +42,7 @@ def alert_analysis():
 
 def nitain_search(reward_check):
 
-	return reward_check[0]["ItemType"] == "/Lotus/Types/Items/MiscItems/Alertium":
+	return reward_check[0]["ItemType"] == "/Lotus/Types/Items/MiscItems/Alertium"
 
 def orokin_search(reward_check):
 	if reward_check == "/Lotus/StoreItems/Types/Recipes/Components/OrokinCatalystBlueprint":

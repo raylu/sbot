@@ -261,7 +261,7 @@ class Bot:
 
 	def warframe_loop(self):
 		while True:
-			self.send_message("326069638477774861",alert_analysis(),embed=None)
+			self.send_message("326069638477774861", alert_analysis(), embed=None)
 			time.sleep(1800)
 
 class Guild:
