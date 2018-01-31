@@ -42,10 +42,7 @@ def alert_analysis():
 
 def nitain_search(reward_check):
 
-	if reward_check[0]["ItemType"] == "/Lotus/Types/Items/MiscItems/Alertium":
-		return True
-	else:
-		return False
+	return reward_check[0]["ItemType"] == "/Lotus/Types/Items/MiscItems/Alertium":
 
 def orokin_search(reward_check):
 	if reward_check == "/Lotus/StoreItems/Types/Recipes/Components/OrokinCatalystBlueprint":
@@ -64,6 +61,7 @@ def helm_search(reward_check):
 		item_string_table = reward_check[0].split("/")
 		if helmet_name != "No":
 			helmet_name = "Multiple"
+			return True
 		else:
 			helmet_name = item_string_table[-1]
 			return True
