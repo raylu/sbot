@@ -53,7 +53,7 @@ def orokin_search(reward_check):
 		return False
 
 def helm_search(reward_check):
-	global helmet_name 
+	global helmet_name
 	helmet_flag = reward_check[0].find("Helmets")
 	vauban_flag = reward_check[0].find("Trapper")
 
