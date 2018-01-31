@@ -193,3 +193,6 @@ def ohno(cmd):
 	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 53)
 	embed = {'image': {'url': url, 'width': 200, 'height': 200}}
 	cmd.reply('', embed)
+
+def blyat(cmd):
+	cmd.reply('Cyka cheeki davai rush B')

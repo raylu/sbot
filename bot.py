@@ -17,6 +17,7 @@ import websocket
 import config
 import log
 from utils import readable_rel
+from warframe_world import alert_analysis
 
 class Bot:
 	def __init__(self, commands):
@@ -28,10 +29,12 @@ class Bot:
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
 		self.zkill_thread = None
+		self.warframe_thread = None
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
 		self.channels = {} # channel id -> guild id
+
 
 		self.handlers = {
 			OP.HELLO: self.handle_hello,
@@ -145,6 +148,7 @@ class Bot:
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
 		if config.bot.zkillboard is not None:
 			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
+		self.warframe_thread = _thread.start_new_thread(self.warframe_loop())
 
 	def handle_message_create(self, d):
 		content = d['content']
@@ -254,6 +258,11 @@ class Bot:
 			else:
 				log.write('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]))
 				time.sleep(30)
+
+	def warframe_loop(self):
+		while True:
+			self.send_message("326069638477774861", alert_analysis(), embed=None)
+			time.sleep(1800)
 
 class Guild:
 	def __init__(self, d):
