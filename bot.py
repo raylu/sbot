@@ -258,12 +258,12 @@ class Bot:
 			else:
 				log.write('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]))
 				time.sleep(30)
-				
+
 	def warframe_loop(self):
 		while True:
-			self.send_message("326069638477774861", alert_analysis(), embed = None)
+			self.send_message("326069638477774861",alert_analysis(),embed=None)
 			time.sleep(1800)
-			
+
 class Guild:
 	def __init__(self, d):
 		self.roles = {} # name -> {
