@@ -10,6 +10,8 @@ weather_key: null # https://www.wunderground.com/weather/api/
 reddit:
     api_id: null
     api_secret: null
+warframe: # set this to null to disable
+    channel: '326069638477774861'
 autoreload: false
 debug: false
 
