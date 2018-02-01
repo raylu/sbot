@@ -36,7 +36,7 @@ def orokin_search(reward_check):
 		'/Lotus/StoreItems/Types/Recipes/Components/OrokinCatalystBlueprint',
 		'/Lotus/StoreItems/Types/Recipes/Components/OrokinReactorBlueprint',
 	]
-	return reward_check in orokin
+	return reward_check[0] in orokin
 
 def helm_search(reward_check):
 	reward = reward_check[0]
