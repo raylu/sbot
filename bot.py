@@ -261,9 +261,16 @@ class Bot:
 				time.sleep(30)
 
 	def warframe_loop(self):
+		last_alerts = None
 		while True:
-			time.sleep(30 * 60)
-			self.send_message(config.bot.warframe['channel'], warframe.alert_analysis())
+			time.sleep(5 * 60)
+			try:
+				alerts = warframe.alert_analysis()
+				if len(alerts) > 0 and alerts != last_alerts:
+					self.send_message(config.bot.warframe['channel'], '\n'.join(alerts))
+				last_alerts = alerts
+			except requests.exceptions.RequestException as e:
+				log.write('warframe: %s' % e)
 
 class Guild:
 	def __init__(self, d):

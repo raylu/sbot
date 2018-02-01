@@ -26,8 +26,7 @@ def alert_analysis():
 		post_parts.append('nitain is available')
 	if len(helmet_names) > 0:
 		post_parts.append(', '.join(helmet_names[:5]) + ' helmets are available')
-	post_parts.append('credits are always available')
-	return '\n'.join(post_parts)
+	return post_parts
 
 def nitain_search(reward_check):
 	return reward_check[0]['ItemType'] == '/Lotus/Types/Items/MiscItems/Alertium'
