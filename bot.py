@@ -270,6 +270,8 @@ class Bot:
 					broadcast_alerts = set(alerts) - set(last_alerts)
 					self.send_message(config.bot.warframe['channel'], '\n'.join(broadcast_alerts))
 				last_alerts = alerts
+			except requests.exceptions.HTTPError as e:
+				log.write('warframe: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('warframe: %s' % e)
 
