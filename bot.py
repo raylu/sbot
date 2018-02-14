@@ -266,8 +266,8 @@ class Bot:
 			time.sleep(5 * 60)
 			try:
 				alerts = warframe.alert_analysis()
-				if len(alerts) > 0 and alerts != last_alerts:
-					broadcast_alerts = set(alerts) - set(last_alerts)
+				broadcast_alerts = set(alerts) - set(last_alerts)
+				if len(broadcast_alerts) > 0:
 					self.send_message(config.bot.warframe['channel'], '\n'.join(broadcast_alerts))
 				last_alerts = alerts
 			except requests.exceptions.HTTPError as e:
