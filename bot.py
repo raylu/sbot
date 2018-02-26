@@ -261,7 +261,7 @@ class Bot:
 				time.sleep(30)
 
 	def warframe_loop(self):
-		last_alerts = None
+		last_alerts = []
 		while True:
 			time.sleep(5 * 60)
 			try:
