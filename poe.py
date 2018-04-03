@@ -59,6 +59,7 @@ pages = [
 ]
 
 def _search(league, q):
+	q = q.casefold()
 	names = set()
 	matches = []
 	for page in pages:
