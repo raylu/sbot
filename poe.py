@@ -6,15 +6,15 @@ import requests
 
 rs = requests.Session()
 
-league = None
+league_name = None
 
 def price(cmd):
-	global league
+	global league_name
 
-	if league is None:
-		league = _get_league_name()
+	if league_name is None:
+		league_name = _get_league_name()
 
-	names, lines = _search(league, cmd.args)
+	names, lines = _search(league_name, cmd.args)
 	if len(names) == 0:
 		cmd.reply("couldn't find " + cmd.args)
 	elif len(names) > 1:
@@ -68,7 +68,6 @@ def _search(league, q):
 		for line in lines:
 			if q in line['name'].casefold():
 				names.add(line['name'])
-				name = line['name']
 				matches.append(line)
 		if len(names) > 0:
 			# there may be other matches on other pages, but we won't bother finding them
