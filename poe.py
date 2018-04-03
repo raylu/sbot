@@ -20,6 +20,7 @@ def price(cmd):
 	elif len(names) > 1:
 		cmd.reply(', '.join(names))
 	else:
+		responses = []
 		for line in lines:
 			name = line['name']
 			if line['links'] > 0:
@@ -27,7 +28,8 @@ def price(cmd):
 			response = '%s: %.1f chaos' % (name, line['chaosValue'])
 			if line['exaltedValue'] > 1.0:
 				response += ', %.1f exalted' % line['exaltedValue']
-			cmd.reply(response)
+			responses.append(response)
+		cmd.reply('\n'.join(responses))
 
 def _get_league_name():
 	html = rs.get('https://cdn.poe.ninja/')
