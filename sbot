@@ -6,6 +6,7 @@ from bot import Bot
 import code_eval
 import eve
 import management
+import poe
 import reddit
 import utils
 
@@ -23,7 +24,6 @@ def main():
 		'weather': utils.weather,
 		'ohno': utils.ohno,
 
-		'pc': eve.price_check,
 		'price': eve.price_check,
 		'jumps': eve.jumps,
 		'ly': eve.lightyears,
@@ -40,6 +40,8 @@ def main():
 		'groups': management.list_roles,
 
 		'headpat': reddit.headpat,
+
+		'pc': poe.price,
 	})
 	bot.connect()
 	bot.run_forever()
