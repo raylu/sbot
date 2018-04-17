@@ -1,5 +1,6 @@
 import datetime
 import random
+import re
 import subprocess
 import urllib.parse
 
@@ -42,8 +43,18 @@ def unicode(cmd):
 	output, _ = proc.communicate()
 	cmd.reply(output)
 
+temp_re = re.compile(r'\A([0-9 ]*)(C|F)\Z')
 def units(cmd):
-	command = ['units', '--compact', '--one-line', '--quiet'] + cmd.args.split(' in ', 1)
+	split = cmd.args.split(' in ', 1)
+	for i, part in enumerate(split):
+		match = temp_re.match(part)
+		if match:
+			# turn "20 C" into "tempC(20)"
+			if match.group(1):
+				split[i] = 'temp%s(%s)' % (match.group(2), match.group(1))
+			else:
+				split[i] = 'temp%s' % (match.group(2))
+	command = ['units', '--compact', '--one-line', '--quiet'] + split
 	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()
 	cmd.reply(output)
