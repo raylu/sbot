@@ -43,7 +43,7 @@ def unicode(cmd):
 	output, _ = proc.communicate()
 	cmd.reply(output)
 
-temp_re = re.compile(r'\A([0-9 ]*)(C|F)\Z')
+temp_re = re.compile(r'\A(-?[0-9 ]*)(C|F)\Z')
 def units(cmd):
 	split = cmd.args.split(' in ', 1)
 	for i, part in enumerate(split):
@@ -57,7 +57,10 @@ def units(cmd):
 	command = ['units', '--compact', '--one-line', '--quiet'] + split
 	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()
-	cmd.reply(output)
+	if proc.wait() == 0:
+		cmd.reply(output)
+	else:
+		cmd.reply('<@!%s>: error running `units`' % cmd.sender['id'])
 
 def roll(cmd):
 	args = cmd.args or '1d6'
