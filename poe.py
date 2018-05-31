@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import time
 
 import requests
@@ -32,23 +33,21 @@ def price(cmd):
 		cmd.reply('\n'.join(responses))
 
 def _get_league_name():
-	html = rs.get('https://cdn.poe.ninja/')
+	html = rs.get('https://poe.ninja/')
+	prefix = 'window.leagues = '
 	for line in html.text.split('\n'):
-		if '<script type="text/javascript" src="/dist/' in line:
-			prefix = '<script type="text/javascript" src="'
+		if prefix in line:
 			start = line.index(prefix) + len(prefix)
-			path = line[start:]
-			path = path[:path.find('"')]
+			end = line.find('];</script>') + 1
+			doc = line[start:end]
 			break
+	else:
+		raise Exception("Couldn't find leagues JSON")
 
-	url = 'https://cdn.poe.ninja' + path
-	js = rs.get(url).text
-	start = js.index('getLeagueName')
-	league = js[start:start+256]
-	league = league[league.index('tmpStandardLeagueId'):]
-	league = league[league.index('"')+1:]
-	league = league[:league.index('"')]
-	return league
+	leagues = json.loads(doc)
+	for league_info in leagues:
+		if league_info['url'] == 'standard':
+			return league_info['name']
 
 pages = [
 	'GetUniqueArmourOverview',
@@ -86,6 +85,6 @@ def _query(page, league):
 		if ts > now - 60 * 60: # cache for 1 hour
 			return data
 
-	data = rs.get('https://cdn.poe.ninja/api/Data/%s?league=%s' % (page, league)).json()
+	data = rs.get('https://poe.ninja/api/Data/%s?league=%s' % (page, league)).json()
 	cache[(page, league)] = now, data
 	return data
