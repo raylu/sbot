@@ -46,7 +46,7 @@ def _get_league_name():
 
 	leagues = json.loads(doc)
 	for league_info in leagues:
-		if league_info['url'] == 'standard':
+		if league_info['url'] == 'challenge':
 			return league_info['name']
 
 pages = [
