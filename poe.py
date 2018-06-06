@@ -50,13 +50,15 @@ def _get_league_name():
 			return league_info['name']
 
 pages = [
-	'GetUniqueArmourOverview',
-	'GetUniqueWeaponOverview',
-	'GetUniqueAccessoryOverview',
-	'GetUniqueJewelOverview',
-	'GetUniqueFlaskOverview',
-	'GetUniqueMapOverview',
-	'GetDivinationCardsOverview',
+	'UniqueArmour',
+	'UniqueWeapon',
+	'UniqueAccessory',
+	'UniqueJewel',
+	'UniqueFlask',
+	'UniqueMap',
+	'DivinationCard',
+	'Prophecy',
+	'HelmetEnchant',
 ]
 
 def _search(league, q):
@@ -85,6 +87,6 @@ def _query(page, league):
 		if ts > now - 60 * 60: # cache for 1 hour
 			return data
 
-	data = rs.get('https://poe.ninja/api/Data/%s?league=%s' % (page, league)).json()
+	data = rs.get('https://poe.ninja/api/data/itemoverview?league=%s&type=%s' % (league, page)).json()
 	cache[(page, league)] = now, data
 	return data
