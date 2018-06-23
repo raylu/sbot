@@ -116,8 +116,9 @@ def price_check(cmd):
 		else:
 			return 'n/a'
 
-	args = cmd.args
-	result = item_info(args)
+	if not cmd.args:
+		return
+	result = item_info(cmd.args)
 	if not result:
 		return
 	typeid, item_name = result
