@@ -15,11 +15,13 @@ def price(cmd):
 	if league_name is None:
 		league_name = _get_league_name()
 
+	if not cmd.args:
+		return
 	names, lines = _search(league_name, cmd.args)
 	if len(names) == 0:
 		cmd.reply("couldn't find " + cmd.args)
 	elif len(names) > 1:
-		cmd.reply(', '.join(names))
+		cmd.reply(', '.join(names)[:250])
 	else:
 		responses = []
 		for line in lines:
