@@ -213,13 +213,12 @@ def lightyears(cmd):
 def who(cmd):
 	dt_format = '%Y-%m-%dT%H:%M:%SZ'
 	try:
-		r = rs.get('https://api.eveonline.com/eve/CharacterId.xml.aspx', params={'names': cmd.args})
+		rs.params = {'datasource': 'tranquility', 'language': 'en-us'}
+		r = rs.post('https://esi.evetech.net/latest/universe/ids/', json=[cmd.args])
 		r.raise_for_status()
-		dom = minidom.parseString(r.text)
-		row = dom.getElementsByTagName('row')[0]
-		char_id = int(row.attributes['characterID'].nodeValue)
+		char_id = int(r.json()['characters'][0]['id'])
 
-		r = rs.get('https://esi.tech.ccp.is/v4/characters/%d/' % char_id)
+		r = rs.get('https://esi.evetech.net/v4/characters/%d/' % char_id)
 		r.raise_for_status()
 		data = r.json()
 		char_name = data['name']
@@ -230,7 +229,7 @@ def who(cmd):
 		output = '%s: born %s, security status %.2f  ' % (char_name, birthday, security_status)
 		output += 'https://zkillboard.com/character/%d/' % char_id
 
-		r = rs.get('https://esi.tech.ccp.is/v3/corporations/%d/' % corp_id)
+		r = rs.get('https://esi.evetech.net/v3/corporations/%d/' % corp_id)
 		r.raise_for_status()
 		data = r.json()
 		corp_name = data['corporation_name']
@@ -246,7 +245,7 @@ def who(cmd):
 
 		if alliance_id:
 			alliance_id = int(alliance_id)
-			r = rs.get('https://esi.tech.ccp.is/v2/alliances/%d/' % alliance_id)
+			r = rs.get('https://esi.evetech.net/v2/alliances/%d/' % alliance_id)
 			r.raise_for_status()
 			data = r.json()
 			alliance_name = data['alliance_name']
