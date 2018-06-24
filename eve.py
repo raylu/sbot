@@ -216,6 +216,11 @@ def who(cmd):
 		rs.params = {'datasource': 'tranquility', 'language': 'en-us'}
 		r = rs.post('https://esi.evetech.net/latest/universe/ids/', json=[cmd.args])
 		r.raise_for_status()
+
+		if len(r.json().keys()) == 0:
+			cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['username'])
+			return
+
 		char_id = int(r.json()['characters'][0]['id'])
 
 		r = rs.get('https://esi.evetech.net/v4/characters/%d/' % char_id)
