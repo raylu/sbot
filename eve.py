@@ -213,7 +213,9 @@ def lightyears(cmd):
 def who(cmd):
 	dt_format = '%Y-%m-%dT%H:%M:%SZ'
 	try:
-		r = rs.post('https://esi.evetech.net/latest/universe/ids/', params={'datasource': 'tranquility', 'language': 'en-us'} ,json=[cmd.args])
+		r = rs.post('https://esi.evetech.net/latest/universe/ids/',
+			params={'datasource': 'tranquility', 'language': 'en-us'},
+			json=[cmd.args])
 		r.raise_for_status()
 
 		if len(r.json().keys()) == 0:
