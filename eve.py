@@ -2,8 +2,6 @@ import datetime
 from math import sqrt
 import operator
 import time
-from xml.dom import minidom
-import xml.parsers.expat
 
 import psycopg2
 import requests
@@ -15,33 +13,8 @@ rs.headers.update({'User-Agent': 'sbot'})
 if config.bot.eve_dsn is not None:
 	db = psycopg2.connect(config.bot.eve_dsn)
 
-crest_price_cache = {'last_update': 0, 'items': {}}
+esi_price_cache = {'last_update': 0, 'items': {}}
 def price_check(cmd):
-	def get_prices(typeid, system=None, region=None):
-		url = 'http://api.eve-central.com/api/marketstat'
-		params = {'typeid': typeid}
-		if system:
-			params['usesystem'] = system
-		if region:
-			params['regionlimit'] = region
-		try:
-			dom = minidom.parseString(rs.get(url, params=params).text)
-		except xml.parsers.expat.ExpatError:
-			return None
-
-		buy = dom.getElementsByTagName('buy')[0]
-		buy_max = buy.getElementsByTagName('max')[0]
-		bid = float(buy_max.childNodes[0].data)
-
-		sell = dom.getElementsByTagName('sell')[0]
-		sell_min = sell.getElementsByTagName('min')[0]
-		ask = float(sell_min.childNodes[0].data)
-
-		all_orders = dom.getElementsByTagName('all')[0]
-		all_volume = all_orders.getElementsByTagName('volume')[0]
-		volume = int(all_volume.childNodes[0].data)
-
-		return bid, ask, volume
 	def __item_info(curs, query):
 		curs.execute('''
 			SELECT "typeID", "typeName" FROM "invTypes"
@@ -89,30 +62,22 @@ def price_check(cmd):
 				return None
 			cmd.reply('Item not found')
 			return None
-	def format_prices(prices):
-		if prices is None:
-			return 'n/a'
-		if prices[1] < 1000.0:
-			return 'bid {0:g} ask {1:g} vol {2:,d}'.format(*prices)
-		prices = map(int, prices)
-		return 'bid {0:,d} ask {1:,d} vol {2:,d}'.format(*prices)
-	def get_crest_price(typeid):
+
+	def get_esi_price(typeid):
 		now = time.time()
-		if crest_price_cache['last_update'] < now - 60 * 60 * 2:
-			res = rs.get('https://crest-tq.eveonline.com/market/prices/')
+		if esi_price_cache['last_update'] < now - 60 * 60 * 2:
+			res = rs.get('https://esi.evetech.net/latest/markets/prices/?datasource=tranquility')
 			if res.status_code == 200:
-				crest_price_cache['items'].clear()
-				for item in res.json()['items']:
-					crest_price_cache['items'][item['type']['id']] = item
-					del item['type']
-				crest_price_cache['last_update'] = now
-		prices = crest_price_cache['items'].get(typeid)
-		if prices and 'averagePrice' in prices:
-			if prices['averagePrice'] < 1000.0:
-				return 'avg {averagePrice:g} adj {adjustedPrice:g}'.format(**prices)
+				esi_price_cache['items'].clear()
+				for item in res.json():
+					esi_price_cache['items'][item['type_id']] = item
+		prices = esi_price_cache['items'][typeid]
+		if prices and 'average_price' in prices:
+			if prices['average_price'] < 1000.0:
+				return 'avg {average_price:g} adj {adjusted_price:g}'.format(**prices)
 			for k, v in prices.items():
 				prices[k] = int(v)
-			return 'avg {averagePrice:,d} adj {adjustedPrice:,d}'.format(**prices)
+			return 'avg {average_price:,d} adj {adjusted_price:,d}'.format(**prices)
 		else:
 			return 'n/a'
 
@@ -122,14 +87,8 @@ def price_check(cmd):
 	if not result:
 		return
 	typeid, item_name = result
-	jita_system = 30000142
-	amarr_system = 30002187
-	jita_prices = get_prices(typeid, system=jita_system)
-	amarr_prices = get_prices(typeid, system=amarr_system)
-	jita = format_prices(jita_prices)
-	amarr = format_prices(amarr_prices)
-	crest = get_crest_price(typeid)
-	cmd.reply('%s\nJita: %s\nAmarr: %s\nCREST: %s' % (item_name, jita, amarr, crest))
+	esi = get_esi_price(typeid)
+	cmd.reply('%s: %s' % (item_name, esi))
 
 def jumps(cmd):
 	split = cmd.args.split()
