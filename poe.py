@@ -23,7 +23,7 @@ def price(cmd):
 	elif len(names) > 1:
 		cmd.reply(', '.join(names)[:250])
 	else:
-		responses = []
+		responses = [league_name + ':']
 		for line in lines:
 			name = line['name']
 			if line['links'] > 0:
@@ -47,9 +47,13 @@ def _get_league_name():
 		raise Exception("Couldn't find leagues JSON")
 
 	leagues = json.loads(doc)
+	standard_league = None
 	for league_info in leagues:
 		if league_info['url'] == 'challenge':
 			return league_info['name']
+		elif league_info['url'] == 'standard':
+			standard_league = league_info['name']
+	return standard_league
 
 pages = [
 	'UniqueArmour',
