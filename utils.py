@@ -145,8 +145,12 @@ def _timer_add(cmd, split):
 	if arg:
 		cmd.reply('%s: "%s" left over after parsing time' % (cmd.sender['username'], arg))
 		return
-	td = datetime.timedelta(**td_args)
-	time = datetime.datetime.utcnow() + td
+	try:
+		td = datetime.timedelta(**td_args)
+		time = datetime.datetime.utcnow() + td
+	except OverflowError:
+		cmd.reply('%s: time not in range' % cmd.sender['username'])
+		return
 	config.state.timers[name] = time
 	config.state.save()
 	with cmd.bot.timer_condvar:
