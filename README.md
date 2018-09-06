@@ -37,14 +37,8 @@ sudo chown -R $USER: /sys/fs/cgroup/{memory,pids}/NSJAIL
 
 #### EVE price checker
 
-install postgresql  
-edit `/etc/postgresql/9.6/main/pg_hba.conf` to change the local/all/all/peer user to local/all/all/trust  
-`sudo service postgresql restart`  
-download postgres-latest.dmp.bz2 from https://www.fuzzwork.co.uk/dump/
+download `sqlite-latest.sqlite.bz2` from https://www.fuzzwork.co.uk/dump/
 ```
-sudo -u postgres psql
-	create database eve;
-	create user sbot;
-	grant all privileges on database eve to sbot;
-bunzip2 -c postgres-latest.dmp.bz2 | pg_restore -U sbot -d eve -c -t mapSolarSystems -t mapRegions -t invGroups -t invTypes
+bunzip2 sqlite-latest.sqlite.bz2
 ```
+edit config.yaml so that `eve_db` is the filepath of the sqlite file

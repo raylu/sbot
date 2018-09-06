@@ -2,3 +2,4 @@ __pycache__
 /config.yaml
 /state.yaml
 /sbot.log
+*.sqlite
