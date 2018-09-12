@@ -29,10 +29,10 @@ def nodejs(cmd):
 	reply(cmd, output)
 
 def ruby(cmd):
-	args = ['../nsjail/nsjail', '-Mo', '--chroot', '',
+	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir,
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '2', '--quiet', '--',
 			'/usr/bin/ruby', '-Ue', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
