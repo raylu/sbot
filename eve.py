@@ -1,4 +1,3 @@
-import datetime
 from math import sqrt
 import operator
 import sqlite3
@@ -189,14 +188,12 @@ def who(cmd):
 		1: 'corporationID',
 		2: 'allianceID',
 	}
-	dt_format = '%Y-%m-%dT%H:%M:%SZ'
 
 	def get_char_info(char_id):
 		r = rs.get('https://esi.evetech.net/latest/characters/{}/'.format(char_id), params={'datasource': 'tranquility'})
 		char_info = r.json()
 		killed, lost = get_zkill_stats(char_id, 0)
-		last_active = get_last_active(char_id, 0)
-		return char_info, killed, lost, last_active
+		return char_info, killed, lost
 
 	def get_corp_info(corp_id):
 		r = rs.get('https://esi.evetech.net/latest/corporations/{}/'.format(corp_id), params={'datasource': 'tranquility'})
@@ -227,31 +224,6 @@ def who(cmd):
 		except KeyError:
 			return 0
 
-	def get_last_active(entity_id, entity_type):
-		r = rs.get('https://zkillboard.com/api/{entity_type}/{entity_id}/'.format(
-				entity_id=entity_id, entity_type=entity_type_map[entity_type]))
-		kills = r.json()
-		if len(kills) > 0:
-			return kills[0]
-
-	def get_humanized_timedelta(timestamp):
-		last = datetime.datetime.strptime(timestamp, dt_format)
-		now = datetime.datetime.utcnow()
-		delta = now - last
-
-		delta_dict = {
-			'year': delta.days / 365,
-			'month': delta.days / 30,
-			'week': delta.days / 7,
-			'day': delta.days,
-			'hour': delta.seconds / 3600,
-			'minute': delta.seconds / 60,
-			'second': delta.seconds,
-		}
-		for k, v in delta_dict.items():
-			if v >= 1:
-				return k, '{:1.0f}'.format(v)
-
 	try:
 		r = rs.post('https://esi.evetech.net/latest/universe/ids/',
 				params={'datasource': 'tranquility', 'language': 'en-us'},
@@ -270,24 +242,13 @@ def who(cmd):
 	output = ''
 	if 'characters' in initial_id:
 		try:
-			char_info, killed, lost, last_active = get_char_info(initial_id['characters'][0]['id'])
+			char_info, killed, lost = get_char_info(initial_id['characters'][0]['id'])
 		except requests.exceptions.HTTPError:
 			cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['username'])
 
-		if last_active is not None:
-			span, value = get_humanized_timedelta(last_active['killmail_time'])
-		else:
-			span, value = 0, 0
-		if int(value) > 1:
-			span += 's'
-		if killed == 0 and lost == 0:
-			span = 'never'
-			value = ''
-
 		corp_id = char_info['corporation_id']
-		output += '{name} ({security:.2f}) [{killed}/{lost}] Last active {value} {span} ago\n'.format(
-				name=char_info['name'], security=char_info['security_status'],
-				killed=killed, lost=lost, value=value, span=span)
+		output += '{name} ({security:.2f}) [{killed}/{lost}]\n'.format(
+				name=char_info['name'], security=char_info['security_status'], killed=killed, lost=lost)
 
 	if 'corporations' in initial_id or char_info:
 		if not char_info:
