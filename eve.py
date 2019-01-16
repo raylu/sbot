@@ -158,7 +158,7 @@ def lightyears(cmd):
 	dist = 0
 	for d1, d2 in zip(result[0][1:], result[1][1:]):
 		dist += (d1 - d2)**2
-	dist = sqrt(dist) / 9.4605284e15  # meters to lightyears
+	dist = sqrt(dist) / 9.4605284e15 # meters to lightyears
 	ship_ranges = [
 		('other:\t ', 3.5),
 		('blops:\t ', 4.0),

@@ -64,7 +64,7 @@ def units(cmd):
 
 def roll(cmd):
 	args = cmd.args or '1d6'
-	response = rs.get('https://rolz.org/api/?' + urllib.parse.quote_plus(args))
+	response = rs.get('https://rolz.org/api/?' + args) # don't urlencode
 	split = response.text.split('\n')
 	details = split[2].split('=', 1)[1].strip()
 	details = details.replace(' +', ' + ').replace(' +  ', ' + ')
