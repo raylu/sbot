@@ -96,6 +96,7 @@ class Bot:
 									'```\n%s\n```\n```\n%s\n```' % (raw_data[:800], tb[:1000]))
 						except Exception:
 							log.write('error sending to err_channel:\n' + traceback.format_exc())
+			log.flush()
 
 	def get(self, path):
 		response = self.rs.get('https://discordapp.com/api' + path)
