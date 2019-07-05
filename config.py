@@ -8,7 +8,7 @@ class YamlAttrs:
 
 		try:
 			with open(filename, 'r') as f:
-				doc = yaml.load(f)
+				doc = yaml.safe_load(f)
 		except FileNotFoundError:
 			doc = defaults
 			log.write('creating ' + self.filename)
@@ -27,4 +27,5 @@ class YamlAttrs:
 		return '%s %s' % (self.__class__, self.__dict__)
 
 bot = YamlAttrs('config.yaml')
-state = YamlAttrs('state.yaml', defaults={'gateway_url': None, 'timers': {}, 'reddit_access_token': None})
+state = YamlAttrs('state.yaml',
+	defaults={'gateway_url': None, 'timers': {}, 'reddit_access_token': None, 'tweet_ids': {}})

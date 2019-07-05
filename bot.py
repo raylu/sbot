@@ -17,6 +17,7 @@ import websocket
 import config
 import log
 from utils import readable_rel
+import twitter
 import warframe
 
 class Bot:
@@ -30,6 +31,7 @@ class Bot:
 		self.timer_condvar = threading.Condition()
 		self.zkill_thread = None
 		self.warframe_thread = None
+		self.twitter_thread = None
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
@@ -151,6 +153,8 @@ class Bot:
 			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
 		if config.bot.warframe is not None:
 			self.warframe_thread = _thread.start_new_thread(self.warframe_loop, ())
+		if config.bot.twitter is not None:
+			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
 
 	def handle_message_create(self, d):
 		content = d['content']
@@ -275,6 +279,18 @@ class Bot:
 				log.write('warframe: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('warframe: %s' % e)
+
+	def twitter_loop(self):
+		while True:
+			# https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
+			# 100,000 in 24 hours is 69.4 a minute, so wait 1 minute per account (1 request per account)
+			time.sleep(60 * len(config.bot.twitter['accounts']))
+			try:
+				twitter.new_tweets(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('twitter: %s' % e)
 
 class Guild:
 	def __init__(self, d):
