@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 import config
@@ -32,5 +34,6 @@ def new_tweets(bot):
 
 		for embed in reversed(embeds):
 			bot.send_message(channel_id, '<%s>' % embed['url'], embed)
+			time.sleep(2)
 		config.state.tweet_ids[account] = tweets[0]['id']
 	config.state.save()
