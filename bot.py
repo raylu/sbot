@@ -24,7 +24,7 @@ class Bot:
 		self.ws = None
 		self.rs = requests.Session()
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
-		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot 0.0'
+		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot 0.0)'
 		self.heartbeat_thread = None
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
