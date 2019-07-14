@@ -130,10 +130,15 @@ def jumps(cmd):
 		curs.execute('''SELECT "solarSystemName", "security"
 						FROM "mapSolarSystems"
 						WHERE "solarSystemID" = ?''', (j,))
-		result = list(map(str, curs.fetchone()))
-		result[1] = result[1][:3]
-		jumps_split.append(" ".join(result))
-	cmd.reply('{} jumps:\n'.format(len(jumps_split)-1) + " -> ".join(jumps_split))
+		system_name, security = curs.fetchone()
+		if security >= 0.45:
+			sec_emoji = 'green_apple'
+		elif security > 0.0:
+			sec_emoji = 'yellow_heart'
+		else:
+			sec_emoji = 'red_circle'
+		jumps_split.append(':%s: %s' % (sec_emoji, system_name))
+	cmd.reply('{} jumps:\n'.format(len(jumps_split)-1) + ' \u2192 '.join(jumps_split))
 
 
 def lightyears(cmd):
