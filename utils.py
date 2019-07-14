@@ -208,6 +208,6 @@ def weather(cmd):
 		cmd.reply('%s: error fetching results' % cmd.sender['username'])
 
 def ohno(cmd):
-	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 53)
+	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 54)
 	embed = {'image': {'url': url, 'width': 200, 'height': 200}}
 	cmd.reply('', embed)
