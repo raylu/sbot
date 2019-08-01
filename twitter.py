@@ -8,6 +8,10 @@ def new_tweets(bot):
 	rs = requests.Session()
 	for account, channel_id in config.bot.twitter['accounts'].items():
 		last_tweet = config.state.tweet_ids.get(account)
+		if last_tweet:
+			last_tweet_timestamp = tweet_id_to_ts(last_tweet)
+		else:
+			last_tweet_timestamp = 0
 
 		r = rs.get('https://api.twitter.com/1.1/statuses/user_timeline.json',
 			params={'screen_name': account, 'count': 25, 'tweet_mode': 'extended'},
@@ -16,8 +20,10 @@ def new_tweets(bot):
 		embeds = []
 		tweets = r.json()
 		for tweet in tweets:
-			if tweet['id'] == last_tweet:
+			timestamp = tweet_id_to_ts(tweet['id'])
+			if timestamp <= last_tweet_timestamp:
 				break # tweets are newest first
+
 			if len(tweet['entities']['user_mentions']) > 0:
 				continue
 
@@ -37,3 +43,7 @@ def new_tweets(bot):
 			time.sleep(2)
 		config.state.tweet_ids[account] = tweets[0]['id']
 	config.state.save()
+
+def tweet_id_to_ts(tweet_id):
+	# https://github.com/client9/snowflake2time#snowflake-layout
+	return (tweet_id & 0x7fffffffffffffff) >> 22
