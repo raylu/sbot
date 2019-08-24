@@ -42,6 +42,7 @@ def main():
 		'headpat': reddit.headpat,
 
 		'pc': poe.price,
+		'poe': poe.wiki,
 	})
 	bot.connect()
 	bot.run_forever()

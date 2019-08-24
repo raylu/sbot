@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
+from pprint import pprint
+
 import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'starforge'
+		self.args = 'piscator\'s'
 		self.sender = {'username': 'testname'}
 
 	def reply(self, text, embed=None):
-		print(text, embed)
+		print(text)
+		pprint(embed)
 
-poe.price(MockCmd())
+poe.wiki(MockCmd())
