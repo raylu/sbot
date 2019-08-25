@@ -103,6 +103,9 @@ class PageValuesException(Exception):
 	pass
 
 def wiki(cmd):
+	if not cmd.args:
+		return
+
 	r = rs.get('https://pathofexile.gamepedia.com/api.php',
 		headers={'Accept': 'application/json'},
 		params={
@@ -188,6 +191,11 @@ def _parse_pagevalues(name, pagevalues):
 	return item_info
 
 def _strip_mediawiki_formatting(value):
-	value = value.replace('&lt;br&gt;', '\n')
+	lines = []
+	for line in value.split('&lt;br&gt;'):
+		if line.startswith('&lt;'):
+			line = '[unparsed]'
+		lines.append(line)
+	value = '\n'.join(lines)
 	value = re.sub(r'\[\[(.*\|)?(.+?)\]\]', r'\2', value)
 	return value

@@ -6,7 +6,7 @@ import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'piscator\'s'
+		self.args = 'precursor\'s emblem (po'
 		self.sender = {'username': 'testname'}
 
 	def reply(self, text, embed=None):
