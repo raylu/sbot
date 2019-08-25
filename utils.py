@@ -37,6 +37,8 @@ def calc(cmd):
 		cmd.reply('<@!%s>: error calculating' % cmd.sender['id'])
 
 def unicode(cmd):
+	if not cmd.args:
+		return
 	command = ['unicode', '--max', '5', '--color', '0',
 			'--format', '{pchar} U+{ordc:04X} {name} (UTF-8: {utf8})\\n', cmd.args]
 	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
