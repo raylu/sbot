@@ -17,6 +17,7 @@ import websocket
 import config
 import log
 from utils import readable_rel
+import steam_news
 import twitter
 import warframe
 
@@ -32,6 +33,7 @@ class Bot:
 		self.zkill_thread = None
 		self.warframe_thread = None
 		self.twitter_thread = None
+		self.steam_news_thread = None
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
@@ -155,6 +157,8 @@ class Bot:
 			self.warframe_thread = _thread.start_new_thread(self.warframe_loop, ())
 		if config.bot.twitter is not None:
 			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
+		if config.bot.steam_news is not None:
+			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
 
 	def handle_message_create(self, d):
 		content = d['content']
@@ -291,6 +295,16 @@ class Bot:
 				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('twitter: %s' % e)
+
+	def steam_news_loop(self):
+		while True:
+			time.sleep(60)
+			try:
+				steam_news.news(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('steam news: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('steam news: %s' % e)
 
 class Guild:
 	def __init__(self, d):

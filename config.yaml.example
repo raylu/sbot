@@ -14,6 +14,8 @@ twitter: # set this to null to disable
     bearer_token: null
     accounts:
         RiskofRain: '282441291327864834'
+steam_news: # set this to null to disable
+    427520: '282441291327864834' # factorio -> #bot-testing
 warframe: # set this to null to disable
     channel: '326069638477774861'
 autoreload: false
