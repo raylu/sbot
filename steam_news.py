@@ -33,7 +33,7 @@ def news(bot):
 
 			description_text = re.sub(r'<[^>]+>', '', html.unescape(description))
 			embeds.append({
-				'title': title, 'description': description_text[:2500], 'url': link, 'author': {'name': author},
+				'title': title, 'description': description_text[:2000], 'url': link, 'author': {'name': author},
 			})
 
 		for embed in reversed(embeds):
