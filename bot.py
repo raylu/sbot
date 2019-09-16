@@ -107,10 +107,10 @@ class Bot:
 		response.raise_for_status()
 		return response.json()
 
-	def post(self, path, data, method='POST'):
+	def post(self, path, data, files=None, method='POST'):
 		if config.bot.debug:
 			print('=>', path, data)
-		response = self.rs.request(method, 'https://discordapp.com/api' + path, json=data)
+		response = self.rs.request(method, 'https://discordapp.com/api' + path, files=files, json=data)
 		response.raise_for_status()
 		if response.status_code != 204: # No Content
 			return response.json()
@@ -122,11 +122,15 @@ class Bot:
 			print('->', raw_data)
 		self.ws.send(raw_data)
 
-	def send_message(self, channel_id, text, embed=None):
-		data = {'content': text}
-		if embed is not None:
-			data['embed'] = embed
-		self.post('/channels/%s/messages' % channel_id, data)
+	def send_message(self, channel_id, text, embed=None, files=None):
+		if files is None:
+			data = {'content': text}
+			if embed is not None:
+				data['embed'] = embed
+			self.post('/channels/%s/messages' % channel_id, data)
+		else:
+			assert text is None
+			self.post('/channels/%s/messages' % channel_id, None, files)
 
 	def handle_hello(self, _, d):
 		log.write('connected to %s' % d['_trace'])
@@ -334,8 +338,8 @@ class CommandEvent:
 		self.args = args
 		self.bot = bot
 
-	def reply(self, message, embed=None):
-		self.bot.send_message(self.channel_id, message, embed)
+	def reply(self, message, embed=None, files=None):
+		self.bot.send_message(self.channel_id, message, embed, files)
 
 class OP: # pylint: disable=bad-whitespace
 	DISPATCH              = 0

@@ -2,15 +2,15 @@
 
 from pprint import pprint
 
-import poe
+import utils
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'precursor\'s emblem (po'
+		self.args = '94103'
 		self.sender = {'username': 'testname'}
 
-	def reply(self, text, embed=None):
+	def reply(self, text, embed=None, files=None):
 		print(text)
 		pprint(embed)
 
-poe.wiki(MockCmd())
+utils.weather(MockCmd())
