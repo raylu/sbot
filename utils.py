@@ -201,7 +201,7 @@ def weather(cmd):
 		flags = split[-1][1:]
 		location = ' '.join(split[:-1])
 	else:
-		flags = '1Fqp'
+		flags = '1Fp'
 		location = cmd.args
 	filename = '%s_%s.png' % (urllib.parse.quote_plus(location), flags)
 	url = 'https://wttr.in/' + filename
