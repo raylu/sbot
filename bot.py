@@ -224,17 +224,18 @@ class Bot:
 			wakeups = []
 			now = datetime.datetime.utcnow()
 			hour_from_now = now + datetime.timedelta(hours=1)
-			for name, dt in copy.copy(config.state.timers).items():
-				if dt <= now:
-					self.send_message(config.bot.timer_channel, 'removing expired timer "%s" for %s' %
-							(name, dt.strftime('%Y-%m-%d %H:%M:%S')))
-					del config.state.timers[name]
-					config.state.save()
-				elif dt <= hour_from_now:
-					self.send_message(config.bot.timer_channel, '%s until %s' % (readable_rel(dt - now), name))
-					wakeups.append(dt)
-				else:
-					wakeups.append(dt - datetime.timedelta(hours=1))
+			for channel_id, timers in config.state.timers.items():
+				for name, dt in copy.copy(timers).items():
+					if dt <= now:
+						self.send_message(channel_id, 'removing expired timer "%s" for %s' %
+								(name, dt.strftime('%Y-%m-%d %H:%M:%S')))
+						del timers[name]
+						config.state.save()
+					elif dt <= hour_from_now:
+						self.send_message(channel_id, '%s until %s' % (readable_rel(dt - now), name))
+						wakeups.append(dt)
+					else:
+						wakeups.append(dt - datetime.timedelta(hours=1))
 			wakeup = None
 			if wakeups:
 				wakeups.sort()

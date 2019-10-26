@@ -22,10 +22,13 @@ def timer(cmd):
 def _timer_list(cmd, split):
 	now = datetime.datetime.utcnow()
 	reply = []
-	for name, time in config.state.timers.items():
+	for name, time in config.state.timers.get(cmd.channel_id, {}).items():
 		rel = readable_rel(time - now)
 		reply.append('%s: %s (%s)' % (name, time.strftime(dt_format), rel))
-	cmd.reply('\n'.join(reply))
+	if reply:
+		cmd.reply('\n'.join(reply))
+	else:
+		cmd.reply('no timers in this channel')
 
 def _timer_add(cmd, split):
 	try:
@@ -36,10 +39,13 @@ def _timer_add(cmd, split):
 	except ValueError:
 		cmd.reply('%s: must specify timer name and time delta' % cmd.sender['username'])
 		return
-	if name in config.state.timers:
-		time_str = config.state.timers[name].strftime(dt_format)
+
+	timers = config.state.timers.get(cmd.channel_id, {})
+	if name in timers:
+		time_str = timers[name].strftime(dt_format)
 		cmd.reply('%s: "%s" already set for %s' % (cmd.sender['username'], name, time_str))
 		return
+
 	td_args = {'days': 0, 'hours': 0, 'minutes': 0}
 	for char, unit in zip('dhm', ['days', 'hours', 'minutes']):
 		try:
@@ -60,7 +66,9 @@ def _timer_add(cmd, split):
 	except OverflowError:
 		cmd.reply('%s: time not in range' % cmd.sender['username'])
 		return
-	config.state.timers[name] = time
+
+	timers[name] = time
+	config.state.timers[cmd.channel_id] = timers
 	config.state.save()
 	with cmd.bot.timer_condvar:
 		cmd.bot.timer_condvar.notify()
@@ -73,11 +81,11 @@ def _timer_del(cmd, split):
 		cmd.reply('%s: missing args to `del`; %s' % (cmd.sender['username'], timer_usage))
 		return
 	try:
-		del config.state.timers[name]
+		del config.state.timers[cmd.channel_id][name]
 		config.state.save()
 		cmd.reply('deleted "%s"' % name)
 	except KeyError:
-		cmd.reply('%s: couldn\'t find "%s"' % (cmd.sender['username'], name))
+		cmd.reply('%s: couldn\'t find "%s" in this channel' % (cmd.sender['username'], name))
 
 def readable_rel(rel):
 	seconds = rel.total_seconds()

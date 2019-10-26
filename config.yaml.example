@@ -1,7 +1,6 @@
 token: null
 err_channel: null
 role_server: '109469702010478592' # secret hiding room
-timer_channel: '282441291327864834' # bot-testing
 eve_db: 'sqlite-latest.sqlite'
 zkillboard: # set this to null to disable
     alliance: 99002172
