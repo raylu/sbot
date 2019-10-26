@@ -8,6 +8,7 @@ import eve
 import management
 import poe
 import reddit
+import timer
 import utils
 
 def main():
@@ -20,9 +21,10 @@ def main():
 		'units': utils.units,
 		'roll': utils.roll,
 		'time': utils.timezones,
-		'timer': utils.timer,
 		'weather': utils.weather,
 		'ohno': utils.ohno,
+
+		'timer': timer.timer,
 
 		'price': eve.price_check,
 		'jumps': eve.jumps,

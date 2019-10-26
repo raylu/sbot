@@ -16,8 +16,8 @@ import websocket
 
 import config
 import log
-from utils import readable_rel
 import steam_news
+from timer import readable_rel
 import twitter
 import warframe
 
