@@ -196,18 +196,21 @@ def who(cmd):
 
 	def get_char_info(char_id):
 		r = rs.get('https://esi.evetech.net/latest/characters/{}/'.format(char_id), params={'datasource': 'tranquility'})
+		r.raise_for_status()
 		char_info = r.json()
 		killed, lost = get_zkill_stats(char_id, 0)
 		return char_info, killed, lost
 
 	def get_corp_info(corp_id):
 		r = rs.get('https://esi.evetech.net/latest/corporations/{}/'.format(corp_id), params={'datasource': 'tranquility'})
+		r.raise_for_status()
 		corp_info = r.json()
 		active_members = get_group_actives(corp_id, 1)
 		return corp_info, active_members
 
 	def get_alliance_info(alliance_id):
 		r = rs.get('https://esi.evetech.net/latest/alliances/{}/'.format(alliance_id), params={'datasource': 'tranquility'})
+		r.raise_for_status()
 		alliance_info = r.json()
 		active_members = get_group_actives(alliance_id, 2)
 		return alliance_info, active_members
@@ -215,6 +218,7 @@ def who(cmd):
 	def get_zkill_stats(entity_id, entity_type):
 		r = rs.get('https://zkillboard.com/api/stats/{entity_type}/{entity_id}/'.format(
 				entity_id=entity_id, entity_type=entity_type_map[entity_type]))
+		r.raise_for_status()
 		stats = r.json()
 		killed = stats.get('shipsDestroyed', 0)
 		lost = stats.get('shipsLost', 0)
@@ -223,6 +227,7 @@ def who(cmd):
 	def get_group_actives(entity_id, entity_type):
 		r = rs.get('https://zkillboard.com/api/stats/{entity_type}/{entity_id}/'.format(
 				entity_type=entity_type_map[entity_type], entity_id=entity_id))
+		r.raise_for_status()
 		data = r.json()
 		try:
 			return data['activepvp']['characters']['count']
@@ -255,19 +260,22 @@ def who(cmd):
 		output += '{name} ({security:.2f}) [{killed}/{lost}]\n'.format(
 				name=char_info['name'], security=char_info['security_status'], killed=killed, lost=lost)
 
-	if 'corporations' in initial_id or char_info:
-		if not char_info:
-			corp_id = initial_id['corporations'][0]['id']
-		corp_info, active_members = get_corp_info(corp_id)
-		alliance_id = corp_info.get('alliance_id')
-		output += '{name} [{ticker}] {active} active members\n'.format(
-				name=corp_info['name'], ticker=corp_info['ticker'], active=active_members)
+	try:
+		if 'corporations' in initial_id or char_info:
+			if not char_info:
+				corp_id = initial_id['corporations'][0]['id']
+			corp_info, active_members = get_corp_info(corp_id)
+			alliance_id = corp_info.get('alliance_id')
+			output += '{name} [{ticker}] {active} active members\n'.format(
+					name=corp_info['name'], ticker=corp_info['ticker'], active=active_members)
 
-	if 'alliances' in initial_id or alliance_id is not None:
-		if alliance_id is None:
-			alliance_id = initial_id['alliances'][0]['id']
-		alliance_info, active_members = get_alliance_info(alliance_id)
-		output += '{name} <{ticker}> {active} active members'.format(
-				name=alliance_info['name'], ticker=alliance_info['ticker'], active=active_members)
+		if 'alliances' in initial_id or alliance_id is not None:
+			if alliance_id is None:
+				alliance_id = initial_id['alliances'][0]['id']
+			alliance_info, active_members = get_alliance_info(alliance_id)
+			output += '{name} <{ticker}> {active} active members'.format(
+					name=alliance_info['name'], ticker=alliance_info['ticker'], active=active_members)
+	except requests.exceptions.HTTPError:
+		output += 'esi or zkb error looking up corporation/alliance'
 
 	cmd.reply('```' +output + '```')
