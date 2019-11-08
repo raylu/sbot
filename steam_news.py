@@ -14,7 +14,7 @@ def news(bot):
 	for game_id, channel_id in config.bot.steam_news.items():
 		last_dt = config.state.steam_news_dts.get(game_id, datetime.datetime.min)
 		embeds = []
-		r = rs.get('https://steamcommunity.com/games/427520/rss')
+		r = rs.get('https://steamcommunity.com/games/%s/rss' % game_id)
 		r.raise_for_status()
 		tree = xml.etree.ElementTree.fromstring(r.text)
 		first_item_dt = None
