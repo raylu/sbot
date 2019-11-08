@@ -1,4 +1,3 @@
-import datetime
 import html
 import re
 import time
@@ -12,18 +11,17 @@ def news(bot):
 	rs = requests.Session()
 
 	for game_id, channel_id in config.bot.steam_news.items():
-		last_dt = config.state.steam_news_dts.get(game_id, datetime.datetime.min)
+		last_ann_id = config.state.steam_news_ids.get(game_id, 0)
+		first_ann_id = None
 		embeds = []
 		r = rs.get('https://steamcommunity.com/games/%s/rss' % game_id)
 		r.raise_for_status()
 		tree = xml.etree.ElementTree.fromstring(r.text)
-		first_item_dt = None
 		for item in tree.iter('item'):
-			pub_date = item.findtext('pubDate')
-			dt = datetime.datetime.strptime(pub_date, '%a, %d %b %Y %H:%M:%S %z').replace(tzinfo=None)
-			if first_item_dt is None:
-				first_item_dt = dt
-			if dt <= last_dt:
+			ann_id = int(item.findtext('guid').rsplit('/', 1)[1])
+			if first_ann_id is None:
+				first_ann_id = ann_id
+			if ann_id <= last_ann_id:
 				break # items are newest first
 
 			title = item.findtext('title')
@@ -31,13 +29,13 @@ def news(bot):
 			link = item.findtext('link')
 			author = item.findtext('author')
 
-			description_text = re.sub(r'<[^>]+>', '', html.unescape(description))
+			description_text = re.sub(r'<[^>]+>', ' ', html.unescape(description))
 			embeds.append({
-				'title': title, 'description': description_text[:2000], 'url': link, 'author': {'name': author},
+				'title': title, 'description': description_text[:1000], 'url': link, 'author': {'name': author},
 			})
 
 		for embed in reversed(embeds):
 			bot.send_message(channel_id, '<%s>' % embed['url'], embed)
 			time.sleep(2)
-		config.state.steam_news_dts[game_id] = first_item_dt
+		config.state.steam_news_ids[game_id] = first_ann_id
 	config.state.save()
