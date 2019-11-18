@@ -166,7 +166,7 @@ class Bot:
 
 	def handle_message_create(self, d):
 		content = d['content']
-		if content.lower() == 'oh no.':
+		if content.casefold() == 'oh no.':
 			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
 			self.commands['ohno'](cmd)
 			return
