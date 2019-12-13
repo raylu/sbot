@@ -121,6 +121,5 @@ def weather(cmd):
 	cmd.reply(None, files={filename: response.content})
 
 def ohno(cmd):
-	url = 'https://www.raylu.net/f/ohno/ohno%d.png' % random.randint(1, 54)
-	embed = {'image': {'url': url, 'width': 200, 'height': 200}}
-	cmd.reply('', embed)
+	url = 'https://www.raylu.net/f/ohno/ohno%03d.png' % random.randint(1, 294)
+	cmd.reply('', {'image': {'url': url}})
