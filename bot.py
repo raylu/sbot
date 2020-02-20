@@ -169,7 +169,7 @@ class Bot:
 			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
 			self.commands['ohno'](cmd)
 			return
-		if content.casefold() == 'oh yes.':
+		elif content.casefold() == 'oh yes.':
 			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
 			self.commands['ohyes'](cmd)
 			return
