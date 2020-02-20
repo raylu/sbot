@@ -125,5 +125,5 @@ def ohno(cmd):
 	cmd.reply('', {'image': {'url': url}})
 
 def ohyes(cmd):
-	url = 'https://www.raylu.net/f/ohyea/ohyea%03d.gif' % random.randint(1, 6)
+	url = 'https://www.raylu.net/f/ohyea/ohyea%02d.gif' % random.randint(1, 6)
 	cmd.reply('', {'image': {'url': url}})
