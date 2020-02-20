@@ -23,6 +23,7 @@ def main():
 		'time': utils.timezones,
 		'weather': utils.weather,
 		'ohno': utils.ohno,
+		'ohyes': utils.ohyes,
 
 		'timer': timer.timer,
 
