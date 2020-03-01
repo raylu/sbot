@@ -1,3 +1,4 @@
+pillow
 python-dateutil
 PyYAML
 requests

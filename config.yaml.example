@@ -1,6 +1,9 @@
 token: null
 err_channel: null
-role_server: '109469702010478592' # secret hiding room
+roles: # set this to null to disable
+    server: '109469702010478592' # secret hiding room
+    image_path: '/var/www/www.raylu.net/f/roles.png'
+    public_url: 'https://www.raylu.net/f/roles.png'
 eve_db: 'sqlite-latest.sqlite'
 zkillboard: # set this to null to disable
     alliance: 99002172

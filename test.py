@@ -2,15 +2,30 @@
 
 from pprint import pprint
 
-import utils
+import management
 
 class MockCmd:
 	def __init__(self):
-		self.args = '94103'
+		self.args = ''
 		self.sender = {'username': 'testname'}
+		self.channel_id = '1'
+		self.bot = MockBot()
 
 	def reply(self, text, embed=None, files=None):
 		print(text)
 		pprint(embed)
 
-utils.weather(MockCmd())
+class MockBot:
+	def __init__(self):
+		self.channels = {'1': '109469702010478592'}
+		self.guilds = {'109469702010478592': MockGuild()}
+
+class MockGuild:
+	def __init__(self):
+		self.roles = {
+			'sbot': {'position': 3},
+			'dogs': {'position': 1, 'name': 'dogs', 'color': 123456},
+			'cats': {'position': 2, 'name': 'cats', 'color': 13369480},
+		}
+
+management.list_roles(MockCmd())

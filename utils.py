@@ -19,9 +19,7 @@ def help(cmd):
 		return
 	commands = set(cmd.bot.commands.keys())
 	guild_id = cmd.bot.channels[cmd.channel_id]
-	if cmd.channel_id != config.bot.timer_channel:
-		commands.remove('timer')
-	if guild_id != config.bot.role_server:
+	if config.bot.roles is None or guild_id != config.bot.roles['server']:
 		for name, func in cmd.bot.commands.items():
 			if func.__module__ == 'management':
 				commands.remove(name)
