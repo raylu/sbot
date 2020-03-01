@@ -18,6 +18,7 @@ import config
 import log
 import steam_news
 from timer import readable_rel
+import twitch
 import twitter
 import warframe
 
@@ -32,6 +33,7 @@ class Bot:
 		self.timer_condvar = threading.Condition()
 		self.zkill_thread = None
 		self.warframe_thread = None
+		self.twitch_thread = None
 		self.twitter_thread = None
 		self.steam_news_thread = None
 		self.user_id = None
@@ -161,6 +163,8 @@ class Bot:
 			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
 		if config.bot.warframe is not None:
 			self.warframe_thread = _thread.start_new_thread(self.warframe_loop, ())
+		if config.bot.twitch is not None:
+			self.twitch_thread = _thread.start_new_thread(self.twitch_loop, ())
 		if config.bot.twitter is not None:
 			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
 		if config.bot.steam_news is not None:
@@ -304,6 +308,18 @@ class Bot:
 				log.write('warframe: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('warframe: %s' % e)
+
+	def twitch_loop(self):
+		while True:
+			# https://dev.twitch.tv/docs/api/guide#rate-limits
+			# 30 points per minute, streams endpoint costs 1 point
+			time.sleep(15)
+			try:
+				twitch.live_streams(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('twitch: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('twitch: %s' % e)
 
 	def twitter_loop(self):
 		while True:
