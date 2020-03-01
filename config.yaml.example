@@ -17,8 +17,11 @@ twitter: # set this to null to disable
         RiskofRain: '282441291327864834'
 twitch: # set this to null to disable
     client_id: ''
-    game_id: 65360 # go
-    channel: '282441291327864834' # bot-testing
+    announces:
+      - game_id: 65360 # go
+        channel: '282441291327864834' # bot-testing
+      - user_id: 23526807 # lurayl
+        channel: '282441291327864834'
 steam_news: # set this to null to disable
     427520: '282441291327864834' # factorio -> #bot-testing
 warframe: # set this to null to disable
