@@ -48,6 +48,9 @@ class Bot:
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
 			'GUILD_CREATE': self.handle_guild_create,
+			'GUILD_ROLE_CREATE': self.handle_guild_role_create,
+			'GUILD_ROLE_UPDATE': self.handle_guild_role_update,
+			'GUILD_ROLE_DELETE': self.handle_guild_role_delete,
 		}
 		self.commands = commands
 
@@ -202,6 +205,29 @@ class Bot:
 		self.guilds[d['id']] = Guild(d)
 		for channel in d['channels']:
 			self.channels[channel['id']] = d['id']
+
+	def handle_guild_role_create(self, d):
+		role = d['role']
+		self.guilds[d['guild_id']].roles[role['name']] = role
+
+	def handle_guild_role_update(self, d):
+		role = d['role']
+		if self._del_role(d['guild_id'], role['id']):
+			self.guilds[d['guild_id']].roles[role['name']] = role
+		else:
+			log.write("couldn't find role for deletion: %r" % d)
+
+	def handle_guild_role_delete(self, d):
+		if not self._del_role(d['guild_id'], d['role_id']):
+			log.write("couldn't find role for deletion: %r" % d)
+
+	def _del_role(self, guild_id, role_id):
+		roles = self.guilds[guild_id].roles
+		for role in roles.values():
+			if role['id'] == role_id:
+				del roles[role['name']]
+				return True
+		return False
 
 	def heartbeat_loop(self, interval_ms):
 		interval_s = interval_ms / 1000
