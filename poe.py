@@ -38,7 +38,7 @@ def price(cmd):
 
 def _get_league_name():
 	html = rs.get('https://poe.ninja/')
-	prefix = 'window.leagues = '
+	prefix = 'window.economyLeagues = '
 	for line in html.text.split('\n'):
 		if prefix in line:
 			start = line.index(prefix) + len(prefix)

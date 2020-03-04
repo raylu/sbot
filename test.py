@@ -2,11 +2,11 @@
 
 from pprint import pprint
 
-import management
+import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = ''
+		self.args = 'skyforth'
 		self.sender = {'username': 'testname'}
 		self.channel_id = '1'
 		self.bot = MockBot()
@@ -28,4 +28,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480},
 		}
 
-management.list_roles(MockCmd())
+poe.price(MockCmd())
