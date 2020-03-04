@@ -8,7 +8,6 @@ if config.bot.twitch is not None:
 	rs = requests.Session()
 	rs.headers['Client-ID'] = config.bot.twitch['client_id']
 
-	users = {}
 	ANNOUNCE_FREQ = 4 * 60 * 60 # announce once every 4h
 
 def live_streams(bot):
@@ -26,10 +25,10 @@ def live_streams(bot):
 			user_id = stream['user_id']
 			# don't announce if we've announced in the last ANNOUNCE_FREQ
 			try:
-				if now - users[user_id] < ANNOUNCE_FREQ:
+				if now - config.state.twitch_last_times[user_id] < ANNOUNCE_FREQ:
 					continue
 			except KeyError:
-				users[user_id] = now
+				config.state.twitch_last_times[user_id] = now
 
 			thumbnail_url = stream['thumbnail_url'].replace('{width}', '256').replace('{height}', '144')
 			embed = {
@@ -56,8 +55,9 @@ def live_streams(bot):
 
 	# clean up last announce times older than ANNOUNCE_FREQ
 	to_del = []
-	for user_id, last_live in users.items():
+	for user_id, last_live in config.state.twitch_last_times.items():
 		if now - last_live > ANNOUNCE_FREQ:
 			to_del.append(user_id)
 	for user_id in to_del:
-		del users[user_id]
+		del config.state.twitch_last_times[user_id]
+	config.state.save()
