@@ -11,6 +11,7 @@ if config.bot.twitch is not None:
 	ANNOUNCE_FREQ = 4 * 60 * 60 # announce once every 4h
 
 def live_streams(bot):
+	now = time.time()
 	user_to_announce = {}
 	for announce in config.bot.twitch['announces']:
 		url = 'https://api.twitch.tv/helix/streams?'
@@ -20,15 +21,13 @@ def live_streams(bot):
 			url += 'user_id=%d' % announce['user_id']
 		r = rs.get(url)
 		r.raise_for_status()
-		now = time.time()
 		for stream in r.json()['data']:
 			user_id = stream['user_id']
 			# don't announce if we've announced in the last ANNOUNCE_FREQ
-			try:
-				if now - config.state.twitch_last_times[user_id] < ANNOUNCE_FREQ:
-					continue
-			except KeyError:
-				config.state.twitch_last_times[user_id] = now
+			last_announce = config.state.twitch_last_times.get(user_id)
+			if last_announce is not None and now - last_announce < ANNOUNCE_FREQ:
+				continue
+			config.state.twitch_last_times[user_id] = now
 
 			thumbnail_url = stream['thumbnail_url'].replace('{width}', '256').replace('{height}', '144')
 			embed = {
