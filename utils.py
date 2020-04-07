@@ -55,8 +55,9 @@ def units(cmd):
 				split[i] = 'temp%s(%s)' % (match.group(2), match.group(1))
 			else:
 				split[i] = 'temp%s' % (match.group(2))
-	command = ['units', '--compact', '--one-line', '--quiet'] + split
-	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
+	command = ['units', '--compact', '--one-line', '--quiet', '--'] + split
+	# in case we get in interactive mode, PIPE stdin so communicate will close it
+	proc = subprocess.Popen(command, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()
 	if proc.wait() == 0:
 		cmd.reply(output)
