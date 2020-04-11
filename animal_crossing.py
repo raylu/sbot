@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 import config
@@ -21,6 +22,11 @@ def friend_code(cmd):
 		_user_find(cmd, split[0])
 
 def _user_upsert_friend_code(cmd, code):
+	pat = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
+	if pat.match(code) is None:
+		cmd.reply('Invalid friend code submitted.')
+		return
+
 	sender = cmd.sender
 	db.execute('''
 	INSERT INTO user VALUES(?, ?, ?)
