@@ -7,6 +7,8 @@ if config.bot.acnh_db is not None:
 	db = sqlite3.connect(config.bot.acnh_db)
 	db.row_factory = sqlite3.Row
 
+friend_code_regex = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
+
 def friend_code(cmd):
 	if not cmd.args:
 		_user_list_all(cmd)
@@ -22,8 +24,7 @@ def friend_code(cmd):
 		_user_find(cmd, split[0])
 
 def _user_upsert_friend_code(cmd, code):
-	pat = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
-	if pat.match(code) is None:
+	if friend_code_regex.match(code) is None:
 		cmd.reply('Invalid friend code submitted.')
 		return
 
