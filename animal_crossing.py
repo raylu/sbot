@@ -1,5 +1,8 @@
+from datetime import datetime, timezone
 import re
 import sqlite3
+import dateutil
+import dateutil.tz
 
 import config
 
@@ -8,6 +11,88 @@ if config.bot.acnh_db is not None:
 	db.row_factory = sqlite3.Row
 
 friend_code_regex = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
+
+def stalk_market(cmd):
+	if not cmd.args:
+		# TODO: usage string? some other default behavior?
+		return
+
+	split = cmd.args.split(' ', 1)
+	subcmd = split[0]
+	if subcmd == 'tz':
+		_stalk_set_timezone(cmd, split)
+	elif subcmd == 'sell':
+		_stalk_sales(cmd, split)
+
+def _stalk_sales(cmd, split):
+	if len(split) != 2:
+		_stalk_list_sale_prices(cmd)
+		return
+	user_id = cmd.sender['id']
+	current_time = datetime.now(timezone.utc)
+	value = int(split[1])
+	db.execute('''
+	INSERT INTO sale_prices VALUES (?, ?, ?)
+	''', (user_id, current_time, value))
+	try:
+		db.commit()
+		cmd.reply("Sale price recorded!")
+	except sqlite3.OperationalError:
+		return
+
+def _stalk_list_sale_prices(cmd):
+	# TODO: cache min rowid so we don't have to sort all of them every time
+	cur = db.execute('''
+	SELECT *
+	FROM sale_prices
+	INNER JOIN user ON sale_prices.user_id = user.id;
+	''')
+
+	prices = cur.fetchall()
+	current_time = datetime.now(timezone.utc)
+	results = {}
+	for price in prices:
+		user_id = price['user_id']
+
+		# TODO: check noon bump / if store is still open in local TZ
+		if dateutil.parser.parse(price['created_at']).date() != current_time.date():
+			continue
+		if user_id in results:
+			if price['price'] > results[user_id]['price']:
+				results[user_id] = price
+		else:
+			results[user_id] = price
+
+	output = []
+	for result in results.values():
+		output.append('%s: %s (%s)' %
+			(result['username'], str(result['price']), result['code']))
+	cmd.reply('\n'.join(output))
+
+def _stalk_set_timezone(cmd, split):
+	if len(split) != 2:
+		cmd.reply('''
+		Specify a timezone from the tz database.
+See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete list.
+		''')
+		return
+
+	tz = dateutil.tz.gettz(split[1])
+
+	if tz is None:
+		cmd.reply('Could not find your specified timzone. See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones')
+		return
+
+	try:
+		db.execute('''
+		UPDATE user SET timezone=? WHERE id=?
+		''', (split[1], cmd.sender['id']))
+		db.commit()
+		current_time = datetime.now().astimezone(tz)
+		cmd.reply('''Timezone successfully updated.
+Your current time should be %s''' % (current_time))
+	except sqlite3.OperationalError:
+		cmd.reply('Could not update timezone. Have you registered your friend code?')
 
 def friend_code(cmd):
 	if not cmd.args:
@@ -30,7 +115,7 @@ def _user_upsert_friend_code(cmd, code):
 
 	sender = cmd.sender
 	db.execute('''
-	INSERT INTO user VALUES(?, ?, ?)
+	INSERT INTO user VALUES(?, ?, ?, null)
 	ON CONFLICT(id)
 	DO UPDATE SET code=excluded.code
 	''', (sender['id'], sender['username'], code))

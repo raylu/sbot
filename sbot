@@ -48,6 +48,7 @@ def main():
 		'poe': poe.wiki,
 
 		'fc': animal_crossing.friend_code,
+		'stalks': animal_crossing.stalk_market,
 	})
 	bot.connect()
 	bot.run_forever()
