@@ -1,4 +1,4 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, timezone
 import sqlite3
 import dateutil
 import dateutil.tz
@@ -13,6 +13,7 @@ if config.bot.acnh_db is not None:
 	with db:
 		db.execute('PRAGMA foreign_keys = ON')
 
+time_format = '%Y-%m-%d %H:%M'
 cached_row_id = 0
 
 def stalk_market(cmd):
@@ -45,32 +46,43 @@ def _stalk_set_sell_price(cmd, price):
 		cmd.reply('Could not add sale price. Have you registered a friend code?')
 		return
 	elif res['timezone'] is None:
-		cmd.reply('Could not add sale price. Please register a timezone with !stalks tz')
+		cmd.reply('Could not add sale price. Please register a time zone with !stalks tz')
 		return
 
 	user_time = current_time.astimezone(dateutil.tz.gettz(res['timezone']))
+	if (user_time.hour < 8 or user_time.hour >= 22):
+		cmd.reply('Your shops are closed. Your current time zone is %s, where it is currently %s.' %
+			(res['timezone'], user_time.strftime(time_format)))
+		return
+	elif user_time.weekday() == 6:
+		cmd.reply('It is currently Sunday in your selected time zone, %s. Turnip offers cannot be submitted.' %
+			(res['timezone']))
+		return
+
 	if user_time.hour >= 12:
 		expiration = user_time.replace(hour=22, minute=0, second=0, microsecond=0)
 	else:
 		expiration = user_time.replace(hour=12, minute=0, second=0, microsecond=0)
 
+	expires_in = _calculate_expiration(expiration - user_time)
+
 	try:
 		value = int(price)
 	except ValueError:
-		cmd.reply('usage: !stalks sell 123')
+		cmd.reply('Could not parse sell value. Usage: !stalks sell 123')
 		return
 
 	try:
 		with db:
-			db.execute('''
-			INSERT INTO sell_price VALUES (?, ?, ?, ?)
-			''', (user_id, current_time, expiration.astimezone(timezone.utc), value))
-		cmd.reply('Sale price recorded!')
-		_stallk_check_sell_triggers(cmd, price)
+			db.execute('INSERT INTO sell_price VALUES (?, ?, ?, ?)',
+				(user_id, current_time, expiration.astimezone(timezone.utc), value))
+		cmd.reply('Sale price recorded at %s bells. Offer expires in %dh %dm.' %
+			(price, expires_in[0], expires_in[1]))
+		_stallk_check_sell_triggers(cmd, price, expires_in)
 	except sqlite3.IntegrityError:
 		cmd.reply('Could not add sale price. Have you registered a friend code?')
 
-def _stallk_check_sell_triggers(cmd, price):
+def _stallk_check_sell_triggers(cmd, price, expires_in):
 	cur = db.execute('''
 	SELECT user_id FROM sell_trigger WHERE sell_trigger.price <= ?
 	''', (price,))
@@ -78,8 +90,8 @@ def _stallk_check_sell_triggers(cmd, price):
 	triggers = [x['user_id'] for x in cur.fetchall() if x['user_id'] != cmd.sender['id']]
 	if triggers:
 		msg = ' '.join(['<@!%s>' % (x) for x in triggers])
-		msg += (': %s has reported a sell price of %s, above your configured trigger.' %
-			(cmd.sender['username'], price))
+		msg += (': %s has reported a sell price of %s, above your configured trigger. Their offer will expire in %dh%dm.' %
+			(cmd.sender['username'], price, expires_in[0], expires_in[1]))
 		cmd.reply(msg)
 
 def _stalk_list_sale_prices(cmd):
@@ -109,14 +121,18 @@ def _stalk_list_sale_prices(cmd):
 			results[user_id] = price
 
 	if not results:
-		cmd.reply("No turnip prices have been reported for today.")
+		cmd.reply('No turnip offers are currently active.')
 		return
 
 	output = []
 	for result in results.values():
-		price_str = ('%s: %s (%s)' %
-			(result['username'], str(result['price']), result['code']))
+		expires_in = _calculate_expiration(dateutil.parser.parse(price['expiration']) - current_time)
+		price_str = ('%s: %d (Expires in %dh %ds)' %
+			(result['username'], result['price'],
+			expires_in[0], expires_in[1]))
+
 		output.append(price_str)
+
 	cmd.reply('\n'.join(output))
 
 def _stalks_set_sell_trigger(cmd, price):
@@ -138,7 +154,7 @@ def _stalks_set_sell_trigger(cmd, price):
 def _stalk_set_timezone(cmd, tz_name):
 	if not tz_name:
 		cmd.reply('''
-		Specify a timezone from the tz database.
+		Specify a time zone from the tz database.
 See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete list.
 		''')
 		return
@@ -157,7 +173,10 @@ See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete 
 
 	if cur.rowcount:
 		current_time = datetime.now().astimezone(tz)
-		cmd.reply('Timezone successfully updated. Your current time should be %s.'
-			% (current_time))
+		cmd.reply('Time zone successfully updated. Your current time should be %s.'
+			% (current_time.strftime(time_format)))
 	else:
-		cmd.reply('Timezone could not be updated. Have you registered a friend code?')
+		cmd.reply('Time zone could not be updated. Have you registered a friend code?')
+
+def _calculate_expiration(td):
+	return (td.seconds//3600, (td.seconds//60)%60)
