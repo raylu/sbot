@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 import re
 import sqlite3
 import dateutil
@@ -55,27 +55,37 @@ def _stalk_list_sale_prices(cmd):
 	current_time = datetime.now(timezone.utc)
 	results = {}
 	for price in prices:
-		print("%s %s" % (price['rowid'], price['created_at']))
 		user_id = price['user_id']
 
-		# TODO: check noon bump / if store is still open in local TZ
 		if dateutil.parser.parse(price['created_at']).date() != current_time.date():
 			cached_row_id = price['rowid']
 			continue
-		if user_id in results:
-			if price['price'] > results[user_id]['price']:
+
+		tz_name = price['timezone']
+		user_tz = dateutil.tz.gettz(tz_name)
+		local_time = current_time.astimezone(user_tz)
+		if (tz_name is None or time(8, 0) < local_time.time() < time(22, 0)):
+			if user_id in results:
+				if price['price'] > results[user_id]['price']:
+					results[user_id] = price
+			else:
 				results[user_id] = price
-		else:
-			results[user_id] = price
 
 	if not results:
 		cmd.reply("No turnip prices have been reported for today.")
 		return
 
 	output = []
+	tz_disclaimer = False
 	for result in results.values():
-		output.append('%s: %s (%s)' %
+		price_str = ('%s: %s (%s)' %
 			(result['username'], str(result['price']), result['code']))
+		if price['timezone'] is None:
+			tz_disclaimer = True
+			price_str += '*'
+		output.append(price_str)
+	if tz_disclaimer:
+		output.append('\n*: user has no timezone record. Store may be closed.')
 	cmd.reply('\n'.join(output))
 
 def _stalk_set_timezone(cmd, split):
