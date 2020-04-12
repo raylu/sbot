@@ -11,6 +11,7 @@ if config.bot.acnh_db is not None:
 	db.row_factory = sqlite3.Row
 
 friend_code_regex = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
+cached_row_id = 0
 
 def stalk_market(cmd):
 	if not cmd.args:
@@ -41,27 +42,35 @@ def _stalk_sales(cmd, split):
 		return
 
 def _stalk_list_sale_prices(cmd):
-	# TODO: cache min rowid so we don't have to sort all of them every time
+	# TODO: is there a better way to do this without a gross global?
+	global cached_row_id
 	cur = db.execute('''
-	SELECT *
+	SELECT sale_prices.rowid, *
 	FROM sale_prices
-	INNER JOIN user ON sale_prices.user_id = user.id;
-	''')
+	INNER JOIN user ON sale_prices.user_id = user.id
+	WHERE sale_prices.rowid > ?
+	''', (cached_row_id,))
 
 	prices = cur.fetchall()
 	current_time = datetime.now(timezone.utc)
 	results = {}
 	for price in prices:
+		print("%s %s" % (price['rowid'], price['created_at']))
 		user_id = price['user_id']
 
 		# TODO: check noon bump / if store is still open in local TZ
 		if dateutil.parser.parse(price['created_at']).date() != current_time.date():
+			cached_row_id = price['rowid']
 			continue
 		if user_id in results:
 			if price['price'] > results[user_id]['price']:
 				results[user_id] = price
 		else:
 			results[user_id] = price
+
+	if not results:
+		cmd.reply("No turnip prices have been reported for today.")
+		return
 
 	output = []
 	for result in results.values():
