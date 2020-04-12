@@ -25,9 +25,11 @@ def stalk_market(cmd):
 	if subcmd == 'tz':
 		_stalk_set_timezone(cmd, split)
 	elif subcmd == 'sell':
-		_stalk_sales(cmd, split)
+		_stalk_set_sell_price(cmd, split)
+	elif subcmd == 'trigger':
+		_stalks_set_sell_trigger(cmd, split)
 
-def _stalk_sales(cmd, split):
+def _stalk_set_sell_price(cmd, split):
 	if len(split) != 2:
 		_stalk_list_sale_prices(cmd)
 		return
@@ -40,8 +42,21 @@ def _stalk_sales(cmd, split):
 			INSERT INTO sale_price VALUES (?, ?, ?)
 			''', (user_id, current_time, value))
 		cmd.reply('Sale price recorded!')
+		_stallk_check_sell_triggers(cmd, split[1])
 	except sqlite3.IntegrityError:
 		cmd.reply('Could not add sale price. Have you registered a friend code?')
+
+def _stallk_check_sell_triggers(cmd, price):
+	cur = db.execute('''
+	SELECT user_id FROM sell_trigger WHERE sell_trigger.price <= ?
+	''', (price,))
+
+	triggers = [x['user_id'] for x in cur.fetchall() if x['user_id'] != cmd.sender['id']]
+	if triggers:
+		msg = ' '.join(['<@!%s>' % (x) for x in triggers])
+		msg += (': %s has reported a sell price of %s, above your configured trigger.' %
+			(cmd.sender['username'], price))
+		cmd.reply(msg)
 
 def _stalk_list_sale_prices(cmd):
 	# TODO: is there a better way to do this without a gross global?
@@ -89,6 +104,22 @@ def _stalk_list_sale_prices(cmd):
 	if tz_disclaimer:
 		output.append('\n*: user has no timezone record. Store may be closed.')
 	cmd.reply('\n'.join(output))
+
+def _stalks_set_sell_trigger(cmd, split):
+	if len(split) != 2:
+		cmd.reply('usage: !stalks trigger value. Will ping you if someone reports a sale price higher than value.')
+
+	try:
+		with db:
+			db.execute('''
+			INSERT INTO sell_trigger VALUES (?, ?)
+			ON CONFLICT(user_id)
+			DO UPDATE SET price=excluded.price
+			''', (cmd.sender['id'], split[1]))
+		cmd.reply('Trigger has been set for %s. You will be pinged if someone reports a price above this.' %
+			(split[1]))
+	except sqlite3.IntegrityError:
+		cmd.reply('Could not insert trigger. Have you registered a friend code?')
 
 def _stalk_set_timezone(cmd, split):
 	if len(split) != 2:
