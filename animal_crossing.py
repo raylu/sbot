@@ -36,18 +36,35 @@ def _stalk_set_sell_price(cmd, price):
 	if not price:
 		_stalk_list_sale_prices(cmd)
 		return
+
 	user_id = cmd.sender['id']
 	current_time = datetime.now(timezone.utc)
+	cur = db.execute('SELECT timezone FROM user WHERE id=?', (user_id,))
+	res = cur.fetchone()
+	if not res:
+		cmd.reply('Could not add sale price. Have you registered a friend code?')
+		return
+	elif res['timezone'] is None:
+		cmd.reply('Could not add sale price. Please register a timezone with !stalks tz')
+		return
+
+	user_time = current_time.astimezone(dateutil.tz.gettz(res['timezone']))
+	if user_time.hour >= 12:
+		expiration = user_time.replace(hour=22, minute=0, second=0, microsecond=0)
+	else:
+		expiration = user_time.replace(hour=12, minute=0, second=0, microsecond=0)
+
 	try:
 		value = int(price)
 	except ValueError:
 		cmd.reply('usage: !stalks sell 123')
+		return
 
 	try:
 		with db:
 			db.execute('''
-			INSERT INTO sale_price VALUES (?, ?, ?)
-			''', (user_id, current_time, value))
+			INSERT INTO sell_price VALUES (?, ?, ?, ?)
+			''', (user_id, current_time, expiration.astimezone(timezone.utc), value))
 		cmd.reply('Sale price recorded!')
 		_stallk_check_sell_triggers(cmd, price)
 	except sqlite3.IntegrityError:
@@ -68,11 +85,11 @@ def _stallk_check_sell_triggers(cmd, price):
 def _stalk_list_sale_prices(cmd):
 	global cached_row_id
 	cur = db.execute('''
-	SELECT sale_price.rowid, *
-	FROM sale_price
-	INNER JOIN user ON sale_price.user_id = user.id
-	WHERE sale_price.rowid > ?
-	ORDER BY sale_price.rowid ASC
+	SELECT sell_price.rowid, *
+	FROM sell_price
+	INNER JOIN user ON sell_price.user_id = user.id
+	WHERE sell_price.rowid > ?
+	ORDER BY sell_price.rowid ASC
 	''', (cached_row_id,))
 
 	prices = cur.fetchall()
@@ -81,35 +98,25 @@ def _stalk_list_sale_prices(cmd):
 	for price in prices:
 		user_id = price['user_id']
 
-		if dateutil.parser.parse(price['created_at']).date() != current_time.date():
+		if current_time > dateutil.parser.parse(price['expiration']):
 			cached_row_id = price['rowid']
 			continue
 
-		tz_name = price['timezone']
-		user_tz = dateutil.tz.gettz(tz_name)
-		local_time = current_time.astimezone(user_tz)
-		if (tz_name is None or time(8, 0) < local_time.time() < time(22, 0)):
-			if user_id in results:
-				if price['price'] > results[user_id]['price']:
-					results[user_id] = price
-			else:
+		if user_id in results:
+			if price['price'] > results[user_id]['price']:
 				results[user_id] = price
+		else:
+			results[user_id] = price
 
 	if not results:
 		cmd.reply("No turnip prices have been reported for today.")
 		return
 
 	output = []
-	tz_disclaimer = False
 	for result in results.values():
 		price_str = ('%s: %s (%s)' %
 			(result['username'], str(result['price']), result['code']))
-		if price['timezone'] is None:
-			tz_disclaimer = True
-			price_str += '*'
 		output.append(price_str)
-	if tz_disclaimer:
-		output.append('\n*: user has no timezone record. Store may be closed.')
 	cmd.reply('\n'.join(output))
 
 def _stalks_set_sell_trigger(cmd, price):

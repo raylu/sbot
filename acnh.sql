@@ -5,9 +5,10 @@ CREATE TABLE user (
 	timezone TEXT
 );
 
-CREATE TABLE sale_price (
+CREATE TABLE sell_price (
 	user_id TEXT,
 	created_at TEXT,
+	expiration TEXT,
 	price INTEGER,
 	FOREIGN KEY(user_id) REFERENCES user(id)
 );
