@@ -18,7 +18,12 @@ cached_row_id = 0
 
 def stalk_market(cmd):
 	if not cmd.args:
-		# TODO: usage string? some other default behavior?
+		cmd.reply('''Please register your friend code with '!fc set <friend-code>' before using the following commands:
+- !stalks tz <tz>: will set your local timezone. See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. **This is required for the following commands.**
+- !stalks sell: will list all currently availably offers.
+- !stalks sell <value>: will add a new offer listed at <value> bells.
+- !stalks trigger <value>: will ping you if a new offer is listed above <value> bells. 
+		''')
 		return
 
 	split = cmd.args.split(' ', 1)
