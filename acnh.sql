@@ -1,11 +1,11 @@
-CREATE TABLE user (
+CREATE TABLE IF NOT EXISTS user (
 	id TEXT PRIMARY KEY,
 	username TEXT,
 	code TEXT,
 	timezone TEXT
 );
 
-CREATE TABLE sell_price (
+CREATE TABLE IF NOT EXISTS sell_price (
 	user_id TEXT,
 	created_at TEXT,
 	expiration TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE sell_price (
 	FOREIGN KEY(user_id) REFERENCES user(id)
 );
 
-CREATE TABLE sell_trigger (
+CREATE TABLE IF NOT EXISTS sell_trigger (
 	user_id TEXT PRIMARY KEY,
 	price INTEGER,
 	FOREIGN KEY(user_id) REFERENCES user(id)
