@@ -10,6 +10,10 @@ if config.bot.acnh_db is not None:
 	db = sqlite3.connect(config.bot.acnh_db)
 	db.row_factory = sqlite3.Row
 
+	# enable foreign key constraints
+	with db:
+		db.execute('PRAGMA foreign_keys = ON')
+
 friend_code_regex = re.compile(r'SW-\d{4}-\d{4}-\d{4}')
 cached_row_id = 0
 
@@ -32,23 +36,23 @@ def _stalk_sales(cmd, split):
 	user_id = cmd.sender['id']
 	current_time = datetime.now(timezone.utc)
 	value = int(split[1])
-	db.execute('''
-	INSERT INTO sale_prices VALUES (?, ?, ?)
-	''', (user_id, current_time, value))
 	try:
-		db.commit()
-		cmd.reply("Sale price recorded!")
-	except sqlite3.OperationalError:
-		return
+		with db:
+			db.execute('''
+			INSERT INTO sale_price VALUES (?, ?, ?)
+			''', (user_id, current_time, value))
+		cmd.reply('Sale price recorded!')
+	except sqlite3.IntegrityError:
+		cmd.reply('Could not add sale price. Have you registered a friend code?')
 
 def _stalk_list_sale_prices(cmd):
 	# TODO: is there a better way to do this without a gross global?
 	global cached_row_id
 	cur = db.execute('''
-	SELECT sale_prices.rowid, *
-	FROM sale_prices
-	INNER JOIN user ON sale_prices.user_id = user.id
-	WHERE sale_prices.rowid > ?
+	SELECT sale_price.rowid, *
+	FROM sale_price
+	INNER JOIN user ON sale_price.user_id = user.id
+	WHERE sale_price.rowid > ?
 	''', (cached_row_id,))
 
 	prices = cur.fetchall()
@@ -102,16 +106,19 @@ See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete 
 		cmd.reply('Could not find your specified timzone. See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones')
 		return
 
-	try:
-		db.execute('''
+	cur = None
+	with db:
+		cur = db.execute('''
 		UPDATE user SET timezone=? WHERE id=?
 		''', (split[1], cmd.sender['id']))
-		db.commit()
+
+	if cur.rowcount:
 		current_time = datetime.now().astimezone(tz)
 		cmd.reply('''Timezone successfully updated.
-Your current time should be %s''' % (current_time))
-	except sqlite3.OperationalError:
-		cmd.reply('Could not update timezone. Have you registered your friend code?')
+Your current time should be %s.
+		''' % (current_time))
+	else:
+		cmd.reply('Timezone could not be updated. Have you registered a friend code?')
 
 def friend_code(cmd):
 	if not cmd.args:
@@ -121,55 +128,66 @@ def friend_code(cmd):
 	split = cmd.args.split(' ', 1)
 	subcmd = split[0]
 	if subcmd == 'set':
-		_user_upsert_friend_code(cmd, split[1])
+		_user_upsert_friend_code(cmd, split)
 	elif subcmd == 'remove':
 		_user_remove(cmd)
 	else:
 		_user_find(cmd, split[0])
 
-def _user_upsert_friend_code(cmd, code):
-	if friend_code_regex.match(code) is None:
+def _user_upsert_friend_code(cmd, split):
+	if len(split) != 2:
+		cmd.reply('usage: !fc set friend-code')
+		return
+
+	if friend_code_regex.match(split[1]) is None:
 		cmd.reply('Invalid friend code submitted.')
 		return
 
 	sender = cmd.sender
-	db.execute('''
-	INSERT INTO user VALUES(?, ?, ?, null)
-	ON CONFLICT(id)
-	DO UPDATE SET code=excluded.code
-	''', (sender['id'], sender['username'], code))
-	db.commit()
-	cmd.reply('Friend code for %s has been set.' % (sender['username']))
+	cur = None
+	with db:
+		cur = db.execute('''
+		INSERT INTO user VALUES(?, ?, ?, null)
+		ON CONFLICT(id)
+		DO UPDATE SET code=excluded.code
+		''', (sender['id'], sender['username'], split[1]))
+
+	if cur.rowcount:
+		cmd.reply('Friend code for %s has been set.' % (sender['username']))
+	else:
+		cmd.reply('Could not create user.')
 
 def _user_list_all(cmd):
 	cur = db.execute('SELECT username, code FROM user')
-	try:
-		users = cur.fetchall()
+
+	users = cur.fetchall()
+	if users:
 		reply = []
 		for user in users:
 			reply.append('%s: %s' % (user['username'], user['code']))
 		cmd.reply('\n'.join(reply))
-	except sqlite3.OperationalError:
-		cmd.reply('There are no friend codes saved :(')
+	else:
+		cmd.reply('There are no friend codes saved.')
 
 def _user_find(cmd, user):
 	cur = db.execute('''
 	SELECT username, code FROM user WHERE username LIKE ?
 	''', (user,))
-	try:
-		user = cur.fetchone()
-		cmd.reply('%s: %s' % (user[0], user[1]))
-	except sqlite3.OperationalError:
+
+	res = cur.fetchone()
+	if res:
+		cmd.reply('%s: %s' % (res['username'], res['code']))
+	else:
 		cmd.reply('Friend code for %s could not be found.' % (user))
 
 def _user_remove(cmd):
-	db.execute('''
-	DELETE FROM user WHERE id=?
-	''', (cmd.sender['id'],))
+	cur = None
+	with db:
+		cur = db.execute('''
+		DELETE FROM user WHERE id=?
+		''', (cmd.sender['id'],))
 
-	try:
-		db.commit()
+	if cur.rowcount:
 		cmd.reply('Successfully removed friend code for %s.' % (cmd.sender['username']))
-	except sqlite3.OperationalError:
-		cmd.reply('Could not remove friend code for %s. Are you sure it exists?' %
-			(cmd.sender['username']))
+	else:
+		cmd.reply('No friend code removed. Have you registered?')
