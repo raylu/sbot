@@ -10,6 +10,7 @@ import poe
 import reddit
 import timer
 import utils
+import friend_code
 import animal_crossing
 
 def main():
@@ -47,7 +48,7 @@ def main():
 		'pc': poe.price,
 		'poe': poe.wiki,
 
-		'fc': animal_crossing.friend_code,
+		'fc': friend_code.friend_code,
 		'stalks': animal_crossing.stalk_market,
 	})
 	bot.connect()
