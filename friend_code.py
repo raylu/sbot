@@ -25,7 +25,7 @@ def friend_code(cmd):
 	elif subcmd == 'remove':
 		_user_remove(cmd)
 	else:
-		_user_find(cmd, split[0])
+		_user_find(cmd, cmd.args)
 
 def _user_upsert_friend_code(cmd, split):
 	if len(split) != 2:
