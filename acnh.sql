@@ -13,6 +13,9 @@ CREATE TABLE IF NOT EXISTS sell_price (
 	FOREIGN KEY(user_id) REFERENCES user(id)
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sell_price_user_expiration
+ON sell_price (user_id, expiration);
+
 CREATE TABLE IF NOT EXISTS sell_trigger (
 	user_id TEXT PRIMARY KEY,
 	price INTEGER,

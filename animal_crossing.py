@@ -78,8 +78,12 @@ def _stalk_set_sell_price(cmd, price):
 		return
 
 	with db:
-		db.execute('INSERT INTO sell_price VALUES (?, ?, ?, ?)',
-			(user_id, current_time, expiration.astimezone(timezone.utc), value))
+		db.execute('''
+		INSERT INTO sell_price VALUES (?, ?, ?, ?)
+		ON CONFLICT(user_id, expiration)
+		DO UPDATE SET price=excluded.price
+		''', (user_id, current_time, expiration.astimezone(timezone.utc), value))
+
 	cmd.reply('Sale price recorded at %d bells. Offer expires in %s.' %
 		(value, expires_in))
 	_stalk_check_sell_triggers(cmd, price, expires_in)
@@ -92,7 +96,7 @@ def _stalk_check_sell_triggers(cmd, price, expires_in):
 	triggers = [x['user_id'] for x in cur.fetchall() if x['user_id'] != cmd.sender['id']]
 	if triggers:
 		msg = ' '.join(['<@!%s>' % (x) for x in triggers])
-		msg += (': %s has reported a sell price of %s, above your configured trigger. Their offer will expire in %s' %
+		msg += (': %s has reported a sell price of %s, above your configured trigger. Their offer will expire in %s.' %
 			(cmd.sender['username'], price, expires_in))
 		cmd.reply(msg)
 
@@ -123,7 +127,7 @@ def _stalk_list_sale_prices(cmd):
 	output = []
 	for result in results.values():
 		expires_in = readable_rel(dateutil.parser.parse(result['expiration']) - current_time)
-		price_str = ('%s: %d (Expires in %s)' %
+		price_str = ('%s: %d (Expires in %s.)' %
 			(result['username'], result['price'], expires_in))
 
 		output.append(price_str)
