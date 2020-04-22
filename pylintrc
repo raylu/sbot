@@ -72,7 +72,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 # all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED
 confidence=
 enable=
-disable=missing-docstring,invalid-name,bad-continuation,unused-argument,import-error,too-many-locals,redefined-builtin,too-many-branches,undefined-loop-variable,bare-except,protected-access,broad-except,global-statement,no-self-use,too-few-public-methods,too-many-public-methods,no-init,too-many-instance-attributes,no-else-return,len-as-condition,inconsistent-return-statements,consider-iterating-dictionary
+disable=missing-docstring,invalid-name,bad-continuation,unused-argument,import-error,too-many-locals,redefined-builtin,too-many-branches,undefined-loop-variable,bare-except,protected-access,broad-except,global-statement,no-self-use,too-few-public-methods,too-many-public-methods,no-init,too-many-instance-attributes,no-else-return,len-as-condition,inconsistent-return-statements,consider-iterating-dictionary,consider-using-ternary
 
 
 [TYPECHECK]
