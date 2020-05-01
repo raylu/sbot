@@ -2,12 +2,12 @@
 
 from pprint import pprint
 
-import poe
+import animal_crossing
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'skyforth'
-		self.sender = {'username': 'testname'}
+		self.args = 'sell'
+		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()
 
@@ -28,4 +28,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480},
 		}
 
-poe.price(MockCmd())
+animal_crossing.stalk_market(MockCmd())

@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 import sqlite3
+
 import dateutil
+import dateutil.parser
 import dateutil.tz
 
 import config
@@ -103,34 +105,21 @@ def _stalk_check_sell_triggers(cmd, price, expires_in):
 def _stalk_list_sale_prices(cmd):
 	current_time = datetime.now(timezone.utc)
 	cur = db.execute('''
-	SELECT sell_price.rowid, *
+	SELECT sell_price.rowid, username, expiration, price
 	FROM sell_price
 	INNER JOIN user ON sell_price.user_id = user.id
 	WHERE expiration > ?
 	''', (str(current_time),))
 
 	prices = cur.fetchall()
-	results = {}
-	for price in prices:
-		user_id = price['user_id']
-
-		if user_id in results:
-			if price['price'] > results[user_id]['price']:
-				results[user_id] = price
-		else:
-			results[user_id] = price
-
-	if not results:
+	if not prices:
 		cmd.reply('No turnip offers are currently active.')
 		return
 
 	output = []
-	for result in results.values():
-		expires_in = readable_rel(dateutil.parser.parse(result['expiration']) - current_time)
-		price_str = ('%s: %d (Expires in %s.)' %
-			(result['username'], result['price'], expires_in))
-
-		output.append(price_str)
+	for row in prices:
+		expires_in = readable_rel(dateutil.parser.parse(row['expiration']) - current_time)
+		output.append('%s: %d (expires in %s)' % (row['username'], row['price'], expires_in))
 
 	cmd.reply('\n'.join(output))
 
