@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+import datetime
 import sqlite3
 
 import dateutil
@@ -46,7 +46,7 @@ def _stalk_set_sell_price(cmd, price):
 		return
 
 	user_id = cmd.sender['id']
-	current_time = datetime.now(timezone.utc)
+	current_time = datetime.datetime.now(datetime.timezone.utc)
 	cur = db.execute('SELECT timezone FROM user WHERE id=?', (user_id,))
 	res = cur.fetchone()
 	if not res:
@@ -65,27 +65,20 @@ def _stalk_set_sell_price(cmd, price):
 		cmd.reply('It is currently Sunday in your selected time zone, %s. Turnip offers cannot be submitted.' %
 			(res['timezone']))
 		return
-
-	if user_time.hour >= 12:
-		expiration = user_time.replace(hour=22, minute=0, second=0, microsecond=0)
-	else:
-		expiration = user_time.replace(hour=12, minute=0, second=0, microsecond=0)
-
-	expires_in = readable_rel(expiration - user_time)
-
 	try:
 		value = int(price)
 	except ValueError:
 		cmd.reply('Could not parse sell value. Usage: !stalks sell 123')
 		return
 
+	week_local, week_index, expiration = _user_time_info(user_time)
 	with db:
 		db.execute('''
-		INSERT INTO sell_price VALUES (?, ?, ?, ?)
-		ON CONFLICT(user_id, expiration)
-		DO UPDATE SET price=excluded.price
-		''', (user_id, current_time, expiration.astimezone(timezone.utc), value))
+		INSERT INTO sell_price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(user_id, expiration) DO UPDATE SET price = excluded.price
+		''', (user_id, week_local, week_index, expiration.astimezone(datetime.timezone.utc), value))
 
+	expires_in = readable_rel(expiration - user_time)
 	cmd.reply('Sale price recorded at %d bells. Offer expires in %s.' %
 		(value, expires_in))
 	_stalk_check_sell_triggers(cmd, price, expires_in)
@@ -103,7 +96,7 @@ def _stalk_check_sell_triggers(cmd, price, expires_in):
 		cmd.reply(msg)
 
 def _stalk_list_sale_prices(cmd):
-	current_time = datetime.now(timezone.utc)
+	current_time = datetime.datetime.now(datetime.timezone.utc)
 	cur = db.execute('''
 	SELECT sell_price.rowid, username, expiration, price
 	FROM sell_price
@@ -160,8 +153,23 @@ See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete 
 		''', (tz_name, cmd.sender['id']))
 
 	if cur.rowcount:
-		current_time = datetime.now().astimezone(tz)
+		current_time = datetime.datetime.now().astimezone(tz)
 		cmd.reply('Time zone successfully updated. Your current time should be %s.'
 			% (current_time.strftime(time_format)))
 	else:
 		cmd.reply('Time zone could not be updated. Have you registered a friend code?')
+
+def _user_time_info(user_time):
+	sunday = _date_to_sunday(user_time)
+	week_index = user_time.weekday() * 2
+
+	if user_time.hour >= 12:
+		expiration = user_time.replace(hour=22, minute=0, second=0, microsecond=0)
+		week_index += 1
+	else:
+		expiration = user_time.replace(hour=12, minute=0, second=0, microsecond=0)
+
+	return sunday, week_index, expiration
+
+def _date_to_sunday(dt):
+	return (dt - datetime.timedelta(days=dt.isoweekday())).date()

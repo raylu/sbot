@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS user (
 
 CREATE TABLE IF NOT EXISTS sell_price (
 	user_id TEXT,
-	created_at TEXT,
+	week_local TEXT,
+	week_index INTEGER,
 	expiration TEXT,
 	price INTEGER,
 	FOREIGN KEY(user_id) REFERENCES user(id)
