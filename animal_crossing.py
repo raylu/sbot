@@ -1,3 +1,4 @@
+import collections
 import datetime
 import sqlite3
 
@@ -97,23 +98,38 @@ def _stalk_check_sell_triggers(cmd, price, expires_in):
 
 def _stalk_list_sale_prices(cmd):
 	current_time = datetime.datetime.now(datetime.timezone.utc)
+	sunday = _date_to_sunday(current_time)
 	cur = db.execute('''
-	SELECT sell_price.rowid, username, expiration, price
-	FROM sell_price
-	INNER JOIN user ON sell_price.user_id = user.id
-	WHERE expiration > ?
-	''', (str(current_time),))
+	SELECT username, week_index, expiration, price FROM sell_price
+	JOIN user ON sell_price.user_id = user.id
+	WHERE week_local == ?
+	''', (str(sunday),))
 
 	prices = cur.fetchall()
 	if not prices:
-		cmd.reply('No turnip offers are currently active.')
+		cmd.reply('No turnip offers were recorded this week.')
 		return
 
-	output = []
+	current_time_str = str(current_time)
+	current_prices = {}
+	week_prices = collections.defaultdict(lambda: [None] * 13)
 	for row in prices:
-		expires_in = readable_rel(dateutil.parser.parse(row['expiration']) - current_time)
-		output.append('%s: %d (expires in %s)' % (row['username'], row['price'], expires_in))
+		user = row['username']
+		price = row['price']
+		if row['expiration'] > current_time_str:
+			current_prices[user] = (price, row['expiration'])
+		week_prices[user][row['week_index'] + 1] = price
 
+	output = []
+	for user, prices in week_prices.items():
+		line = '%s:' % user
+		if user in current_prices:
+			price, expiration = current_prices[user]
+			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
+			line += ' **%d** (expires in %s)' % (price, expires_in)
+		line += ' https://turnipprophet.io/?prices='
+		line += '.'.join(i and str(i) or '' for i in week_prices[user])
+		output.append(line)
 	cmd.reply('\n'.join(output))
 
 def _stalks_set_sell_trigger(cmd, price):
