@@ -127,8 +127,8 @@ def _stalk_list_sale_prices(cmd):
 			price, expiration = current_prices[user]
 			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
 			line += ' **%d** (expires in %s)' % (price, expires_in)
-		line += ' https://turnipprophet.io/?prices='
-		line += '.'.join(i and str(i) or '' for i in week_prices[user])
+		week_prices_str = '.'.join(i and str(i) or '' for i in week_prices[user])
+		line += ' <https://turnipprophet.io/?prices=%s>' % week_prices_str
 		output.append(line)
 	cmd.reply('\n'.join(output))
 
