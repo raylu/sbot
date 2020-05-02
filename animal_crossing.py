@@ -189,3 +189,42 @@ def _user_time_info(user_time):
 
 def _date_to_sunday(dt):
 	return (dt - datetime.timedelta(days=dt.isoweekday())).date()
+
+def migrate(dry_run):
+	with db:
+		cur = db.execute('''SELECT user_id, expiration, price, timezone FROM sell_price
+		JOIN user ON sell_price.user_id = user.id''')
+		rows = cur.fetchall()
+		print('migrating', len(rows), 'rows; dry-run:', dry_run)
+		if not dry_run:
+			db.execute('DROP TABLE sell_price')
+			db.execute('''CREATE TABLE sell_price (
+				user_id TEXT,
+				week_local TEXT,
+				week_index INTEGER,
+				expiration TEXT,
+				price INTEGER,
+				FOREIGN KEY(user_id) REFERENCES user(id)
+			)''')
+			db.execute('''CREATE UNIQUE INDEX idx_sell_price_user_expiration
+			ON sell_price (user_id, expiration)''')
+
+		for row in rows:
+			expiration_dt = datetime.datetime.fromisoformat(row['expiration'])
+			expiration_local = expiration_dt.astimezone(dateutil.tz.gettz(row['timezone']))
+			sunday, week_index, _ = _user_time_info(expiration_local - datetime.timedelta(seconds=1))
+			if not dry_run:
+				db.execute('''INSERT INTO sell_price (user_id, week_local, week_index, expiration, price)
+				VALUES(?, ?, ?, ?, ?)''',
+						(row['user_id'], str(sunday), week_index, row['expiration'], row['price']))
+			print('%s %s\t%s %d' % (row['expiration'], row['timezone'], sunday, week_index))
+
+if __name__ == '__main__':
+	import sys
+
+	if sys.argv[1] == 'migrate':
+		migrate(False)
+	elif sys.argv[1] == 'dry_run':
+		migrate(True)
+	else:
+		sys.exit(1)
