@@ -48,7 +48,7 @@ def _stalk_set_sell_price(cmd, price):
 
 	user_id = cmd.sender['id']
 	current_time = datetime.datetime.now(datetime.timezone.utc)
-	cur = db.execute('SELECT timezone FROM user WHERE id=?', (user_id,))
+	cur = db.execute('SELECT timezone FROM user WHERE id = ?', (user_id,))
 	res = cur.fetchone()
 	if not res:
 		cmd.reply('Could not add sale price. Have you registered a friend code?')
@@ -64,7 +64,7 @@ def _stalk_set_sell_price(cmd, price):
 		return
 	elif user_time.weekday() == 6:
 		cmd.reply('It is currently Sunday in your selected time zone, %s. Turnip offers cannot be submitted.' %
-			(res['timezone']))
+			res['timezone'])
 		return
 	try:
 		value = int(price)
@@ -79,9 +79,19 @@ def _stalk_set_sell_price(cmd, price):
 		ON CONFLICT(user_id, expiration) DO UPDATE SET price = excluded.price
 		''', (user_id, week_local, week_index, expiration.astimezone(datetime.timezone.utc), value))
 
+	sunday = _date_to_sunday(current_time)
+	with db:
+		cur = db.execute('SELECT week_index, price FROM sell_price WHERE user_id = ? AND week_local = ?',
+				(user_id, str(sunday),))
+		week_price_rows = cur.fetchall()
+	week_prices = [None] * 13
+	for row in week_price_rows:
+		week_prices[row['week_index'] + 1] = row['price']
+
 	expires_in = readable_rel(expiration - user_time)
-	cmd.reply('Sale price recorded at %d bells. Offer expires in %s.' %
-		(value, expires_in))
+	cmd.reply('Sale price recorded at %d bells. Offer expires in %s.\n<%s>' %
+		(value, expires_in, _turnip_prophet(week_prices)))
+
 	_stalk_check_sell_triggers(cmd, price, expires_in)
 
 def _stalk_check_sell_triggers(cmd, price, expires_in):
@@ -127,8 +137,7 @@ def _stalk_list_sale_prices(cmd):
 			price, expiration = current_prices[user]
 			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
 			line += ' **%d** (expires in %s)' % (price, expires_in)
-		week_prices_str = '.'.join(i and str(i) or '' for i in week_prices[user])
-		line += ' <https://turnipprophet.io/?prices=%s>' % week_prices_str
+		line += ' <%s>' % _turnip_prophet(week_prices[user])
 		output.append(line)
 	cmd.reply('\n'.join(output))
 
@@ -189,6 +198,10 @@ def _user_time_info(user_time):
 
 def _date_to_sunday(dt):
 	return (dt - datetime.timedelta(days=dt.isoweekday())).date()
+
+def _turnip_prophet(week_prices):
+	week_prices_str = '.'.join(i and str(i) or '' for i in week_prices)
+	return 'https://turnipprophet.io/?prices=%s' % week_prices_str
 
 def migrate(dry_run):
 	with db:
