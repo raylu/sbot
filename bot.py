@@ -176,6 +176,10 @@ class Bot:
 			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
 			self.commands['ohno'](cmd)
 			return
+		elif content.casefold() == 'oh yes.':
+			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
+			self.commands['ohyes'](cmd)
+			return
 		if not content.startswith('!'):
 			return
 
