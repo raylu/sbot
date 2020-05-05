@@ -23,7 +23,9 @@ def stalk_market(cmd):
 	if not cmd.args:
 		cmd.reply('''Please register your friend code with '!fc set <friend-code>' before using the following commands:
 - !stalks tz <tz>: will set your local timezone. See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. **This is required for the following commands.**
-- !stalks sell: will list all currently available offers.
+- !stalks buy: will list all currently available buy offers.
+- !stalks buy <value>: will add a new offer listed at <value> bells.
+- !stalks sell: will list all currently available sell offers.
 - !stalks sell <value>: will add a new offer listed at <value> bells.
 - !stalks trigger <value>: will ping you if a new offer is listed above <value> bells. 
 		''')
@@ -36,10 +38,90 @@ def stalk_market(cmd):
 		_stalk_set_timezone(cmd, subargs)
 	elif subcmd == 'sell':
 		_stalk_set_sell_price(cmd, subargs)
+	elif subcmd == 'buy':
+		_stalk_set_buy_price(cmd, subargs)
 	elif subcmd == 'trigger':
 		_stalks_set_sell_trigger(cmd, subargs)
 	else:
 		cmd.reply('Unrecognized stalks subcommand %s' % subcmd)
+
+def _stalk_set_buy_price(cmd, price):
+	if not price:
+		_stalk_list_buy_prices(cmd)
+		return
+
+	user_id = cmd.sender['id']
+	current_time = datetime.datetime.now(datetime.timezone.utc)
+	cur = db.execute('SELECT timezone FROM user WHERE id = ?', (user_id,))
+	res = cur.fetchone()
+	if not res:
+		cmd.reply('Could not add buy price. Have you registered a friend code?')
+		return
+	elif res['timezone'] is None:
+		cmd.reply('Could not add buy price. Please register a time zone with !stalks tz')
+		return
+
+	user_time = current_time.astimezone(dateutil.tz.gettz(res['timezone']))
+	if user_time.weekday() != 6:
+		cmd.reply('It is not currently Sunday in your selected time zone, %s. Turnip offers cannot be submitted.' %
+			res['timezone'])
+		return
+	elif user_time.hour >= 12:
+		cmd.reply('Turnips are not available on your island. Your current time zone is %s, where it is currently %s.' %
+			(res['timezone'], user_time.strftime(time_format)))
+		return
+	try:
+		value = int(price)
+	except ValueError:
+		cmd.reply('Could not parse buy value. Usage: !stalks buy 123')
+		return
+
+	# discard the calculated index and hardcode 0 for sunday/buy price
+	week_local, _, expiration = _user_time_info(user_time)
+	with db:
+		db.execute('''
+		INSERT INTO sell_price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
+		''', (user_id, week_local, 0, expiration.astimezone(datetime.timezone.utc), value))
+
+	expires_in = readable_rel(expiration - user_time)
+	cmd.reply('Buy price recorded at %d bells. Offer expires in %s.\n<%s>' %
+		(value, expires_in, _turnip_prophet([value] + [None] * 12)))
+
+def _stalk_list_buy_prices(cmd):
+	current_time = datetime.datetime.now(datetime.timezone.utc)
+	sunday = _date_to_sunday(current_time)
+	cur = db.execute('''
+	SELECT username, expiration, price FROM sell_price 
+	JOIN user ON user_id = user.id
+	WHERE week_local = ? AND week_index = 0
+	''', (str(sunday),))
+
+	prices = cur.fetchall()
+	if not prices:
+		cmd.reply('No turnip offers were recorded this week.')
+		return
+
+	current_time_str = str(current_time)
+	current_prices = {}
+	week_prices = collections.defaultdict(lambda: [None] * 13)
+	for row in prices:
+		user = row['username']
+		price = row['price']
+		if row['expiration'] > current_time_str:
+			current_prices[user] = (price, row['expiration'])
+		week_prices[user][0] = row['price']
+
+	output = []
+	for user, prices in week_prices.items():
+		line = '%s:' % user
+		if user in current_prices:
+			price, expiration = current_prices[user]
+			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
+			line += ' **%d** (expires in %s)' % (price, expires_in)
+		line += ' <%s>' % _turnip_prophet(week_prices[user])
+		output.append(line)
+	cmd.reply('\n'.join(output))
+
 
 def _stalk_set_sell_price(cmd, price):
 	if not price:
@@ -83,10 +165,10 @@ def _stalk_set_sell_price(cmd, price):
 	with db:
 		cur = db.execute('SELECT week_index, price FROM sell_price WHERE user_id = ? AND week_local = ?',
 				(user_id, str(sunday),))
-		week_price_rows = cur.fetchall()
+		week_rows = cur.fetchall()
 	week_prices = [None] * 13
-	for row in week_price_rows:
-		week_prices[row['week_index'] + 1] = row['price']
+	for row in week_rows:
+		week_prices[row['week_index']] = row['price']
 
 	expires_in = readable_rel(expiration - user_time)
 	cmd.reply('Sale price recorded at %d bells. Offer expires in %s.\n<%s>' %
@@ -110,8 +192,9 @@ def _stalk_list_sale_prices(cmd):
 	current_time = datetime.datetime.now(datetime.timezone.utc)
 	sunday = _date_to_sunday(current_time)
 	cur = db.execute('''
-	SELECT username, week_index, expiration, price FROM sell_price
-	JOIN user ON sell_price.user_id = user.id
+	SELECT username, week_index, expiration, price
+	FROM sell_price
+	JOIN user ON user_id = user.id
 	WHERE week_local == ?
 	''', (str(sunday),))
 
@@ -128,7 +211,7 @@ def _stalk_list_sale_prices(cmd):
 		price = row['price']
 		if row['expiration'] > current_time_str:
 			current_prices[user] = (price, row['expiration'])
-		week_prices[user][row['week_index'] + 1] = price
+		week_prices[user][row['week_index']] = price
 
 	output = []
 	for user, prices in week_prices.items():
@@ -186,7 +269,7 @@ See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for a complete 
 
 def _user_time_info(user_time):
 	sunday = _date_to_sunday(user_time)
-	week_index = user_time.weekday() * 2
+	week_index = (user_time.weekday() * 2) + 1
 
 	if user_time.hour >= 12:
 		expiration = user_time.replace(hour=22, minute=0, second=0, microsecond=0)
@@ -197,7 +280,10 @@ def _user_time_info(user_time):
 	return sunday, week_index, expiration
 
 def _date_to_sunday(dt):
-	return (dt - datetime.timedelta(days=dt.isoweekday())).date()
+	weekday = dt.isoweekday()
+	if weekday == 7:
+		return dt.date()
+	return (dt - datetime.timedelta(days=weekday)).date()
 
 def _turnip_prophet(week_prices):
 	week_prices_str = '.'.join(i and str(i) or '' for i in week_prices)
