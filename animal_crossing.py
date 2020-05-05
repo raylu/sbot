@@ -80,7 +80,8 @@ def _stalk_set_buy_price(cmd, price):
 	week_local, _, expiration = _user_time_info(user_time)
 	with db:
 		db.execute('''
-		INSERT INTO sell_price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
+		INSERT INTO price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
+		ON CONFLICT(user_id, expiration) DO UPDATE SET price = excluded.price
 		''', (user_id, week_local, 0, expiration.astimezone(datetime.timezone.utc), value))
 
 	expires_in = readable_rel(expiration - user_time)
@@ -91,7 +92,7 @@ def _stalk_list_buy_prices(cmd):
 	current_time = datetime.datetime.now(datetime.timezone.utc)
 	sunday = _date_to_sunday(current_time)
 	cur = db.execute('''
-	SELECT username, expiration, price FROM sell_price 
+	SELECT username, expiration, price FROM price 
 	JOIN user ON user_id = user.id
 	WHERE week_local = ? AND week_index = 0
 	''', (str(sunday),))
@@ -157,17 +158,17 @@ def _stalk_set_sell_price(cmd, price):
 	week_local, week_index, expiration = _user_time_info(user_time)
 	with db:
 		db.execute('''
-		INSERT INTO sell_price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
+		INSERT INTO price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(user_id, expiration) DO UPDATE SET price = excluded.price
 		''', (user_id, week_local, week_index, expiration.astimezone(datetime.timezone.utc), value))
 
 	sunday = _date_to_sunday(current_time)
 	with db:
-		cur = db.execute('SELECT week_index, price FROM sell_price WHERE user_id = ? AND week_local = ?',
+		cur = db.execute('SELECT week_index, price FROM price WHERE user_id = ? AND week_local = ?',
 				(user_id, str(sunday),))
-		week_rows = cur.fetchall()
+		week_price_rows = cur.fetchall()
 	week_prices = [None] * 13
-	for row in week_rows:
+	for row in week_price_rows:
 		week_prices[row['week_index']] = row['price']
 
 	expires_in = readable_rel(expiration - user_time)
@@ -193,7 +194,7 @@ def _stalk_list_sale_prices(cmd):
 	sunday = _date_to_sunday(current_time)
 	cur = db.execute('''
 	SELECT username, week_index, expiration, price
-	FROM sell_price
+	FROM price
 	JOIN user ON user_id = user.id
 	WHERE week_local == ?
 	''', (str(sunday),))
@@ -291,8 +292,8 @@ def _turnip_prophet(week_prices):
 
 def migrate(dry_run):
 	with db:
-		cur = db.execute('''SELECT user_id, expiration, price, timezone FROM sell_price
-		JOIN user ON sell_price.user_id = user.id''')
+		cur = db.execute('''SELECT user_id, expiration, price, timezone FROM price
+		JOIN user ON price.user_id = user.id''')
 		rows = cur.fetchall()
 		print('migrating', len(rows), 'rows; dry-run:', dry_run)
 		if not dry_run:
