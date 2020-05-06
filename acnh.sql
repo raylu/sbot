@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS user (
 	timezone TEXT
 );
 
-CREATE TABLE IF NOT EXISTS sell_price (
+CREATE TABLE IF NOT EXISTS price (
 	user_id TEXT,
 	week_local TEXT,
 	week_index INTEGER,
@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS sell_price (
 	FOREIGN KEY(user_id) REFERENCES user(id)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_sell_price_user_expiration
-ON sell_price (user_id, expiration);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_price_user_expiration
+ON price (user_id, expiration);
 
 CREATE TABLE IF NOT EXISTS sell_trigger (
 	user_id TEXT PRIMARY KEY,
