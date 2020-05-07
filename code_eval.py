@@ -91,14 +91,17 @@ def python3(cmd):
 
 def prep_input(args):
 	args = args.lstrip()
-	if args.startswith('```') and args.endswith('```'):
-		split = args[3:].split('\n', 1)
-		if len(split) == 2:
-			language, other_lines = args[3:].split('\n', 1)
-			if language in ['python', 'py', 'javascript', 'js', 'ruby', 'rb']:
-				return other_lines[:-3]
-			# otherwise, after backticks was code, not language: '```print(1)```'
-	return args.strip('`').strip()
+	if not args.startswith('```'):
+		return args.strip('`').strip()
+
+	split = args[3:].split('\n', 1)
+	if len(split) == 2:
+		language, other_lines = args[3:].split('\n', 1)
+		if language.rstrip() in ['python', 'py', 'javascript', 'js', 'ruby', 'rb']:
+			return other_lines.split('```')[0].strip()
+
+	# no newline characters or no language
+	return args[3:].split('```')[0].strip()
 
 def reply(cmd, output):
 	split = output.split('\n', 10)
