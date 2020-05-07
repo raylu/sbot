@@ -6,12 +6,15 @@ import config
 
 if config.bot.twitch is not None:
 	rs = requests.Session()
-	rs.headers['Client-ID'] = config.bot.twitch['client_id']
+
+	access_token_expiration = None
 
 	ANNOUNCE_FREQ = 4 * 60 * 60 # announce once every 4h
 
 def live_streams(bot):
 	now = time.time()
+	_access_token(now)
+
 	user_to_announce = {}
 	for announce in config.bot.twitch['announces']:
 		url = 'https://api.twitch.tv/helix/streams?'
@@ -60,3 +63,23 @@ def live_streams(bot):
 	for user_id in to_del:
 		del config.state.twitch_last_times[user_id]
 	config.state.save()
+
+def _access_token(now):
+	global access_token_expiration
+
+	if access_token_expiration is not None and now < access_token_expiration - 120:
+		return
+
+	if 'Authorization' in rs.headers:
+		del rs.headers['Authorization']
+	# https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow
+	r = rs.post('https://id.twitch.tv/oauth2/token', params={
+		'client_id': config.bot.twitch['client_id'],
+		'client_secret': config.bot.twitch['client_secret'],
+		'grant_type': 'client_credentials',
+	})
+	r.raise_for_status()
+	data = r.json()
+	access_token_expiration = now + data['expires_in']
+	# https://dev.twitch.tv/docs/authentication/#sending-user-access-and-app-access-tokens
+	rs.headers['Authorization'] = 'Bearer ' + data['access_token']

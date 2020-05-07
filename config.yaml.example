@@ -17,6 +17,7 @@ twitter: # set this to null to disable
         RiskofRain: '282441291327864834'
 twitch: # set this to null to disable
     client_id: ''
+    client_secret: ''
     announces:
       - game_id: 65360 # go
         channel: '282441291327864834' # bot-testing

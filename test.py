@@ -20,6 +20,9 @@ class MockBot:
 		self.channels = {'1': '109469702010478592'}
 		self.guilds = {'109469702010478592': MockGuild()}
 
+	def send_message(self, channel_id, text, embed=None, files=None):
+		print(channel_id, text, embed, files)
+
 class MockGuild:
 	def __init__(self):
 		self.roles = {
