@@ -6,6 +6,9 @@ import config
 
 if config.bot.twitch is not None:
 	rs = requests.Session()
+	# Client-ID is required according to https://discuss.dev.twitch.tv/t/requiring-oauth-for-helix-twitch-api-endpoints/23916
+	# (the official authentication docs are wrong)
+	rs.headers['Client-ID'] = config.bot.twitch['client_id']
 
 	access_token_expiration = None
 
