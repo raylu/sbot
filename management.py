@@ -1,9 +1,5 @@
 import operator
 
-import PIL.Image
-import PIL.ImageDraw
-import PIL.ImageFont
-
 import config
 
 def join(cmd):
@@ -39,25 +35,8 @@ def list_roles(cmd):
 	roles = list(_allowed_roles(bot.guilds[guild_id].roles))
 	roles.sort(key=operator.itemgetter('position'), reverse=True)
 
-	img = PIL.Image.new('RGB', (200, 18 * len(roles) + 2), '#202225')
-	font = PIL.ImageFont.truetype('whitney500.ttf', 16)
-	draw = PIL.ImageDraw.Draw(img)
-	offset = 0
-	for role in roles:
-		color = role['color']
-		if color == 0:
-			fill = (153, 170, 181)
-		else:
-			r = color >> 16
-			g = (color >> 8) & 0xff
-			b = color & 0xff
-			fill = (r, g, b)
-		draw.text((0, offset), role['name'], fill=fill, font=font)
-		offset += 18
-	with open(config.bot.roles['image_path'], 'wb') as f:
-		img.save(f, 'png')
-
-	embed = {'image': {'url': config.bot.roles['public_url']}}
+	desc = ' '.join('<@&%s>' % role['id'] for role in roles)
+	embed = {'description': desc}
 	cmd.reply('', embed)
 
 def _ids(cmd):

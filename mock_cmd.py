@@ -27,8 +27,8 @@ class MockGuild:
 	def __init__(self):
 		self.roles = {
 			'sbot': {'position': 3},
-			'dogs': {'position': 1, 'name': 'dogs', 'color': 123456},
-			'cats': {'position': 2, 'name': 'cats', 'color': 13369480},
+			'dogs': {'position': 1, 'name': 'dogs', 'color': 123456, 'id': '1111'},
+			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
 animal_crossing.stalk_market(MockCmd())
