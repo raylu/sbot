@@ -1,6 +1,6 @@
-import code_eval
-
 import unittest
+
+import code_eval
 
 unittest.TestCase.assert_equal = unittest.TestCase.assertEqual
 

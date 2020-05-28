@@ -10,12 +10,7 @@ import config
 from timer import readable_rel
 
 if config.bot.acnh_db is not None:
-	db = sqlite3.connect(config.bot.acnh_db)
-	db.row_factory = sqlite3.Row
-
-	# enable foreign key constraints
-	with db:
-		db.execute('PRAGMA foreign_keys = ON')
+	from friend_code import db
 
 time_format = '%Y-%m-%d %H:%M'
 
