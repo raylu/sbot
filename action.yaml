@@ -1,0 +1,15 @@
+name: 'CI'
+description: 'run unittest and pylint'
+
+inputs:
+  cmd:
+    description: 'The command to run in the container'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - sh
+    - '-c'
+    - ${{ inputs.cmd }}

@@ -9,7 +9,7 @@ import threading
 import time
 import traceback
 import zlib
-import _thread
+import _thread  # pylint: disable=wrong-import-order
 
 import requests
 import websocket
