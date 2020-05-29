@@ -56,32 +56,33 @@ def _stalk_set_buy_price(cmd, price):
 		cmd.reply('Could not add buy price. Please register a time zone with !stalks tz')
 		return
 
-	user_time = current_time.astimezone(dateutil.tz.gettz(res['timezone']))
-	if user_time.weekday() != 6:
-		cmd.reply('It is not currently Sunday in your selected time zone, %s. Turnip offers cannot be submitted.' %
-			res['timezone'])
-		return
-	elif user_time.hour >= 12:
-		cmd.reply('Turnips are not available on your island. Your current time zone is %s, where it is currently %s.' %
-			(res['timezone'], user_time.strftime(time_format)))
-		return
 	try:
 		value = int(price)
 	except ValueError:
 		cmd.reply('Could not parse buy value. Usage: !stalks buy 123')
 		return
 
+	user_tz = dateutil.tz.gettz(res['timezone'])
+	user_time = current_time.astimezone(user_tz)
+	# pretend it's sunday
+	sunday = _date_to_sunday(user_time)
+	user_sunday = datetime.datetime.combine(sunday, datetime.time(5), user_tz)
 	# discard the calculated index and hardcode 0 for sunday/buy price
-	week_local, _, expiration = _user_time_info(user_time)
+	week_local, _, expiration = _user_time_info(user_sunday)
 	with db:
 		db.execute('''
 		INSERT INTO price (user_id, week_local, week_index, expiration, price) VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT(user_id, expiration) DO UPDATE SET price = excluded.price
 		''', (user_id, week_local, 0, expiration.astimezone(datetime.timezone.utc), value))
 
-	expires_in = readable_rel(expiration - user_time)
-	cmd.reply('Buy price recorded at %d bells. Offer expires in %s.\n<%s>' %
-		(value, expires_in, _turnip_prophet([value] + [None] * 12)))
+	turnip_prophet_url = _turnip_prophet([value] + [None] * 12)
+	expiration_rel = expiration - user_time
+	if expiration_rel.total_seconds() > 0:
+		expires_in = readable_rel(expiration_rel)
+		cmd.reply('Buy price recorded at %d bells. Offer expires in %s.\n<%s>' %
+			(value, expires_in, turnip_prophet_url))
+	else:
+		cmd.reply('Buy price recorded at %d bells.\n<%s>' % (value, turnip_prophet_url))
 
 def _stalk_list_buy_prices(cmd):
 	current_time = datetime.datetime.now(datetime.timezone.utc)
