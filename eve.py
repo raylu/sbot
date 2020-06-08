@@ -89,8 +89,11 @@ def price_check(cmd):
 	if not result:
 		return
 	typeid, item_name = result
-	esi = get_esi_price(typeid)
-	cmd.reply('%s: %s' % (item_name, esi))
+	try:
+		esi = get_esi_price(typeid)
+		cmd.reply('%s: %s' % (item_name, esi))
+	except KeyError:
+		cmd.reply('error: could not find %r in ESI market prices' % item_name)
 
 
 def jumps(cmd):
