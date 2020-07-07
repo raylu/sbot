@@ -171,6 +171,9 @@ class Bot:
 			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
 
 	def handle_message_create(self, d):
+		if d['author'].get('bot'):
+			return
+
 		content = d['content']
 		if content.casefold() == 'oh no.':
 			cmd = CommandEvent(d['channel_id'], d['author'], None, self)

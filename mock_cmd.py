@@ -13,7 +13,10 @@ class MockCmd:
 
 	def reply(self, text, embed=None, files=None):
 		print(text)
-		pprint(embed)
+		if embed:
+			pprint(embed)
+		if files:
+			pprint(files.keys())
 
 class MockBot:
 	def __init__(self):
