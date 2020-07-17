@@ -107,14 +107,14 @@ class Bot:
 			log.flush()
 
 	def get(self, path):
-		response = self.rs.get('https://discordapp.com/api' + path)
+		response = self.rs.get('https://discord.com/api' + path)
 		response.raise_for_status()
 		return response.json()
 
 	def post(self, path, data, files=None, method='POST'):
 		if config.bot.debug:
 			print('=>', path, data)
-		response = self.rs.request(method, 'https://discordapp.com/api' + path, files=files, json=data)
+		response = self.rs.request(method, 'https://discord.com/api' + path, files=files, json=data)
 		response.raise_for_status()
 		if response.status_code != 204: # No Content
 			return response.json()
