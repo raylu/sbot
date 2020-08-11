@@ -6,19 +6,23 @@ rs = requests.Session()
 rs.headers['User-Agent'] = 'python:sbot:v0 (by /u/raylu)'
 
 def headpat(cmd):
-	items = _reddit_request('/r/headpats/random')
-	item = items[0]['data']['children'][0]['data']
+	try:
+		items = _reddit_request('/r/headpats/random')
+		item = items[0]['data']['children'][0]['data']
 
-	resolutions = item['preview']['images'][0]['resolutions']
-	image = resolutions[1]
-	image_url = image['url'].replace('&amp;', '&')
+		resolutions = item['preview']['images'][0]['resolutions']
+		image = resolutions[1]
+		image_url = image['url'].replace('&amp;', '&')
 
-	embed = {
-		'title': item['title'],
-		'url': 'https://www.reddit.com/' + item['permalink'],
-		'image': {'url': image_url, 'width': image['width'], 'height': image['height']},
-	}
-	cmd.reply('', embed)
+		embed = {
+			'title': item['title'],
+			'url': 'https://www.reddit.com/' + item['permalink'],
+			'image': {'url': image_url, 'width': image['width'], 'height': image['height']},
+		}
+	except Exception:
+		cmd.reply('%s: error getting an /r/headpat image' % cmd.sender['username'])
+	else:
+		cmd.reply('', embed)
 
 def _reddit_request(path):
 	url = 'https://oauth.reddit.com' + path
