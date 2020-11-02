@@ -1,4 +1,7 @@
+import base64
+import hmac
 import time
+import urllib.parse
 
 import requests
 
@@ -47,3 +50,13 @@ def new_tweets(bot):
 def tweet_id_to_ts(tweet_id):
 	# https://github.com/client9/snowflake2time#snowflake-layout
 	return (tweet_id & 0x7fffffffffffffff) >> 22
+
+def sign(method, url, params, consumer_secret, token_secret):
+	# https://developer.twitter.com/en/docs/authentication/oauth-1-0a/creating-a-signature
+	parameter_string = urllib.parse.urlencode(sorted(params.items()), quote_via=urllib.parse.quote)
+	# that's right! we re-quote the parameter string
+	encoded_params = urllib.parse.quote_plus(parameter_string)
+	base_string = '%s&%s&%s' % (method, urllib.parse.quote_plus(url), encoded_params)
+	signing_key = '%s&%s' % (urllib.parse.quote(consumer_secret), urllib.parse.quote(token_secret))
+	mac = hmac.HMAC(signing_key.encode('ascii'), base_string.encode('ascii'), 'sha1')
+	return base64.b64encode(mac.digest()).decode('ascii')
