@@ -221,7 +221,7 @@ class Bot:
 
 	def handle_reaction_add(self, d):
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
-				d['emoji']['name'] != 'shrfood_twitter':
+				d['emoji']['name'] != 'shrfood_twitter' or d['user_id'] == self.user_id:
 			return
 
 		config.state.twitter_queue.append(d['message_id'])
