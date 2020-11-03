@@ -388,6 +388,10 @@ class Bot:
 				sleep = config.state.twitter_last_post_time + sleep - time.time()
 			with self.twitter_post_condvar:
 				self.twitter_post_condvar.wait(sleep)
+			if config.state.twitter_last_post_time and \
+					time.time() < config.state.twitter_last_post_time + 12 * 60 * 60:
+				# we were woken up by a reaction add but it's too early
+				continue
 
 			if len(config.state.twitter_queue) > 0:
 				twitter.post(self, config.state.twitter_queue[0])
