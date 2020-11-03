@@ -21,3 +21,15 @@ class TestTwitter(unittest.TestCase):
 		token_secret = 'LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE'
 		self.assert_equal(twitter.sign('POST', url, params, consumer_secret, token_secret),
 				'hCtSmYh+iHYCEqBWrE7C7hYmtUk=')
+
+		params =  {
+			'oauth_consumer_key': 'xvz1evFS4wEEPTGEFPHBog',
+			'oauth_nonce': '132181869514112696851604378895',
+			'oauth_signature_method': 'HMAC-SHA1',
+			'oauth_timestamp': '1604378895',
+			'oauth_token': '370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb',
+			'oauth_version': '1.0',
+		}
+		url = 'https://upload.twitter.com/1.1/media/upload.json'
+		self.assert_equal(twitter.sign('POST', url, params, consumer_secret, token_secret),
+				's0fC9HSsyxFWP5jCHEC+UM93avc=')

@@ -1,15 +1,14 @@
 import base64
-import copy
-import hashlib
 import mimetypes
 import hmac
-import os
 import time
 import urllib.parse
 
 import requests
+import requests_oauthlib
 
 import config
+import log
 
 def new_tweets(bot):
 	rs = requests.Session()
@@ -55,6 +54,11 @@ def post(bot, message_id):
 	rs = requests.Session()
 	channel = config.bot.twitter_post['channel']
 	message = bot.get('/channels/%s/messages/%s' % (channel, message_id))
+
+	oauth = requests_oauthlib.OAuth1(config.bot.twitter_post['consumer_key'],
+	  client_secret=config.bot.twitter_post['consumer_secret'],
+	  resource_owner_key=config.bot.twitter_post['token'],
+	  resource_owner_secret=config.bot.twitter_post['token_secret'])
 	media_ids = []
 	upload_url = 'https://upload.twitter.com/1.1/media/upload.json'
 	for attachment in message['attachments'][:4]:
@@ -62,34 +66,39 @@ def post(bot, message_id):
 
 		media_type, _ = mimetypes.guess_type(attachment['filename'])
 		rs = requests.Session()
-		response = signed_request(rs, 'POST', upload_url, params={
+		response = rs.post(upload_url, data={
 			'command': 'INIT',
 			'media_type': media_type,
 			'total_bytes': str(attachment['size']),
-		})
+		}, auth=oauth)
+		response.raise_for_status()
 		media_id = response.json()['media_id_string']
 
-		response = signed_request(rs, 'POST', upload_url, data={
+		response = rs.post(upload_url, data={
 			'command': 'APPEND',
 			'media_id': media_id,
 			'segment_index': '0',
-		}, files={'media': media})
+		}, files={'media': media}, auth=oauth)
+		response.raise_for_status()
 
-		response = signed_request(rs, 'POST', upload_url, params={
+		response = rs.post(upload_url, data={
 			'command': 'FINALIZE',
 			'media_id': media_id,
-		})
+		}, auth=oauth)
+		response.raise_for_status()
 
 		media_ids.append(media_id)
 
 	discord_link = 'https://discord.com/channels/%s/%s/%s' % (
 			config.bot.twitter_post['server'], config.bot.twitter_post['channel'], message_id)
 	tweet = '%s on %s\n%s' % (message['author']['username'], message['timestamp'][:10], discord_link)
-	response = signed_request(rs, 'POST', 'https://api.twitter.com/1.1/statuses/update.json', {
+	response = rs.post('https://api.twitter.com/1.1/statuses/update.json', data={
 		'status': tweet,
 		'media_ids': ','.join(media_ids),
 		'trim_user': '1',
-	})
+	}, auth=oauth)
+	response.raise_for_status()
+	log.write('tweeted %s' % response.json()['id'])
 
 	emoji = 'shrfood_twitter:773023524683251766'
 	path = '/channels/%s/messages/%s/reactions/%s/@me' % (channel, message_id, emoji)
@@ -98,34 +107,6 @@ def post(bot, message_id):
 def tweet_id_to_ts(tweet_id):
 	# https://github.com/client9/snowflake2time#snowflake-layout
 	return (tweet_id & 0x7fffffffffffffff) >> 22
-
-def signed_request(rs, method, url, params=None, data=None, files=None):
-	signing_params = {
-		'oauth_consumer_key': config.bot.twitter_post['consumer_key'],
-		'oauth_nonce': base64.b64encode(os.getrandom(16)),
-		'oauth_signature_method': 'HMAC-SHA1',
-		'oauth_timestamp': str(int(time.time())),
-		'oauth_version': '1.0',
-		'oauth_token': config.bot.twitter_post['token'],
-	}
-	auth_params = copy.copy(signing_params)
-	if params:
-		signing_params.update(params)
-	if data and not files:
-		# https://github.com/requests/requests-oauthlib/blob/46f886ccb74652fc9c850ece960edcf2bce765a5/requests_oauthlib/oauth1_auth.py#L107
-		signing_params.update(data)
-
-	consumer_secret = config.bot.twitter_post['consumer_secret']
-	token_secret = config.bot.twitter_post['token_secret']
-	auth_params['oauth_signature'] = sign(method, url,
-			signing_params, consumer_secret, token_secret)
-	# https://developer.twitter.com/en/docs/authentication/oauth-1-0a/authorizing-a-request
-	auth = 'OAuth '
-	auth += ', '.join('%s="%s"' % (k, urllib.parse.quote(v)) for k, v in auth_params.items())
-	headers = {'Authorization': auth}
-	response = rs.request(method, url, params=params, data=data, files=files, headers=headers)
-	response.raise_for_status()
-	return response
 
 def sign(method, url, signing_params, consumer_secret, token_secret):
 	# https://developer.twitter.com/en/docs/authentication/oauth-1-0a/creating-a-signature
