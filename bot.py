@@ -36,6 +36,8 @@ class Bot:
 		self.warframe_thread = None
 		self.twitch_thread = None
 		self.twitter_thread = None
+		self.twitter_post_thread = None
+		self.twitter_post_condvar = threading.Condition()
 		self.steam_news_thread = None
 		self.user_id = None
 		self.seq = None
@@ -170,6 +172,8 @@ class Bot:
 			self.twitch_thread = _thread.start_new_thread(self.twitch_loop, ())
 		if config.bot.twitter is not None:
 			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
+		if config.bot.twitter_post is not None:
+			self.twitter_post_thread = _thread.start_new_thread(self.twitter_post_loop, ())
 		if config.bot.steam_news is not None:
 			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
 
@@ -226,6 +230,8 @@ class Bot:
 		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
 				d['channel_id'], d['message_id'], urllib.parse.quote('✅'))
 		self.post(path, None, method='PUT')
+		with self.twitter_post_condvar:
+			self.twitter_post_condvar.notify()
 
 	def handle_reaction_remove(self, d):
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
@@ -374,6 +380,20 @@ class Bot:
 				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('twitter: %s' % e)
+
+	def twitter_post_loop(self):
+		while True:
+			sleep = 12 * 60 * 60 # 12 hours
+			if config.state.twitter_last_post_time:
+				sleep = config.state.twitter_last_post_time + sleep - time.time()
+			with self.twitter_post_condvar:
+				self.twitter_post_condvar.wait(sleep)
+
+			if len(config.state.twitter_queue) > 0:
+				twitter.post(self, config.state.twitter_queue[0])
+				config.state.twitter_queue.pop(0)
+				config.state.twitter_last_post_time = int(time.time())
+				config.state.save()
 
 	def steam_news_loop(self):
 		while True:

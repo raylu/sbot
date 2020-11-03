@@ -45,4 +45,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-twitter.post(MockBot())
+twitter.post(MockBot(), config.state.twitter_queue[0])

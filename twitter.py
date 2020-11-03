@@ -51,9 +51,8 @@ def new_tweets(bot):
 		config.state.tweet_ids[account] = tweets[0]['id']
 	config.state.save()
 
-def post(bot):
+def post(bot, message_id):
 	rs = requests.Session()
-	message_id = '316960031314804737'
 	channel = config.bot.twitter_post['channel']
 	message = bot.get('/channels/%s/messages/%s' % (channel, message_id))
 	media_ids = []
@@ -91,6 +90,10 @@ def post(bot):
 		'media_ids': ','.join(media_ids),
 		'trim_user': '1',
 	}, {})
+
+	emoji = 'shrfood_twitter:773023524683251766'
+	path = '/channels/%s/messages/%s/reactions/%s/@me' % (channel, message_id, emoji)
+	bot.post(path, None, method='PUT')
 
 def tweet_id_to_ts(tweet_id):
 	# https://github.com/client9/snowflake2time#snowflake-layout
