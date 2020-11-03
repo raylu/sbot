@@ -2,7 +2,10 @@
 
 from pprint import pprint
 
-import animal_crossing
+import requests
+
+import config
+import twitter
 
 class MockCmd:
 	def __init__(self):
@@ -26,6 +29,14 @@ class MockBot:
 	def send_message(self, channel_id, text, embed=None, files=None):
 		print(channel_id, text, embed, files)
 
+	def get(self, path):
+		response = requests.get('https://discord.com/api' + path, headers={
+			'Authorization': 'Bot ' + config.bot.token,
+			'User-Agent': 'DiscordBot (https://github.com/raylu/sbot 0.0)',
+		})
+		response.raise_for_status()
+		return response.json()
+
 class MockGuild:
 	def __init__(self):
 		self.roles = {
@@ -34,4 +45,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-animal_crossing.stalk_market(MockCmd())
+twitter.post(MockBot())

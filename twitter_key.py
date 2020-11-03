@@ -19,7 +19,6 @@ if mode == '1':
 	print(r.content)
 elif mode == '2':
 	# https://developer.twitter.com/en/docs/authentication/oauth-1-0a/pin-based-oauth
-	# https://developer.twitter.com/en/docs/authentication/api-reference/request_token
 	params = {
 		'oauth_callback': 'oob',
 		'oauth_consumer_key': consumer_key,
@@ -28,6 +27,7 @@ elif mode == '2':
 		'oauth_timestamp': str(int(time.time())),
 		'oauth_version': '1.0',
 	}
+	# https://developer.twitter.com/en/docs/authentication/api-reference/request_token
 	url = 'https://api.twitter.com/oauth/request_token'
 	params['oauth_signature'] = twitter.sign('POST', url, params, consumer_secret, '')
 	# https://developer.twitter.com/en/docs/authentication/oauth-1-0a/authorizing-a-request

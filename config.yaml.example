@@ -13,6 +13,13 @@ twitter: # set this to null to disable
     bearer_token: null
     accounts:
         RiskofRain: '282441291327864834'
+twitter_post: # set this to null to disable
+    consumer_key: null # get these from https://developer.twitter.com/en/apps/
+    consumer_secret: null
+    token: null # get these from twitter_key.py
+    token_secret: null
+    server: '109469702010478592' # secret hiding room
+    channel: '316959344681943040' # food
 twitch: # set this to null to disable
     client_id: ''
     client_secret: ''
