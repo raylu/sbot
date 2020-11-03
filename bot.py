@@ -8,6 +8,7 @@ import sys
 import threading
 import time
 import traceback
+import urllib.parse
 import zlib
 import _thread  # pylint: disable=wrong-import-order
 
@@ -49,6 +50,8 @@ class Bot:
 		self.events = {
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
+			'MESSAGE_REACTION_ADD': self.handle_reaction_add,
+			'MESSAGE_REACTION_REMOVE': self.handle_reaction_remove,
 			'GUILD_CREATE': self.handle_guild_create,
 			'GUILD_ROLE_CREATE': self.handle_guild_role_create,
 			'GUILD_ROLE_UPDATE': self.handle_guild_role_update,
@@ -211,6 +214,38 @@ class Bot:
 				arg += '\n' + lines[1]
 			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
 			handler(cmd)
+
+	def handle_reaction_add(self, d):
+		if d['channel_id'] != config.bot.twitter_post['channel'] or \
+				d['emoji']['name'] != 'shrfood_twitter':
+			return
+
+		config.state.twitter_queue.append(d['message_id'])
+		config.state.save()
+
+		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
+				d['channel_id'], d['message_id'], urllib.parse.quote('✅'))
+		self.post(path, None, method='PUT')
+
+	def handle_reaction_remove(self, d):
+		if d['channel_id'] != config.bot.twitter_post['channel'] or \
+				d['emoji']['name'] != 'shrfood_twitter':
+			return
+
+		emoji = '%s:%s' % (d['emoji']['name'], d['emoji']['id'])
+		path = '/channels/%s/messages/%s/reactions/%s' % (
+				d['channel_id'], d['message_id'], emoji)
+		reactions = self.get(path)
+		if len(reactions) == 0: # no more shrfood_twitter emoji
+			try:
+				config.state.twitter_queue.remove(d['message_id'])
+			except ValueError:
+				return
+			config.state.save()
+
+			path = '/channels/%s/messages/%s/reactions/%s/@me' % (
+					d['channel_id'], d['message_id'], urllib.parse.quote('✅'))
+			self.post(path, None, method='DELETE')
 
 	def handle_guild_create(self, d):
 		self.guilds[d['id']] = Guild(d)

@@ -29,6 +29,6 @@ class YamlAttrs:
 bot = YamlAttrs('config.yaml')
 state = YamlAttrs('state.yaml',
 	defaults={
-		'gateway_url': None, 'timers': {}, 'reddit_access_token': None,
-		'tweet_ids': {}, 'steam_news_ids': {}, 'twitch_last_times': {},
+		'gateway_url': None, 'timers': {}, 'reddit_access_token': None, 'tweet_ids': {},
+		'twitter_queue': [], 'steam_news_ids': {}, 'twitch_last_times': {},
 	})
