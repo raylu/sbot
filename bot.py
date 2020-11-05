@@ -447,7 +447,7 @@ class CommandEvent:
 	def reply(self, message, embed=None, files=None):
 		self.bot.send_message(self.channel_id, message, embed, files)
 
-class OP: # pylint: disable=bad-whitespace
+class OP:
 	DISPATCH              = 0
 	HEARTBEAT             = 1
 	IDENTIFY              = 2
