@@ -224,6 +224,8 @@ class Bot:
 				d['emoji']['name'] != 'shrfood_twitter' or d['user_id'] == self.user_id:
 			return
 
+		if d['message_id'] in config.state.twitter_queue:
+			return
 		config.state.twitter_queue.append(d['message_id'])
 		config.state.save()
 
@@ -395,8 +397,12 @@ class Bot:
 				continue
 
 			if len(config.state.twitter_queue) > 0:
-				twitter.post(self, config.state.twitter_queue[0])
-				config.state.twitter_queue.pop(0)
+				try:
+					twitter.post(self, config.state.twitter_queue[0])
+					config.state.twitter_queue.pop(0)
+				except Exception:
+					log.write('twitter post:\n' + traceback.format_exc())
+				# always update the last post time, even if we failed to tweet
 				config.state.twitter_last_post_time = int(time.time())
 				config.state.save()
 
