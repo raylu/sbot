@@ -254,6 +254,7 @@ class Bot:
 			self.post(path, None, method='DELETE')
 
 	def handle_guild_create(self, d):
+		log.write('in guild %s (%d members)' % (d['name'], d['member_count']))
 		self.guilds[d['id']] = Guild(d)
 		for channel in d['channels']:
 			self.channels[channel['id']] = d['id']
