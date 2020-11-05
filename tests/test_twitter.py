@@ -1,10 +1,26 @@
+import sys
 import unittest
-
-import twitter
+from unittest import mock
 
 unittest.TestCase.assert_equal = unittest.TestCase.assertEqual
 
 class TestTwitter(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		mock_config = mock.Mock()
+		sys.modules['config'] = mock_config
+		try:
+			import twitter
+
+			cls.twitter = twitter
+		except Exception:
+			del sys.modules['config']
+			raise
+
+	@classmethod
+	def tearDownClass(cls):
+		del sys.modules['config']
+
 	def test_sign(self):
 		params = {
 			'status': 'Hello Ladies + Gentlemen, a signed OAuth request!',
@@ -19,7 +35,7 @@ class TestTwitter(unittest.TestCase):
 		url = 'https://api.twitter.com/1.1/statuses/update.json'
 		consumer_secret = 'kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw'
 		token_secret = 'LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE'
-		self.assert_equal(twitter.sign('POST', url, params, consumer_secret, token_secret),
+		self.assert_equal(self.twitter.sign('POST', url, params, consumer_secret, token_secret),
 				'hCtSmYh+iHYCEqBWrE7C7hYmtUk=')
 
 		params =  {
@@ -31,5 +47,5 @@ class TestTwitter(unittest.TestCase):
 			'oauth_version': '1.0',
 		}
 		url = 'https://upload.twitter.com/1.1/media/upload.json'
-		self.assert_equal(twitter.sign('POST', url, params, consumer_secret, token_secret),
+		self.assert_equal(self.twitter.sign('POST', url, params, consumer_secret, token_secret),
 				's0fC9HSsyxFWP5jCHEC+UM93avc=')
