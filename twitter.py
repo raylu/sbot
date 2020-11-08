@@ -1,9 +1,11 @@
 import base64
 import mimetypes
 import hmac
+import io
 import time
 import urllib.parse
 
+import PIL.Image
 import requests
 import requests_oauthlib
 
@@ -65,7 +67,12 @@ def post(bot, message_id):
 		media = rs.get(attachment['url']).content
 
 		media_type, _ = mimetypes.guess_type(attachment['filename'])
-		rs = requests.Session()
+		if attachment['size'] > 5000000 and media_type.startswith('image/'):
+			media = optimize_image(media)
+			if len(media) > 5000000:
+				log.write("skipping %s %s because we couldn't compress to under 5MB" %
+						(message_id, attachment['filename']))
+				continue
 		response = rs.post(upload_url, data={
 			'command': 'INIT',
 			'media_type': media_type,
@@ -89,20 +96,23 @@ def post(bot, message_id):
 
 		media_ids.append(media_id)
 
-	discord_link = 'https://discord.com/channels/%s/%s/%s' % (
-			config.bot.twitter_post['server'], config.bot.twitter_post['channel'], message_id)
-	tweet = '%s on %s\n%s' % (message['author']['username'], message['timestamp'][:10], discord_link)
-	response = rs.post('https://api.twitter.com/1.1/statuses/update.json', data={
-		'status': tweet,
-		'media_ids': ','.join(media_ids),
-		'trim_user': '1',
-	}, auth=oauth)
-	response.raise_for_status()
-	log.write('tweeted %s' % response.json()['id'])
+	if len(media_ids) > 0:
+		discord_link = 'https://discord.com/channels/%s/%s/%s' % (
+				config.bot.twitter_post['server'], config.bot.twitter_post['channel'], message_id)
+		tweet = '%s on %s\n%s' % (message['author']['username'], message['timestamp'][:10], discord_link)
+		response = rs.post('https://api.twitter.com/1.1/statuses/update.json', data={
+			'status': tweet,
+			'media_ids': ','.join(media_ids),
+			'trim_user': '1',
+		}, auth=oauth)
+		response.raise_for_status()
+		log.write('tweeted %s' % response.json()['id'])
 
-	emoji = 'shrfood_twitter:773023524683251766'
-	path = '/channels/%s/messages/%s/reactions/%s/@me' % (channel, message_id, emoji)
-	bot.post(path, None, method='PUT')
+		emoji = 'shrfood_twitter:773023524683251766'
+		path = '/channels/%s/messages/%s/reactions/%s/@me' % (channel, message_id, emoji)
+		bot.post(path, None, method='PUT')
+	else:
+		log.write('skipping %s because no media' % message_id)
 
 def tweet_id_to_ts(tweet_id):
 	# https://github.com/client9/snowflake2time#snowflake-layout
@@ -119,3 +129,12 @@ def sign(method, url, signing_params, consumer_secret, token_secret):
 	signing_key = '%s&%s' % (urllib.parse.quote(consumer_secret), urllib.parse.quote(token_secret))
 	mac = hmac.HMAC(signing_key.encode('ascii'), base_string.encode('ascii'), 'sha1')
 	return base64.b64encode(mac.digest()).decode('ascii')
+
+def optimize_image(media):
+	image = PIL.Image.open(io.BytesIO(media))
+	output = io.BytesIO()
+	image.save(output, 'JPEG', optimize=True)
+	if len(output.getbuffer()) > 5000000:
+		output = io.BytesIO()
+		image.save(output, 'JPEG', optimize=True, quality='web_low')
+	return output.getbytes()
