@@ -1,4 +1,5 @@
 import base64
+import math
 import mimetypes
 import hmac
 import io
@@ -69,6 +70,7 @@ def post(bot, message_id):
 		media_type, _ = mimetypes.guess_type(attachment['filename'])
 		if attachment['size'] > 5000000 and media_type.startswith('image/'):
 			media = optimize_image(media)
+			media_type = 'image/jpeg'
 			if len(media) > 5000000:
 				log.write("skipping %s %s because we couldn't compress to under 5MB" %
 						(message_id, attachment['filename']))
@@ -76,7 +78,7 @@ def post(bot, message_id):
 		response = rs.post(upload_url, data={
 			'command': 'INIT',
 			'media_type': media_type,
-			'total_bytes': str(attachment['size']),
+			'total_bytes': str(len(media)),
 		}, auth=oauth)
 		response.raise_for_status()
 		media_id = response.json()['media_id_string']
@@ -132,9 +134,14 @@ def sign(method, url, signing_params, consumer_secret, token_secret):
 
 def optimize_image(media):
 	image = PIL.Image.open(io.BytesIO(media))
+	max_dim = max(image.width, image.height)
+	if max_dim > 8192:
+		divisor = math.ceil(max_dim / 8192)
+		image = image.resize((image.width // divisor, image.height // divisor))
+
 	output = io.BytesIO()
 	image.save(output, 'JPEG', optimize=True)
 	if len(output.getbuffer()) > 5000000:
 		output = io.BytesIO()
 		image.save(output, 'JPEG', optimize=True, quality='web_low')
-	return output.getbytes()
+	return output.getvalue()
