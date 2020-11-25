@@ -1,3 +1,4 @@
+import datetime
 import time
 
 import requests
@@ -18,6 +19,9 @@ def live_streams(bot):
 	now = time.time()
 	_access_token(now)
 
+	started_at_threshold_dt = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=2)
+	started_at_threshold = started_at_threshold_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
 	user_to_announce = {}
 	for announce in config.bot.twitch['announces']:
 		url = 'https://api.twitch.tv/helix/streams?'
@@ -28,6 +32,9 @@ def live_streams(bot):
 		r = rs.get(url)
 		r.raise_for_status()
 		for stream in r.json()['data']:
+			if stream['started_at'] > started_at_threshold:
+				continue
+
 			user_id = stream['user_id']
 			# don't announce if we've announced in the last ANNOUNCE_FREQ
 			last_announce = config.state.twitch_last_times.get(user_id)
