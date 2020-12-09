@@ -22,8 +22,7 @@ def new_media(bot):
 			# never seen this account before; post only the most recent image
 			post_media(bot, insta_conf['channel'], data[0])
 		else:
-			data.reverse()
-			for media in data:
+			for media in reversed(data):
 				if media['timestamp'] <= last_timestamp:
 					continue
 				post_media(bot, insta_conf['channel'], media)
