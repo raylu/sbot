@@ -16,6 +16,7 @@ import requests
 import websocket
 
 import config
+import instagram
 import log
 import steam_news
 from timer import readable_rel
@@ -38,6 +39,7 @@ class Bot:
 		self.twitter_thread = None
 		self.twitter_post_thread = None
 		self.twitter_post_condvar = threading.Condition()
+		self.instagram_thread = None
 		self.steam_news_thread = None
 		self.user_id = None
 		self.seq = None
@@ -174,6 +176,8 @@ class Bot:
 			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
 		if config.bot.twitter_post is not None:
 			self.twitter_post_thread = _thread.start_new_thread(self.twitter_post_loop, ())
+		if config.bot.instagram is not None:
+			self.instagram_thread = _thread.start_new_thread(self.instagram_loop, ())
 		if config.bot.steam_news is not None:
 			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
 
@@ -405,6 +409,18 @@ class Bot:
 				# always update the last post time, even if we failed to tweet
 				config.state.twitter_last_post_time = int(time.time())
 				config.state.save()
+
+	def instagram_loop(self):
+		while True:
+			# https://developers.facebook.com/docs/graph-api/overview/rate-limiting#platform-rate-limits
+			# 240 * users / hour is 4✕ what we'll need
+			time.sleep(60)
+			try:
+				instagram.new_media(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('instagram: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('instagram: %s' % e)
 
 	def steam_news_loop(self):
 		while True:

@@ -20,6 +20,10 @@ twitter_post: # set this to null to disable
     token_secret: null
     server: '109469702010478592' # secret hiding room
     channel: '316959344681943040' # food
+instagram: # set this to null to disable
+    - user_id: 17841443895269721 # cocoshibanut
+      channel: '282441291327864834' # bot-testing
+      token: null
 twitch: # set this to null to disable
     client_id: ''
     client_secret: ''
