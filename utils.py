@@ -116,7 +116,7 @@ def weather(cmd):
 		cmd.reply('%s: error getting weather at %s' % (cmd.sender['username'], url),
 				{'description': '```%s```' % traceback.format_exc()[-500:]})
 		return
-	cmd.reply(None, files={filename: response.content})
+	cmd.reply(None, files={'weather.png': response.content})
 
 def ohno(cmd):
 	url = 'https://www.raylu.net/f/ohno/ohno%03d.png' % random.randint(1, 294)
