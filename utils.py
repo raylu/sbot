@@ -108,7 +108,7 @@ def weather(cmd):
 	else:
 		flags = '1Fp'
 		location = cmd.args
-	filename = '%s_%s.png' % (urllib.parse.quote_plus(location), flags)
+	filename = '%s.png?%s' % (urllib.parse.quote_plus(location), flags)
 	url = 'https://wttr.in/' + filename
 	try:
 		response = rs.get(url)
