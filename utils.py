@@ -108,8 +108,7 @@ def weather(cmd):
 	else:
 		flags = '1Fp'
 		location = cmd.args
-	filename = '%s_%s.png' % (urllib.parse.quote_plus(location), flags)
-	url = 'https://wttr.in/' + filename
+	url = 'https://wttr.in/%s.png?%s' % (urllib.parse.quote_plus(location), flags)
 	try:
 		response = rs.get(url)
 		response.raise_for_status()
@@ -117,7 +116,7 @@ def weather(cmd):
 		cmd.reply('%s: error getting weather at %s' % (cmd.sender['username'], url),
 				{'description': '```%s```' % traceback.format_exc()[-500:]})
 		return
-	cmd.reply(None, files={filename: response.content})
+	cmd.reply(None, files={'weather.png': response.content})
 
 def ohno(cmd):
 	url = 'https://www.raylu.net/f/ohno/ohno%03d.png' % random.randint(1, 294)
