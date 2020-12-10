@@ -109,7 +109,7 @@ def weather(cmd):
 		flags = '1Fp'
 		location = cmd.args
 	url = 'https://wttr.in/%s.png?%s' % (urllib.parse.quote_plus(location), flags)
-        try:
+	try:
 		response = rs.get(url)
 		response.raise_for_status()
 	except Exception:
