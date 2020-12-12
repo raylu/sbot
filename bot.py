@@ -143,6 +143,9 @@ class Bot:
 			assert text is None
 			self.post('/channels/%s/messages' % channel_id, None, files)
 
+	def ban(self, guild_id, user_id):
+		self.post('/guilds/%s/bans/%s' % (guild_id, user_id), {}, method='PUT')
+
 	def handle_hello(self, _, d):
 		log.write('connected to %s' % d['_trace'])
 		self.heartbeat_thread = _thread.start_new_thread(self.heartbeat_loop, (d['heartbeat_interval'],))
