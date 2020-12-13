@@ -20,17 +20,17 @@ def new_media(bot):
 		last_timestamp = config.state.instagram.get(insta_conf['user_id'])
 		if last_timestamp is None:
 			# never seen this account before; post only the most recent image
-			post_media(bot, insta_conf['channel'], data[0])
+			post_media(bot, insta_conf['channels'], data[0])
 		else:
 			for media in reversed(data):
 				if media['timestamp'] <= last_timestamp:
 					continue
-				post_media(bot, insta_conf['channel'], media)
+				post_media(bot, insta_conf['channels'], media)
 				time.sleep(2)
 		config.state.instagram[insta_conf['user_id']] = data[0]['timestamp']
 		config.state.save()
 
-def post_media(bot, channel_id, media):
+def post_media(bot, channel_ids, media):
 	embed = {
 		'description': media['caption'],
 		'url': media['permalink'],
@@ -43,7 +43,8 @@ def post_media(bot, channel_id, media):
 		embed['image'] = {'url': media['media_url']}
 	elif media['media_type'] == 'VIDEO':
 		embed['thumbnail'] = {'url': media['thumbnail_url']}
-	bot.send_message(channel_id, '<%s>' % media['permalink'], embed)
+	for channel_id in channel_ids:
+		bot.send_message(channel_id, '<%s>' % media['permalink'], embed)
 
 def main():
 	# pylint: disable=import-outside-toplevel
