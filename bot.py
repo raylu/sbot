@@ -393,6 +393,11 @@ class Bot:
 
 	def twitter_post_loop(self):
 		while True:
+			if len(config.state.twitter_queue) == 0:
+				with self.twitter_post_condvar:
+					self.twitter_post_condvar.wait()
+				continue
+
 			sleep = 12 * 60 * 60 # 12 hours
 			if config.state.twitter_last_post_time:
 				sleep = config.state.twitter_last_post_time + sleep - time.time()
@@ -403,15 +408,14 @@ class Bot:
 				# we were woken up by a reaction add but it's too early
 				continue
 
-			if len(config.state.twitter_queue) > 0:
-				try:
-					twitter.post(self, config.state.twitter_queue[0])
-					config.state.twitter_queue.pop(0)
-				except Exception:
-					log.write('twitter post:\n' + traceback.format_exc())
-				# always update the last post time, even if we failed to tweet
-				config.state.twitter_last_post_time = int(time.time())
-				config.state.save()
+			try:
+				twitter.post(self, config.state.twitter_queue[0])
+				config.state.twitter_queue.pop(0)
+			except Exception:
+				log.write('twitter post:\n' + traceback.format_exc())
+			# always update the last post time, even if we failed to tweet
+			config.state.twitter_last_post_time = int(time.time())
+			config.state.save()
 
 	def instagram_loop(self):
 		while True:
