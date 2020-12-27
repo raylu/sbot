@@ -77,7 +77,10 @@ def _search(league, q):
 		data = _query(page, league)
 		lines = data['lines']
 		for line in lines:
-			if q in line['name'].casefold():
+			name_casefolded = line['name'].casefold()
+			if q == name_casefolded:
+				return {line['name']}, [line]
+			elif q in name_casefolded:
 				names.add(line['name'])
 				matches.append(line)
 		if len(names) > 0:
