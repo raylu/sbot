@@ -9,34 +9,31 @@ import requests
 
 rs = requests.Session()
 
-league_name = None
+league_names = None
 
 def price(cmd):
-	global league_name
+	global league_names
 
-	if league_name is None:
-		league_name = _get_league_name()
+	if league_names is None:
+		league_names = _get_league_names()
 
 	if not cmd.args:
 		return
-	names, lines = _search(league_name, cmd.args)
+	names, lines = _search(league_names[0], cmd.args)
 	if len(names) == 0:
 		cmd.reply("couldn't find " + cmd.args)
 	elif len(names) > 1:
 		cmd.reply(', '.join(names)[:250])
 	else:
-		responses = [league_name + ':']
-		for line in lines:
-			name = line['name']
-			if line['links'] > 0:
-				name += ' (%d link)' % line['links']
-			response = '%s: %.1f chaos' % (name, line['chaosValue'])
-			if line['exaltedValue'] > 1.0:
-				response += ', %.1f exalted' % line['exaltedValue']
-			responses.append(response)
+		responses = [league_names[0] + ':']
+		responses.extend(_build_responses(lines))
+		for league_name in league_names[1:]:
+			_, lines = _search(league_name, cmd.args)
+			responses.append(league_name + ':')
+			responses.extend(_build_responses(lines))
 		cmd.reply('\n'.join(responses))
 
-def _get_league_name():
+def _get_league_names():
 	html = rs.get('https://poe.ninja/')
 	prefix = 'window.economyLeagues = '
 	for line in html.text.split('\n'):
@@ -49,13 +46,29 @@ def _get_league_name():
 		raise Exception("Couldn't find leagues JSON")
 
 	leagues = json.loads(doc)
+	ret = []
 	standard_league = None
 	for league_info in leagues:
-		if league_info['url'] == 'challenge':
-			return league_info['name']
+		if league_info['url'] in ('challenge', 'event'):
+			ret.append(league_info['name'])
 		elif league_info['url'] == 'standard':
 			standard_league = league_info['name']
-	return standard_league
+	if len(ret) > 0:
+		return ret
+	else:
+		return [standard_league]
+
+def _build_responses(lines):
+	responses = []
+	for line in lines:
+		name = line['name']
+		if line['links'] > 0:
+			name += ' (%d link)' % line['links']
+		response = '%s: %.1f chaos' % (name, line['chaosValue'])
+		if line['exaltedValue'] > 1.0:
+			response += ', %.1f exalted' % line['exaltedValue']
+		responses.append(response)
+	return responses
 
 pages = [
 	'UniqueArmour',
