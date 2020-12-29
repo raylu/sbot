@@ -14,12 +14,13 @@ if config.bot.twitch is not None:
 	access_token_expiration = None
 
 	ANNOUNCE_FREQ = 4 * 60 * 60 # announce once every 4h
+	ANNOUNCE_DELAY = datetime.timedelta(minutes=5) # wait for thumbnails to generate
 
 def live_streams(bot):
 	now = time.time()
 	_access_token(now)
 
-	started_at_threshold_dt = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=2)
+	started_at_threshold_dt = datetime.datetime.now(datetime.timezone.utc) - ANNOUNCE_DELAY
 	started_at_threshold = started_at_threshold_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 	user_to_announce = {}
