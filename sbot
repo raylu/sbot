@@ -45,6 +45,7 @@ def main():
 		'leave': management.leave,
 		'roles': management.list_roles,
 		'groups': management.list_roles,
+		'cleanup': management.cleanup,
 
 		'headpat': reddit.headpat,
 

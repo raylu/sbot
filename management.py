@@ -39,6 +39,23 @@ def list_roles(cmd):
 	embed = {'description': desc}
 	cmd.reply('', embed)
 
+def cleanup(cmd):
+	if cmd.sender['id'] != '109405765848088576':
+		return
+	try:
+		start, end = cmd.args.split()
+		int(start)
+		int(end)
+	except ValueError:
+		cmd.reply('usage: !cleanup 000 111')
+		return
+	messages = cmd.bot.iter_messages(cmd.channel_id, str(int(start) - 1), end)
+	message_ids = [msg['id'] for msg in messages]
+	if len(message_ids) > 0:
+		cmd.bot.delete_messages(cmd.channel_id, message_ids)
+	else:
+		cmd.reply('no messages in range')
+
 def _ids(cmd):
 	bot = cmd.bot
 	guild_id = bot.channels[cmd.channel_id]

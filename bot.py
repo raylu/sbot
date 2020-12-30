@@ -113,8 +113,8 @@ class Bot:
 							log.write('error sending to err_channel:\n' + traceback.format_exc())
 			log.flush()
 
-	def get(self, path):
-		response = self.rs.get('https://discord.com/api' + path)
+	def get(self, path, params=None):
+		response = self.rs.get('https://discord.com/api' + path, params=params)
 		response.raise_for_status()
 		return response.json()
 
@@ -142,6 +142,28 @@ class Bot:
 		else:
 			assert text is None
 			self.post('/channels/%s/messages' % channel_id, None, files)
+
+	def iter_messages(self, channel_id, after, last):
+		path = '/channels/%s/messages' % (channel_id)
+		params = {'after': after}
+		while True:
+			messages = self.get(path, params)
+			messages.sort(key=lambda m: m['id'])
+			for message in messages:
+				yield message
+				if message['id'] >= last:
+					return
+			params['after'] = message['id']
+			time.sleep(2)
+
+	def delete_messages(self, channel_id, message_ids):
+		if len(message_ids) == 1:
+			path = '/channels/%s/messages/%s' % (channel_id, message_ids[0])
+			self.post(path, None, method='DELETE')
+		else:
+			path = '/channels/%s/messages/bulk-delete' % channel_id
+			for i in range(0, len(message_ids), 100):
+				self.post(path, {'messages': message_ids[i:i+100]})
 
 	def react(self, channel_id, message_id, emoji):
 		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
