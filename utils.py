@@ -2,12 +2,14 @@ import datetime
 import random
 import re
 import subprocess
+import sys
 import traceback
 import urllib.parse
 
 import dateutil.parser
 import dateutil.tz
 import requests
+import websocket
 
 import config
 
@@ -25,6 +27,25 @@ def help(cmd):
 				commands.remove(name)
 	reply = 'commands: `!%s`' % '`, `!'.join(commands)
 	cmd.reply(reply)
+
+def botinfo(cmd):
+	embed = {
+		'fields': [
+			{
+				'name': 'source',
+				'value': 'https://github.com/raylu/sbot',
+			},
+			{
+				'name': 'python',
+				'value': sys.version,
+			},
+			{
+				'name': 'websocket_client',
+				'value': websocket.__version__,
+			},
+		],
+	}
+	cmd.reply('', embed)
 
 def ping(cmd):
 	dt = datetime.datetime.fromisoformat(cmd.d['timestamp'])
