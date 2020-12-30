@@ -18,6 +18,7 @@ def main():
 
 	bot = Bot({
 		'help': utils.help,
+		'ping': utils.ping,
 		'calc': utils.calc,
 		'unicode': utils.unicode,
 		'units': utils.units,

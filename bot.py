@@ -190,11 +190,11 @@ class Bot:
 
 		content = d['content']
 		if content.casefold() == 'oh no.':
-			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
+			cmd = CommandEvent(d, None, self)
 			self.commands['ohno'](cmd)
 			return
 		elif content.casefold() == 'oh yes.':
-			cmd = CommandEvent(d['channel_id'], d['author'], None, self)
+			cmd = CommandEvent(d, None, self)
 			self.commands['ohyes'](cmd)
 			return
 		if not content.startswith('!'):
@@ -223,7 +223,7 @@ class Bot:
 				arg = split[1]
 			if len(lines) == 2:
 				arg += '\n' + lines[1]
-			cmd = CommandEvent(d['channel_id'], d['author'], arg, self)
+			cmd = CommandEvent(d, arg, self)
 			handler(cmd)
 
 	def handle_reaction_add(self, d):
@@ -455,15 +455,16 @@ class Guild:
 			self.roles[role['name']] = role
 
 class CommandEvent:
-	def __init__(self, channel_id, sender, args, bot):
-		self.channel_id = channel_id
+	def __init__(self, d, args, bot):
+		self.d = d
+		self.channel_id = d['channel_id']
 		# sender = {
 		#     'username': 'raylu',
 		#     'id': '109405765848088576',
 		#     'discriminator': '8396',
 		#     'avatar': '464d73d2ca17733636282ab58b8cc3f5',
 		# }
-		self.sender = sender
+		self.sender = d['author']
 		self.args = args
 		self.bot = bot
 

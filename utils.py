@@ -26,6 +26,11 @@ def help(cmd):
 	reply = 'commands: `!%s`' % '`, `!'.join(commands)
 	cmd.reply(reply)
 
+def ping(cmd):
+	dt = datetime.datetime.fromisoformat(cmd.d['timestamp'])
+	delta = datetime.datetime.now(datetime.timezone.utc) - dt
+	cmd.reply('%f ms' % (delta.total_seconds() * 1000))
+
 def calc(cmd):
 	if not cmd.args:
 		return
