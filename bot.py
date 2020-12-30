@@ -143,6 +143,19 @@ class Bot:
 			assert text is None
 			self.post('/channels/%s/messages' % channel_id, None, files)
 
+	def react(self, channel_id, message_id, emoji):
+		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
+				channel_id, message_id, urllib.parse.quote(emoji))
+		self.post(path, None, method='PUT')
+
+	def remove_reaction(self, channel_id, message_id, emoji):
+		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
+				channel_id, message_id, urllib.parse.quote(emoji))
+		self.post(path, None, method='DELETE')
+
+	def get_reactions(self, channel_id, message_id, emoji):
+		return self.get('/channels/%s/messages/%s/reactions/%s' % (channel_id, message_id, emoji))
+
 	def ban(self, guild_id, user_id):
 		self.post('/guilds/%s/bans/%s' % (guild_id, user_id), {}, method='PUT')
 
@@ -236,9 +249,7 @@ class Bot:
 		config.state.twitter_queue.append(d['message_id'])
 		config.state.save()
 
-		path = '/channels/%s/messages/%s/reactions/%s/@me' % (
-				d['channel_id'], d['message_id'], urllib.parse.quote('✅'))
-		self.post(path, None, method='PUT')
+		self.react(d['channel_id'], d['message_id'], '✅')
 		with self.twitter_post_condvar:
 			self.twitter_post_condvar.notify()
 
@@ -248,9 +259,7 @@ class Bot:
 			return
 
 		emoji = '%s:%s' % (d['emoji']['name'], d['emoji']['id'])
-		path = '/channels/%s/messages/%s/reactions/%s' % (
-				d['channel_id'], d['message_id'], emoji)
-		reactions = self.get(path)
+		reactions = self.get_reactions(d['channel_id'], d['message_id'], emoji)
 		if len(reactions) == 0: # no more shrfood_twitter emoji
 			try:
 				config.state.twitter_queue.remove(d['message_id'])
@@ -258,9 +267,7 @@ class Bot:
 				return
 			config.state.save()
 
-			path = '/channels/%s/messages/%s/reactions/%s/@me' % (
-					d['channel_id'], d['message_id'], urllib.parse.quote('✅'))
-			self.post(path, None, method='DELETE')
+			self.remove_reaction(d['channel_id'], d['message_id'], '✅')
 
 	def handle_guild_create(self, d):
 		log.write('in guild %s (%d members)' % (d['name'], d['member_count']))
@@ -470,6 +477,9 @@ class CommandEvent:
 
 	def reply(self, message, embed=None, files=None):
 		self.bot.send_message(self.channel_id, message, embed, files)
+
+	def react(self, emoji):
+		self.bot.react(self.channel_id, self.d['id'], emoji)
 
 class OP:
 	DISPATCH              = 0
