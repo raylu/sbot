@@ -50,7 +50,7 @@ def botinfo(cmd):
 def ping(cmd):
 	dt = datetime.datetime.fromisoformat(cmd.d['timestamp'])
 	delta = datetime.datetime.now(datetime.timezone.utc) - dt
-	cmd.reply('%f ms' % (delta.total_seconds() * 1000))
+	cmd.reply('%.3f ms' % (delta.total_seconds() * 1000))
 
 def calc(cmd):
 	if not cmd.args:
