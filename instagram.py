@@ -16,18 +16,18 @@ def new_media(bot):
 		if not data:
 			continue
 
-		# media comes most recent first
+		data.sort(key=lambda media: media['timestamp'])
 		last_timestamp = config.state.instagram.get(insta_conf['user_id'])
 		if last_timestamp is None:
 			# never seen this account before; post only the most recent image
-			post_media(bot, insta_conf['channels'], data[0])
+			post_media(bot, insta_conf['channels'], data[-1])
 		else:
-			for media in reversed(data):
+			for media in data:
 				if media['timestamp'] <= last_timestamp:
 					continue
 				post_media(bot, insta_conf['channels'], media)
 				time.sleep(2)
-		config.state.instagram[insta_conf['user_id']] = data[0]['timestamp']
+		config.state.instagram[insta_conf['user_id']] = data[-1]['timestamp']
 		config.state.save()
 
 def post_media(bot, channel_ids, media):
