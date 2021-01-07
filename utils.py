@@ -55,9 +55,13 @@ def ping(cmd):
 def calc(cmd):
 	if not cmd.args:
 		return
-	response = rs.get('https://www.calcatraz.com/calculator/api', params={'c': cmd.args})
-	if response.status_code == 200:
-		cmd.reply(response.text.rstrip()[:1000])
+	response = rs.post('https://api.mathjs.org/v4/', json={'expr': cmd.args})
+	if response.status_code in (200, 400):
+		data = response.json()
+		if data['error']:
+			cmd.reply('<@!%s>: %s' % (cmd.sender['id'], data['error']))
+		else:
+			cmd.reply(data['result'][:1000])
 	else:
 		cmd.reply('<@!%s>: error calculating' % cmd.sender['id'])
 
