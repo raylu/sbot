@@ -3,6 +3,7 @@ import copy
 import datetime
 import imp
 import json
+import mimetypes
 import os
 import sys
 import threading
@@ -143,6 +144,9 @@ class Bot:
 			assert text is None
 			self.post('/channels/%s/messages' % channel_id, None, files)
 
+	def get_message(self, channel_id, message_id):
+		return self.get('/channels/%s/messages/%s' % (channel_id, message_id))
+
 	def iter_messages(self, channel_id, after, last):
 		path = '/channels/%s/messages' % (channel_id)
 		params = {'after': after}
@@ -268,6 +272,18 @@ class Bot:
 
 		if d['message_id'] in config.state.twitter_queue:
 			return
+
+		message = self.get_message(d['channel_id'], d['message_id'])
+		attachments = message.get('attachments')
+		if not attachments:
+			self.react(d['channel_id'], d['message_id'], '🙈')
+			return
+		if len(attachments) == 1 and attachments[0]['size'] > 5000000:
+			media_type, _ = mimetypes.guess_type(attachments[0]['filename'])
+			if media_type.startswith('video/'):
+				self.react(d['channel_id'], d['message_id'], '😓')
+				return
+
 		config.state.twitter_queue.append(d['message_id'])
 		config.state.save()
 

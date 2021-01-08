@@ -56,7 +56,7 @@ def new_tweets(bot):
 def post(bot, message_id):
 	rs = requests.Session()
 	channel = config.bot.twitter_post['channel']
-	message = bot.get('/channels/%s/messages/%s' % (channel, message_id))
+	message = bot.get_message(channel, message_id)
 
 	oauth = requests_oauthlib.OAuth1(config.bot.twitter_post['consumer_key'],
 	  client_secret=config.bot.twitter_post['consumer_secret'],
