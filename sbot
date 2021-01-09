@@ -3,15 +3,16 @@
 import locale
 
 from bot import Bot
+import animal_crossing
 import code_eval
 import eve
+import friend_code
 import management
 import poe
 import reddit
 import timer
+import twitter
 import utils
-import friend_code
-import animal_crossing
 
 def main():
 	locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
@@ -54,6 +55,8 @@ def main():
 
 		'fc': friend_code.friend_code,
 		'stalks': animal_crossing.stalk_market,
+
+		'twitter_queue': twitter.queue_info,
 	})
 	bot.connect()
 	bot.run_forever()

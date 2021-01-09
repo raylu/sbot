@@ -1,4 +1,5 @@
 import base64
+import datetime
 import math
 import mimetypes
 import hmac
@@ -12,6 +13,7 @@ import requests_oauthlib
 
 import config
 import log
+import timer
 
 def new_tweets(bot):
 	rs = requests.Session()
@@ -115,6 +117,18 @@ def post(bot, message_id):
 		bot.post(path, None, method='PUT')
 	else:
 		log.write('skipping %s because no media' % message_id)
+
+def queue_info(cmd):
+	if config.bot.twitter_post is None or config.bot.twitter_post['channel'] != cmd.channel_id and False:
+		return
+	reply = 'queue length: %d' % len(config.state.twitter_queue)
+	if len(config.state.twitter_queue) > 0:
+		reply += '\nnext post: https://discord.com/channels/%s/%s/%s' % (
+				cmd.d['guild_id'], config.bot.twitter_post['channel'], config.state.twitter_queue[0])
+	if config.state.twitter_last_post_time:
+		next_post_s = 12 * 60 * 60 - (time.time() - config.state.twitter_last_post_time)
+		reply += '\nnext post in: ' + timer.readable_rel(datetime.timedelta(seconds=next_post_s))
+	cmd.reply(reply)
 
 def tweet_id_to_ts(tweet_id):
 	# https://github.com/client9/snowflake2time#snowflake-layout
