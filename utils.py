@@ -138,6 +138,8 @@ def weather(cmd):
 	else:
 		flags = '1Fp'
 		location = cmd.args
+		if location.isdigit() and len(location) == 5:
+			location += '-us'
 	url = 'https://wttr.in/%s.png?%s' % (urllib.parse.quote_plus(location), flags)
 	try:
 		response = rs.get(url)
