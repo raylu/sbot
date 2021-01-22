@@ -27,8 +27,11 @@ def new_media(bot):
 					continue
 				post_media(bot, insta_conf['channels'], media)
 				time.sleep(2)
-		config.state.instagram[insta_conf['user_id']] = data[-1]['timestamp']
-		config.state.save()
+
+		new_last_timestamp = data[-1]['timestamp']
+		if new_last_timestamp > last_timestamp:
+			config.state.instagram[insta_conf['user_id']] = new_last_timestamp
+			config.state.save()
 
 def post_media(bot, channel_ids, media):
 	embed = {
