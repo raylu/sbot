@@ -148,6 +148,8 @@ def sign(method, url, signing_params, consumer_secret, token_secret):
 
 def optimize_image(media):
 	image = PIL.Image.open(io.BytesIO(media))
+	if image.mode == 'RGBA':
+		image = image.convert('RGB') # JPEG doesn't support alpha
 	max_dim = max(image.width, image.height)
 	if max_dim > 8192:
 		divisor = math.ceil(max_dim / 8192)
