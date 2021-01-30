@@ -25,13 +25,21 @@ def price(cmd):
 	elif len(names) > 1:
 		cmd.reply(', '.join(names)[:250])
 	else:
-		responses = [league_names[0] + ':']
-		responses.extend(_build_responses(lines))
+		icon = None
+		for line in lines:
+			icon = line.get('icon')
+			if icon is not None:
+				break
+
+		fields = [
+			{'name': league_names[0], 'value': '\n'.join(_build_responses(lines))},
+		]
 		for league_name in league_names[1:]:
 			_, lines = _search(league_name, cmd.args)
-			responses.append(league_name + ':')
-			responses.extend(_build_responses(lines))
-		cmd.reply('\n'.join(responses))
+			fields.append({'name': league_names[0], 'value': '\n'.join(_build_responses(lines))})
+
+		embed = {'thumbnail': {'url': icon}, 'fields': fields}
+		cmd.reply('', embed=embed)
 
 def _get_league_names():
 	html = rs.get('https://poe.ninja/')
@@ -70,36 +78,36 @@ def _build_responses(lines):
 		responses.append(response)
 	return responses
 
-pages = [
-	'UniqueArmour',
-	'UniqueWeapon',
-	'UniqueAccessory',
-	'UniqueJewel',
-	'UniqueFlask',
-	'UniqueMap',
-	'DivinationCard',
-	'Prophecy',
-	'HelmetEnchant',
-]
-
 def _search(league, q):
 	q = q.casefold()
 	names = set()
 	matches = []
-	for page in pages:
-		data = _query(page, league)
-		lines = data['lines']
-		for line in lines:
-			name_casefolded = line['name'].casefold()
-			if q == name_casefolded:
-				return {line['name']}, [line]
-			elif q in name_casefolded:
-				names.add(line['name'])
-				matches.append(line)
-		if len(names) > 0:
-			# there may be other matches on other pages, but we won't bother finding them
-			break
+	page = _page(league, q)
+	if not page:
+		return names, matches
+
+	data = _query(page, league)
+	lines = data['lines']
+	for line in lines:
+		if q in line['name'].casefold():
+			names.add(line['name'])
+			matches.append(line)
 	return names, matches
+
+pages = {}
+
+def _page(league, q):
+	if len(pages) == 0:
+		r = rs.get('https://poe.ninja/api/data/economysearch', params={'league': league, 'language': 'en'})
+		r.raise_for_status()
+		pages_data = r.json()['items']
+		pages.update(pages_data)
+
+	for page, items in pages.items():
+		for item in items:
+			if q in item['name'].casefold():
+				# there may be other matches on other pages, but we won't bother finding them
+				return page
 
 cache = {}
 
