@@ -5,11 +5,11 @@ from pprint import pprint
 import requests
 
 import config
-import twitter
+import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'sell'
+		self.args = 'exalted orb'
 		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()
@@ -45,4 +45,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-twitter.post(MockBot(), config.state.twitter_queue[0])
+poe.price(MockCmd())

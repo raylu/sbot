@@ -69,12 +69,16 @@ def _get_league_names():
 def _build_responses(lines):
 	responses = []
 	for line in lines:
-		name = line['name']
-		if line['links'] > 0:
-			name += ' (%d link)' % line['links']
-		response = '%s: %.1f chaos' % (name, line['chaosValue'])
-		if line['exaltedValue'] > 1.0:
-			response += ', %.1f exalted' % line['exaltedValue']
+		name = line.get('name')
+		if name is None: # currency
+			name = line['currencyTypeName']
+			response = '%s: %.1f chaos' % (name, line['chaosEquivalent'])
+		else: # item
+			if line['links'] > 0:
+				name += ' (%d link)' % line['links']
+			response = '%s: %.1f chaos' % (name, line['chaosValue'])
+			if line['exaltedValue'] > 1.0:
+				response += ', %.1f exalted' % line['exaltedValue']
 		responses.append(response)
 	return responses
 
@@ -87,11 +91,21 @@ def _search(league, q):
 		return names, matches
 
 	data = _query(page, league)
-	lines = data['lines']
-	for line in lines:
-		if q in line['name'].casefold():
-			names.add(line['name'])
+	exact = False
+	for line in data['lines']:
+		name = line.get('name')
+		if name is None:
+			name = line['currencyTypeName']
+		if q in name.casefold():
+			names.add(name)
 			matches.append(line)
+			if q == name.casefold():
+				exact = True
+
+	if exact:
+		matches = [match for match in matches
+				if match.get('name', match.get('currencyTypeName')).casefold() == q]
+		names = {matches[0].get('name', matches[0].get('currencyTypeName'))}
 	return names, matches
 
 pages = {}
@@ -119,7 +133,12 @@ def _query(page, league):
 		if ts > now - 60 * 60: # cache for 1 hour
 			return data
 
-	data = rs.get('https://poe.ninja/api/data/itemoverview?league=%s&type=%s' % (league, page)).json()
+	params = {'league': league, 'type': page}
+	r = rs.get('https://poe.ninja/api/data/itemoverview', params=params)
+	if r.status_code == 404:
+		r = rs.get('https://poe.ninja/api/data/currencyoverview', params=params)
+	r.raise_for_status()
+	data = r.json()
 	cache[(page, league)] = now, data
 	return data
 
