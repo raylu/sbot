@@ -72,7 +72,16 @@ def _build_responses(lines):
 		name = line.get('name')
 		if name is None: # currency
 			name = line['currencyTypeName']
-			response = '%s: %.1f chaos' % (name, line['chaosEquivalent'])
+			bid = line['receive']['value']
+			ask = 1 / line['pay']['value']
+			if bid > 1.0:
+				response = 'bid 1 : %.2f chaos' % bid
+			else:
+				response = 'bid %.2f : 1 chaos' % (1 / bid)
+			if ask > 1.0:
+				response += '\nask 1 : %.2f chaos' % ask
+			else:
+				response += '\nask %.2g : 1 chaos' % (1 / ask)
 		else: # item
 			if line['links'] > 0:
 				name += ' (%d link)' % line['links']
