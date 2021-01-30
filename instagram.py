@@ -29,7 +29,7 @@ def new_media(bot):
 				time.sleep(2)
 
 		new_last_timestamp = data[-1]['timestamp']
-		if new_last_timestamp > last_timestamp:
+		if last_timestamp is None or new_last_timestamp > last_timestamp:
 			config.state.instagram[insta_conf['user_id']] = new_last_timestamp
 			config.state.save()
 
