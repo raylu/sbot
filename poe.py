@@ -105,15 +105,17 @@ def _search(league, q):
 		name = line.get('name')
 		if name is None:
 			name = line['currencyTypeName']
+			(detail,) = (d for d in data['currencyDetails'] if d['name'] == name)
+			line['icon'] = detail['icon']
 		if q in name.casefold():
 			names.add(name)
 			matches.append(line)
 			if q == name.casefold():
 				exact = True
+				break
 
 	if exact:
-		matches = [match for match in matches
-				if match.get('name', match.get('currencyTypeName')).casefold() == q]
+		matches = [matches[-1]]
 		names = {matches[0].get('name', matches[0].get('currencyTypeName'))}
 	return names, matches
 
