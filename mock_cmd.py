@@ -9,7 +9,7 @@ import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'exalted orb'
+		self.args = 'le stratège'
 		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()

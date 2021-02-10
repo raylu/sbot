@@ -95,7 +95,7 @@ def _search(league, q):
 	q = q.casefold()
 	names = set()
 	matches = []
-	page = _page(league, q)
+	q, page = _page(league, q)
 	if not page:
 		return names, matches
 
@@ -123,16 +123,33 @@ pages = {}
 
 def _page(league, q):
 	if len(pages) == 0:
-		r = rs.get('https://poe.ninja/api/data/economysearch', params={'league': league, 'language': 'en'})
+		r = rs.get('https://poe.ninja/api/data/economysearch', params={'league': league, 'language': 'fr'})
 		r.raise_for_status()
-		pages_data = r.json()['items']
-		pages.update(pages_data)
+		pages.update(r.json())
 
-	for page, items in pages.items():
+	for page, items in pages['items'].items():
 		for item in items:
 			if q in item['name'].casefold():
 				# there may be other matches on other pages, but we won't bother finding them
-				return page
+				return q, page
+
+	# couldn't find it in english; try french
+	fr_q = []
+	for en, fr in pages['language']['translations'].items():
+		fr = fr.casefold()
+		if q == fr:
+			fr_q = [en.casefold()]
+			break
+		elif q in fr:
+			fr_q.append(en.casefold())
+	if len(fr_q) == 1:
+		q = fr_q[0]
+		for page, items in pages['items'].items():
+			for item in items:
+				if q in item['name'].casefold():
+					return q, page
+	else:
+		return None, None
 
 cache = {}
 
