@@ -112,10 +112,12 @@ def _search(league, q):
 			matches.append(line)
 			if q == name.casefold():
 				exact = True
-				break
+				# there may be other exact matches (5L/6L), so we cannot break
 
 	if exact:
-		matches = [matches[-1]]
+		# there may be multiple lines that are exact matches (5L/6L)
+		matches = [match for match in matches
+				if match.get('name', match.get('currencyTypeName')).casefold() == q]
 		names = {matches[0].get('name', matches[0].get('currencyTypeName'))}
 	return names, matches
 
