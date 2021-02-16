@@ -278,11 +278,16 @@ class Bot:
 		if not attachments:
 			self.react(d['channel_id'], d['message_id'], '🙈')
 			return
-		if len(attachments) == 1 and attachments[0]['size'] > 5000000:
-			media_type, _ = mimetypes.guess_type(attachments[0]['filename'])
+
+		for attachment in attachments[:4]:
+			media_type, _ = mimetypes.guess_type(attachment['filename'])
 			if media_type.startswith('video/'):
-				self.react(d['channel_id'], d['message_id'], '😓')
-				return
+				if len(attachments) != 1:
+					self.react(d['channel_id'], d['message_id'], '🧐')
+					return
+				if attachment['size'] > 5000000:
+					self.react(d['channel_id'], d['message_id'], '😓')
+					return
 
 		config.state.twitter_queue.append(d['message_id'])
 		config.state.save()
@@ -456,6 +461,10 @@ class Bot:
 			try:
 				twitter.post(self, config.state.twitter_queue[0])
 				config.state.twitter_queue.pop(0)
+			except requests.exceptions.HTTPError as e:
+				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('twitter: %s' % e)
 			except Exception:
 				log.write('twitter post:\n' + traceback.format_exc())
 			# always update the last post time, even if we failed to tweet

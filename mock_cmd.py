@@ -37,6 +37,9 @@ class MockBot:
 		response.raise_for_status()
 		return response.json()
 
+	def get_message(self, channel_id, message_id):
+		return self.get('/channels/%s/messages/%s' % (channel_id, message_id))
+
 class MockGuild:
 	def __init__(self):
 		self.roles = {
