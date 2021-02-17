@@ -85,6 +85,14 @@ def _build_responses(lines):
 		else: # item
 			if line['links'] > 0:
 				name += ' (%d link)' % line['links']
+			if line['gemLevel']:
+				name += ' (level %d)' % line['gemLevel']
+			if line['gemQuality']:
+				name += ' (%d%%)' % line['gemQuality']
+			if line['mapTier']:
+				name += ' (T%d)' % line['mapTier']
+			if line['corrupted']:
+				name += ' (corrupted)'
 			response = '%s: %.1f chaos' % (name, line['chaosValue'])
 			if line['exaltedValue'] > 1.0:
 				response += ', %.1f exalted' % line['exaltedValue']
