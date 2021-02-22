@@ -119,7 +119,7 @@ def post(bot, message_id):
 		log.write('skipping %s because no media' % message_id)
 
 def queue_info(cmd):
-	if config.bot.twitter_post is None or config.bot.twitter_post['channel'] != cmd.channel_id and False:
+	if config.bot.twitter_post is None or config.bot.twitter_post['channel'] != cmd.channel_id:
 		return
 	reply = 'queue length: %d' % len(config.state.twitter_queue)
 	if len(config.state.twitter_queue) > 0:
