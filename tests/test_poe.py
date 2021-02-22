@@ -58,6 +58,9 @@ class TestPoe(unittest.TestCase):
 		])
 		self.assert_reply('promesse d', matches=["promesse d'atziri", 'la promesse du lapidaire'])
 
+	def test_no_match(self):
+		self.assert_reply('fishing', matches=["couldn't find fishing"])
+
 def get(url, params=None):
 	if url == 'https://poe.ninja/':
 		with open(path.join(fixtures_dir, 'index.html')) as f:

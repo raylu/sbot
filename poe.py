@@ -99,7 +99,7 @@ def _build_responses(lines):
 		responses.append(response)
 	return responses
 
-def _search(league, q):
+def _search(league, q) -> tuple[set[str], list[dict]]:
 	q = q.casefold().replace('’', "'") # replace U+2019 with apostrophe
 	matches = []
 	q, names, page = _page(league, q)
@@ -136,11 +136,12 @@ def _page(league, q):
 		r.raise_for_status()
 		pages.update(r.json())
 
+	names = set()
 	for page, items in pages['items'].items():
 		for item in items:
 			if q in item['name'].casefold():
 				# there may be other matches on other pages, but we won't bother finding them
-				return q, set(), page
+				return q, names, page
 
 	# couldn't find it in english; try french
 	fr_q = []
@@ -156,12 +157,12 @@ def _page(league, q):
 		for page, items in pages['items'].items():
 			for item in items:
 				if q in item['name'].casefold():
-					return q, set(), page
+					return q, names, page
 	elif len(fr_q) > 1:
-		s = set(fr for en, fr in fr_q)
-		return None, s, None
+		names = set(fr for en, fr in fr_q)
+		return None, names, None
 	else:
-		return None, None, None
+		return None, names, None
 
 cache = {}
 
