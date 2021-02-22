@@ -100,10 +100,9 @@ def _build_responses(lines):
 	return responses
 
 def _search(league, q):
-	q = q.casefold()
-	names = set()
+	q = q.casefold().replace('’', "'") # replace U+2019 with apostrophe
 	matches = []
-	q, page = _page(league, q)
+	q, names, page = _page(league, q)
 	if not page:
 		return names, matches
 
@@ -141,25 +140,28 @@ def _page(league, q):
 		for item in items:
 			if q in item['name'].casefold():
 				# there may be other matches on other pages, but we won't bother finding them
-				return q, page
+				return q, set(), page
 
 	# couldn't find it in english; try french
 	fr_q = []
 	for en, fr in pages['language']['translations'].items():
 		fr = fr.casefold()
 		if q == fr:
-			fr_q = [en.casefold()]
+			fr_q = [(en.casefold(), fr)]
 			break
 		elif q in fr:
-			fr_q.append(en.casefold())
+			fr_q.append((en.casefold(), fr))
 	if len(fr_q) == 1:
-		q = fr_q[0]
+		q = fr_q[0][0]
 		for page, items in pages['items'].items():
 			for item in items:
 				if q in item['name'].casefold():
-					return q, page
+					return q, set(), page
+	elif len(fr_q) > 1:
+		s = set(fr for en, fr in fr_q)
+		return None, s, None
 	else:
-		return None, None
+		return None, None, None
 
 cache = {}
 
