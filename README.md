@@ -1,8 +1,8 @@
-## sbot
+# sbot
 
 a discord bot
 
-### setup
+## setup
 
 set up an app at https://discord.com/developers/applications
 ```
@@ -12,15 +12,31 @@ $EDITOR config.yaml
 ./sbot
 ```
 
-#### code eval
+### code eval
 
-make the nsjail directory a sibling of the pbot directory:
+make the nsjail directory a sibling of the sbot directory:
 ```
 cd ..
 git clone --recursive git://github.com/google/nsjail.git
 cd nsjail
 make
 ```
+
+check if you are cgroup v2:
+```
+grep cgroup /proc/filesystems
+```
+
+#### cgroup v2
+
+```
+sudo mkdir /sys/fs/cgroup/NSJAIL
+sudo chown -R $USER: /sys/fs/cgroup/{cgroup.procs,NSJAIL}
+sudo chown -R $USER: /sys/fs/cgroup/NSJAIL/cgroup.*
+echo "+memory +pids" > /sys/fs/cgroup/NSJAIL/cgroup.subtree_control
+```
+
+#### cgroup v1
 
 if /sys/fs/cgroup/memory doesn't exist:
 ```
@@ -35,7 +51,7 @@ sudo mkdir /sys/fs/cgroup/{memory,pids}/NSJAIL
 sudo chown -R $USER: /sys/fs/cgroup/{memory,pids}/NSJAIL
 ```
 
-#### EVE price checker
+### EVE price checker
 
 download `sqlite-latest.sqlite.bz2` from https://www.fuzzwork.co.uk/dump/
 ```

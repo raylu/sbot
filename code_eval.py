@@ -5,7 +5,8 @@ chroot_dir = path.join(path.dirname(path.abspath(__file__)), 'chroot')
 MB = 1024 * 1024
 
 def nodejs(cmd):
-	args = ['../nsjail/nsjail', '-Mo', '--rlimit_as', '700', '--chroot', chroot_dir,
+	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
+			'--rlimit_as', '700', '--chroot', chroot_dir,
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '7', '--quiet', '--',
@@ -29,8 +30,9 @@ def nodejs(cmd):
 	reply(cmd, output)
 
 def ruby(cmd):
-	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir,
-			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
+	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
+			'--chroot', chroot_dir, '-R/usr', '-R/lib', '-R/lib64',
+			'--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '2', '--quiet', '--',
 			'/usr/bin/ruby', '-Ue', 'puts begin %s end' % prep_input(cmd.args)]
@@ -46,7 +48,8 @@ def ruby(cmd):
 	reply(cmd, output)
 
 def python2(cmd):
-	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
+	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
+			'--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
@@ -68,7 +71,8 @@ def python2(cmd):
 	reply(cmd, output)
 
 def python3(cmd):
-	args = ['../nsjail/nsjail', '-Mo', '--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
+	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
+			'--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
