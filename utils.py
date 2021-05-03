@@ -70,8 +70,8 @@ def unicode(cmd):
 		return
 	command = ['unicode', '--max', '5', '--color', '0',
 			'--format', '{pchar} U+{ordc:04X} {name} (UTF-8: {utf8})\\n', cmd.args]
-	proc = subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE)
-	output, _ = proc.communicate()
+	with subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE) as proc:
+		output, _ = proc.communicate()
 	cmd.reply(output)
 
 temp_re = re.compile(r'\A(-?[0-9 ]*)(C|F)\Z')
@@ -86,6 +86,7 @@ def units(cmd):
 			else:
 				split[i] = 'temp%s' % (match.group(2))
 	command = ['units', '--compact', '--one-line', '--quiet', '--'] + split
+	# pylint: disable=consider-using-with
 	# in case we get in interactive mode, PIPE stdin so communicate will close it
 	proc = subprocess.Popen(command, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()

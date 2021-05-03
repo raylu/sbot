@@ -1,3 +1,5 @@
+# pylint: disable=consider-using-with
+
 from os import path
 import subprocess
 
