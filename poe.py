@@ -83,15 +83,15 @@ def _build_responses(lines):
 			else:
 				response += '\nask %.2g : 1 chaos' % (1 / ask)
 		else: # item
-			if line['links'] > 0:
+			if line.get('links', 0) > 0:
 				name += ' (%d link)' % line['links']
-			if line['gemLevel']:
+			if line.get('gemLevel'):
 				name += ' (level %d)' % line['gemLevel']
-			if line['gemQuality']:
+			if line.get('gemQuality'):
 				name += ' (%d%%)' % line['gemQuality']
-			if line['mapTier']:
+			if line.get('mapTier'):
 				name += ' (T%d)' % line['mapTier']
-			if line['corrupted']:
+			if line.get('corrupted'):
 				name += ' (corrupted)'
 			response = '%s: %.1f chaos' % (name, line['chaosValue'])
 			if line['exaltedValue'] > 1.0:

@@ -33,8 +33,8 @@ class TestPoe(unittest.TestCase):
 			self.assert_equal(set(cmd.reply_text.split(', ')), set(matches))
 
 	def test_price(self):
-		self.assert_reply('the strat', 'The Strategist: 45.0 chaos')
-		self.assert_reply('le stratège', 'The Strategist: 45.0 chaos')
+		self.assert_reply('the strat', 'The Strategist: 42.0 chaos')
+		self.assert_reply('le stratège', 'The Strategist: 42.0 chaos')
 
 	def test_exact(self):
 		self.assert_reply('enlighten support', '''
