@@ -38,13 +38,13 @@ class TestPoe(unittest.TestCase):
 
 	def test_exact(self):
 		self.assert_reply('enlighten support', '''
-			Enlighten Support (level 4) (20%) (corrupted): 390.9 chaos, 3.9 exalted
-			Enlighten Support (level 3): 59.0 chaos
-			Enlighten Support (level 2): 27.6 chaos
-			Enlighten Support (level 1): 22.0 chaos
-			Enlighten Support (level 3) (corrupted): 15.0 chaos
-			Enlighten Support (level 1) (corrupted): 15.0 chaos
-			Enlighten Support (level 2) (corrupted): 14.0 chaos
+			Enlighten Support (level 4) (20%) (corrupted): 595.4 chaos, 3.9 exalted
+			Enlighten Support (level 3): 80.0 chaos
+			Enlighten Support (level 2): 27.0 chaos
+			Enlighten Support (level 3) (20%) (corrupted): 24.0 chaos
+			Enlighten Support (level 1): 23.2 chaos
+			Enlighten Support (level 1) (corrupted): 20.0 chaos
+			Enlighten Support (level 2) (corrupted): 20.0 chaos
 		''')
 
 	def test_multi_match(self):
@@ -56,17 +56,27 @@ class TestPoe(unittest.TestCase):
 			"Exalted Orb",
 			"Exalted Shard",
 		])
-		self.assert_reply('promesse d', matches=["promesse d'atziri", 'la promesse du lapidaire'])
+		self.assert_reply('promesse d',
+				matches=["promesse d'atziri", 'la promesse du lapidaire', 'promesse de gangresang'])
 
 	def test_no_match(self):
 		self.assert_reply('fishing', matches=["couldn't find fishing"])
+
+	def test_relic(self):
+		self.assert_reply('cane of unravelling', '''
+			Cane of Unravelling (6 link): 28.0 chaos
+			Cane of Unravelling (relic) (5 link): 11.0 chaos
+			Cane of Unravelling (relic): 4.0 chaos
+			Cane of Unravelling: 1.0 chaos
+			Cane of Unravelling (5 link): 1.0 chaos
+		''')
 
 def get(url, params=None):
 	if url == 'https://poe.ninja/':
 		with open(path.join(fixtures_dir, 'index.html')) as f:
 			return mock.Mock(text=f.read())
-	elif url == 'https://poe.ninja/api/data/economysearch' and params == {'league': 'Ritual', 'language': 'fr'}:
-		with open(path.join(fixtures_dir, 'economysearch_ritual_fr.json')) as f:
+	elif url == 'https://poe.ninja/api/data/economysearch' and params == {'league': 'Ultimatum', 'language': 'fr'}:
+		with open(path.join(fixtures_dir, 'economysearch_ultimatum_fr.json')) as f:
 			data = json.load(f)
 		return mock.Mock(json=mock.Mock(return_value=data))
 	elif url == 'https://poe.ninja/api/data/itemoverview':

@@ -83,6 +83,8 @@ def _build_responses(lines):
 			else:
 				response += '\nask %.2g : 1 chaos' % (1 / ask)
 		else: # item
+			if line.get('icon', '').endswith('&relic=1'):
+				name += ' (relic)'
 			if line.get('links', 0) > 0:
 				name += ' (%d link)' % line['links']
 			if line.get('gemLevel'):
