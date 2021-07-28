@@ -1,7 +1,7 @@
 from collections import defaultdict
 import copy
 import datetime
-import imp
+import importlib
 import json
 import mimetypes
 import os
@@ -249,18 +249,7 @@ class Bot:
 		handler = self.commands.get(split[0])
 		if handler:
 			if config.bot.autoreload:
-				module_name = handler.__module__
-				module = sys.modules[module_name]
-				path = module.__file__
-				new_mtime = os.stat(path).st_mtime
-				if new_mtime > self.mtimes[module_name]:
-					imp.reload(module)
-					self.mtimes[module_name] = new_mtime
-					for trigger in self.modules[module_name]:
-						handler_name = self.commands[trigger].__name__
-						self.commands[trigger] = getattr(module, handler_name)
-						if trigger == split[0]:
-							handler = self.commands[trigger]
+				handler = self._autoreload(split[0], handler)
 
 			arg = ''
 			if len(split) == 2:
@@ -276,7 +265,9 @@ class Bot:
 
 		handler = self.commands.get(d['data']['name'])
 		if handler:
-			# TODO: autoreload
+			if config.bot.autoreload:
+				handler = self._autoreload(d['data']['name'], handler)
+
 			path = '/interactions/%s/%s/callback' % (d['id'], d['token'])
 			self.post(path, {'type': INTERACTION.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE})
 
@@ -286,6 +277,22 @@ class Bot:
 			except Exception:
 				cmd.reply('an error occurred')
 				raise
+
+	def _autoreload(self, command_name, handler):
+		module_name = handler.__module__
+		module = sys.modules[module_name]
+		path = module.__file__
+		new_mtime = os.stat(path).st_mtime
+		if new_mtime > self.mtimes[module_name]:
+			importlib.reload(module)
+			self.mtimes[module_name] = new_mtime
+			for trigger in self.modules[module_name]:
+				handler_name = self.commands[trigger].__name__
+				self.commands[trigger] = getattr(module, handler_name)
+				if trigger == command_name:
+					handler = self.commands[trigger]
+					# continue replacing all the commands in the reloaded file; do not break/return
+		return handler
 
 	def handle_reaction_add(self, d):
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
@@ -569,7 +576,8 @@ class InteractionEvent:
 	def iter_option_values(cls, options):
 		for option in options:
 			if option['type'] in (command.OPTION_TYPE.SUB_COMMAND, command.OPTION_TYPE.SUB_COMMAND_GROUP):
-				yield from cls.iter_option_values(option['options'])
+				yield option['name']
+				yield from cls.iter_option_values(option.get('options', []))
 			else:
 				yield str(option['value'])
 
