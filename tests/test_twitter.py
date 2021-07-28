@@ -1,25 +1,17 @@
-import sys
 import unittest
-from unittest import mock
+
+from tests import mock_config
 
 unittest.TestCase.assert_equal = unittest.TestCase.assertEqual
 
 class TestTwitter(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
-		mock_config = mock.Mock()
-		sys.modules['config'] = mock_config
-		try:
-			import twitter
-
-			cls.twitter = twitter
-		except Exception:
-			del sys.modules['config']
-			raise
+		mock_config.set_up_class(cls, 'twitter')
 
 	@classmethod
 	def tearDownClass(cls):
-		del sys.modules['config']
+		mock_config.tear_down_class(cls)
 
 	def test_sign(self):
 		params = {
