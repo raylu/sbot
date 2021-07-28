@@ -81,7 +81,7 @@ class Bot:
 			config.state.gateway_url = data['url']
 			config.state.save()
 
-		url = config.state.gateway_url + '?v=6&encoding=json'
+		url = config.state.gateway_url + '?v=9&encoding=json'
 		self.ws = websocket.create_connection(url)
 
 	def run_forever(self):
@@ -101,7 +101,7 @@ class Bot:
 			if handler:
 				try:
 					handler(data['t'], data['d'])
-				except:
+				except Exception:
 					tb = traceback.format_exc()
 					log.write(data)
 					log.write(tb)
@@ -190,6 +190,7 @@ class Bot:
 		self.heartbeat_thread = _thread.start_new_thread(self.heartbeat_loop, (d['heartbeat_interval'],))
 		self.send(OP.IDENTIFY, {
 			'token': config.bot.token,
+			'intents': INTENT.GUILDS | INTENT.GUILD_MESSAGES | INTENT.GUILD_MESSAGE_REACTIONS | INTENT.DIRECT_MESSAGES,
 			'properties': {
 				'$browser': 'github.com/raylu/sbot',
 				'$device': 'github.com/raylu/sbot',
@@ -541,3 +542,21 @@ class OP:
 	INVALID_SESSION       = 9
 	HELLO                 = 10
 	HEARTBEAT_ACK         = 11
+
+# https://discord.com/developers/docs/topics/gateway#gateway-intents
+class INTENT:
+	GUILDS                    = 1 << 0
+	GUILD_MEMBERS             = 1 << 1
+	GUILD_BANS                = 1 << 2
+	GUILD_EMOJIS_AND_STICKERS = 1 << 3
+	GUILD_INTEGRATIONS        = 1 << 4
+	GUILD_WEBHOOKS            = 1 << 5
+	GUILD_INVITES             = 1 << 6
+	GUILD_VOICE_STATES        = 1 << 7
+	GUILD_PRESENCES           = 1 << 8
+	GUILD_MESSAGES            = 1 << 9
+	GUILD_MESSAGE_REACTIONS   = 1 << 10
+	GUILD_MESSAGE_TYPING      = 1 << 11
+	DIRECT_MESSAGES           = 1 << 12
+	DIRECT_MESSAGE_REACTIONS  = 1 << 13
+	DIRECT_MESSAGE_TYPING     = 1 << 14
