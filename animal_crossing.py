@@ -115,7 +115,7 @@ def _stalk_list_buy_prices(cmd):
 			price, expiration = current_prices[user]
 			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
 			line += ' **%d** (expires in %s)' % (price, expires_in)
-		line += ' <%s>' % _turnip_prophet(week_prices[user])
+		line += ' <%s>' % _turnip_prophet(prices)
 		output.append(line)
 	cmd.reply('\n'.join(output))
 
@@ -217,7 +217,7 @@ def _stalk_list_sale_prices(cmd):
 			price, expiration = current_prices[user]
 			expires_in = readable_rel(dateutil.parser.parse(expiration) - current_time)
 			line += ' **%d** (expires in %s)' % (price, expires_in)
-		line += ' <%s>' % _turnip_prophet(week_prices[user])
+		line += ' <%s>' % _turnip_prophet(prices)
 		output.append(line)
 	cmd.reply('\n'.join(output))
 
