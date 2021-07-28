@@ -16,8 +16,9 @@ import _thread  # pylint: disable=wrong-import-order
 import requests
 import websocket
 
-import config
 import instagram
+import command
+import config
 import log
 import steam_news
 from timer import readable_rel
@@ -55,6 +56,7 @@ class Bot:
 		self.events = {
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
+			'INTERACTION_CREATE': self.handle_interaction_create,
 			'MESSAGE_REACTION_ADD': self.handle_reaction_add,
 			'MESSAGE_REACTION_REMOVE': self.handle_reaction_remove,
 			'GUILD_CREATE': self.handle_guild_create,
@@ -123,6 +125,8 @@ class Bot:
 		if config.bot.debug:
 			print('=>', path, data)
 		response = self.rs.request(method, 'https://discord.com/api' + path, files=files, json=data)
+		if response.status_code >= 400:
+			log.write('response: %r' % response.content)
 		response.raise_for_status()
 		if response.status_code != 204: # No Content
 			return response.json()
@@ -265,6 +269,23 @@ class Bot:
 				arg += '\n' + lines[1]
 			cmd = CommandEvent(d, arg, self)
 			handler(cmd)
+
+	def handle_interaction_create(self, d):
+		if d.get('member', {}).get('user', {}).get('bot'):
+			return
+
+		handler = self.commands.get(d['data']['name'])
+		if handler:
+			# TODO: autoreload
+			path = '/interactions/%s/%s/callback' % (d['id'], d['token'])
+			self.post(path, {'type': INTERACTION.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE})
+
+			cmd = InteractionEvent(d, self)
+			try:
+				handler(cmd)
+			except Exception:
+				cmd.reply('an error occurred')
+				raise
 
 	def handle_reaction_add(self, d):
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
@@ -529,6 +550,29 @@ class CommandEvent:
 	def react(self, emoji):
 		self.bot.react(self.channel_id, self.d['id'], emoji)
 
+class InteractionEvent:
+	def __init__(self, d, bot):
+		self.token = d['token']
+		self.channel_id = d['channel_id']
+		self.options = d['data'].get('options', [])
+		self.args = ' '.join(InteractionEvent.iter_option_values(self.options))
+		self.bot = bot
+
+	def reply(self, message, embed=None):
+		path = '/webhooks/%s/%s/messages/@original' % (config.bot.app_id, self.token)
+		data = {'content': message}
+		if embed:
+			data['embeds'] = [embed]
+		self.bot.post(path, data, method='PATCH')
+
+	@classmethod
+	def iter_option_values(cls, options):
+		for option in options:
+			if option['type'] in (command.OPTION_TYPE.SUB_COMMAND, command.OPTION_TYPE.SUB_COMMAND_GROUP):
+				yield from cls.iter_option_values(option['options'])
+			else:
+				yield str(option['value'])
+
 class OP:
 	DISPATCH              = 0
 	HEARTBEAT             = 1
@@ -560,3 +604,8 @@ class INTENT:
 	DIRECT_MESSAGES           = 1 << 12
 	DIRECT_MESSAGE_REACTIONS  = 1 << 13
 	DIRECT_MESSAGE_TYPING     = 1 << 14
+
+# https://discord.com/developers/docs/interactions/slash-commands#interaction-response-object-interaction-callback-type
+class INTERACTION:
+	CHANNEL_MESSAGE_WITH_SOURCE          = 4
+	DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5

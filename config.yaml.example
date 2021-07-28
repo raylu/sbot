@@ -1,3 +1,4 @@
+app_id: null
 token: null
 err_channel: null
 roles: # set this to null to disable
