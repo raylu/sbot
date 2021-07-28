@@ -11,6 +11,7 @@ import dateutil.tz
 import requests
 import websocket
 
+import command
 import config
 
 rs = requests.Session()
@@ -68,15 +69,33 @@ def calc(cmd):
 def unicode(cmd):
 	if not cmd.args:
 		return
-	command = ['unicode', '--max', '5', '--color', '0',
+	unicode_cmd = ['unicode', '--max', '5', '--color', '0',
 			'--format', '{pchar} U+{ordc:04X} {name} (UTF-8: {utf8})\\n', cmd.args]
-	with subprocess.Popen(command, universal_newlines=True, stdout=subprocess.PIPE) as proc:
+	with subprocess.Popen(unicode_cmd, universal_newlines=True, stdout=subprocess.PIPE) as proc:
 		output, _ = proc.communicate()
 	cmd.reply(output)
 
 temp_re = re.compile(r'\A(-?[0-9 ]*)(C|F)\Z')
+
+@command.command('unit conversions', {
+	'type': command.OPTION_TYPE.STRING,
+	'name': 'from',
+	'description': 'what to convert from (74F, 1 USD)',
+	'required': True,
+}, {
+	'type': command.OPTION_TYPE.STRING,
+	'name': 'to',
+	'description': 'what to convert to',
+	'required': True,
+})
 def units(cmd):
-	split = cmd.args.split(' in ', 1)
+	options = getattr(cmd, 'options', None)
+	if options is not None:
+		# this is an InteractionEvent (slash-command)
+		split = [options[0]['value'], options[1]['value']]
+	else:
+		split = cmd.args.split(' in ', 1)
+
 	for i, part in enumerate(split):
 		match = temp_re.match(part)
 		if match:
@@ -85,10 +104,10 @@ def units(cmd):
 				split[i] = 'temp%s(%s)' % (match.group(2), match.group(1))
 			else:
 				split[i] = 'temp%s' % (match.group(2))
-	command = ['units', '--compact', '--one-line', '--quiet', '--'] + split
+	units_cmd = ['units', '--compact', '--one-line', '--quiet', '--'] + split
 	# pylint: disable=consider-using-with
 	# in case we get in interactive mode, PIPE stdin so communicate will close it
-	proc = subprocess.Popen(command, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+	proc = subprocess.Popen(units_cmd, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()
 	if proc.wait() == 0:
 		cmd.reply(output)
