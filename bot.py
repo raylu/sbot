@@ -561,6 +561,7 @@ class InteractionEvent:
 	def __init__(self, d, bot):
 		self.token = d['token']
 		self.channel_id = d['channel_id']
+		self.sender = d['member']['user']
 		self.options = d['data'].get('options', [])
 		self.args = ' '.join(InteractionEvent.iter_option_values(self.options))
 		self.bot = bot
