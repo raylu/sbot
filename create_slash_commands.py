@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import time
 
 import requests
 
@@ -26,6 +27,7 @@ def main():
 			print('deleting', command['name'])
 			r = rs.delete('%s/%s' % (url, command['id']))
 			r.raise_for_status()
+			time.sleep(2)
 	else:
 		for name, handler in commands.items():
 			description = getattr(handler, 'description', None)
@@ -38,6 +40,7 @@ def main():
 			})
 			print(r.content)
 			r.raise_for_status()
+			time.sleep(2)
 
 if __name__ == '__main__':
 	main()

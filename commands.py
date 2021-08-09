@@ -1,4 +1,5 @@
 import animal_crossing
+import canned
 import code_eval
 import eve
 import friend_code
@@ -49,4 +50,6 @@ commands = {
 	'stalks': animal_crossing.stalk_market,
 
 	'twitter_queue': twitter.queue_info,
+
+	'can': canned.canned,
 }
