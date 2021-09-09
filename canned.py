@@ -140,12 +140,12 @@ def _get_cans():
 	global _cans
 	if _cans is None:
 		try:
-			with open('cans.yaml', 'r') as f:
+			with open('cans.yaml', 'r', encoding='utf-8') as f:
 				_cans = yaml.safe_load(f)
 		except FileNotFoundError:
 			_cans = {}
 	return _cans
 
 def _set_cans(cans):
-	with open('cans.yaml', 'w') as f:
+	with open('cans.yaml', 'w', encoding='utf-8') as f:
 		yaml.dump(cans, f)

@@ -7,7 +7,7 @@ class YamlAttrs:
 		self.filename = filename
 
 		try:
-			with open(filename, 'r') as f:
+			with open(filename, 'r', encoding='utf-8') as f:
 				doc = yaml.safe_load(f)
 		except FileNotFoundError:
 			doc = defaults
@@ -18,7 +18,7 @@ class YamlAttrs:
 			setattr(self, k, v)
 
 	def save(self):
-		with open(self.filename, 'w') as f:
+		with open(self.filename, 'w', encoding='utf-8') as f:
 			data = dict(self.__dict__)
 			del data['filename']
 			yaml.dump(data, f)
