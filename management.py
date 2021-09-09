@@ -69,8 +69,8 @@ def _ids(cmd):
 def _allowed_roles(roles):
 	sbot_position = roles['sbot']['position']
 	for role in roles.values():
-		# exclude roles higher than ours, @everyone (position 0), and bots
-		if 0 < role['position'] < sbot_position and role['name'] != 'bots':
+		# exclude roles higher than ours, @everyone (position 0), bots, and Nitro Booster
+		if 0 < role['position'] < sbot_position and role['name'] not in ['bots', 'Nitro Booster']:
 			yield role
 
 def _allowed_role_names(roles):
