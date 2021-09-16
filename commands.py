@@ -40,6 +40,7 @@ commands = {
 	'roles': management.list_roles,
 	'groups': management.list_roles,
 	'cleanup': management.cleanup,
+	'massban': management.mass_ban,
 
 	'headpat': reddit.headpat,
 

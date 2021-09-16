@@ -1,6 +1,9 @@
 import operator
 
+import requests
+
 import config
+import log
 
 def join(cmd):
 	guild_id, role_id = _ids(cmd)
@@ -55,6 +58,37 @@ def cleanup(cmd):
 		cmd.bot.delete_messages(cmd.channel_id, message_ids)
 	else:
 		cmd.reply('no messages in range')
+
+def mass_ban(cmd):
+	if cmd.channel_id != '473980984874762242': # staff-chat
+		return
+	try:
+		start, end = cmd.args.split()
+	except ValueError:
+		cmd.reply('usage: `!massban start_msg_id end_msg_id`')
+		return
+	programming_guild = '181866934353133570'
+	join_channel = '209074609893408768'
+	try:
+		cmd.bot.get_message(join_channel, start)
+		cmd.bot.get_message(join_channel, end)
+	except requests.exceptions.HTTPError as e:
+		if e.response.status_code != 404:
+			raise
+		cmd.reply('could not find %s or %s in #join' % (start, end))
+		return
+	cmd.reply('mass banning started')
+	for msg in cmd.bot.iter_messages(join_channel, str(int(start) - 1), end):
+		if 'welcome to Programming!' not in msg['content']:
+			continue
+		user_id = msg['mentions'][0]['id']
+		user = cmd.bot.get('/users/%s' % user_id)
+		if user['avatar'] is not None:
+			log.write('not banning %s' % user_id)
+			continue
+		log.write('banning %s %s#%s' % (user_id, user['username'], user['discriminator']))
+		cmd.bot.ban(programming_guild, user_id)
+	cmd.reply('mass banning complete!')
 
 def _ids(cmd):
 	bot = cmd.bot

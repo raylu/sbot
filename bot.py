@@ -118,6 +118,11 @@ class Bot:
 
 	def get(self, path, params=None):
 		response = self.rs.get('https://discord.com/api' + path, params=params)
+		# https://discord.com/developers/docs/topics/rate-limits#header-format
+		if response.headers.get('X-RateLimit-Remaining') == '0':
+			wait_time = int(response.headers['X-RateLimit-Reset-After'])
+			log.write('waiting %d for rate limit' % wait_time)
+			time.sleep(wait_time)
 		response.raise_for_status()
 		return response.json()
 
