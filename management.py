@@ -83,9 +83,6 @@ def mass_ban(cmd):
 			continue
 		user_id = msg['mentions'][0]['id']
 		user = cmd.bot.get('/users/%s' % user_id)
-		if user['avatar'] is not None:
-			log.write('not banning %s' % user_id)
-			continue
 		log.write('banning %s %s#%s' % (user_id, user['username'], user['discriminator']))
 		cmd.bot.ban(programming_guild, user_id)
 	cmd.reply('mass banning complete!')
