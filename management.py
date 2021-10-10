@@ -81,9 +81,6 @@ def mass_ban(cmd):
 	for msg in cmd.bot.iter_messages(join_channel, str(int(start) - 1), end):
 		if 'welcome to Programming!' not in msg['content']:
 			continue
-		user_id = msg['mentions'][0]['id']
-		user = cmd.bot.get('/users/%s' % user_id)
-		log.write('banning %s %s#%s' % (user_id, user['username'], user['discriminator']))
 		cmd.bot.ban(programming_guild, user_id)
 	cmd.reply('mass banning complete!')
 
