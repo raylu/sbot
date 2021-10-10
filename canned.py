@@ -107,6 +107,8 @@ def _can_list(cmd):
 		cmd.reply('no canned responses')
 
 def _can_set(cmd, name, text):
+	if cmd.channel_id != '455385402241712128':
+		return
 	if name in ['list', 'set', 'del']:
 		cmd.reply(name + ' is a reserved word')
 		return
@@ -119,6 +121,8 @@ def _can_set(cmd, name, text):
 	cmd.reply('set canned reply; retrieve via `!can %s`' % name)
 
 def _can_del(cmd, name):
+	if cmd.channel_id != '455385402241712128':
+		return
 	cans = _get_cans()
 	try:
 		del cans[name]
