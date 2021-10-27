@@ -18,7 +18,7 @@ commands = {
 	'unicode': utils.unicode,
 	'units': utils.units,
 	'roll': utils.roll,
-	'time': utils.timezones,
+	'time': utils.time,
 	'weather': utils.weather,
 	'ohno': utils.ohno,
 	'ohyes': utils.ohyes,

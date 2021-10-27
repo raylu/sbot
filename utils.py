@@ -7,7 +7,6 @@ import traceback
 import urllib.parse
 
 import dateutil.parser
-import dateutil.tz
 import requests
 import websocket
 
@@ -123,12 +122,7 @@ def roll(cmd):
 	result = split[1].split('=', 1)[1]
 	cmd.reply('%s %s' % (result, details))
 
-pacific = dateutil.tz.gettz('America/Los_Angeles')
-eastern = dateutil.tz.gettz('America/New_York')
-utc = dateutil.tz.tzutc()
-korean = dateutil.tz.gettz('Asia/Seoul')
-australian = dateutil.tz.gettz('Australia/Sydney')
-def timezones(cmd):
+def time(cmd):
 	if cmd.args:
 		try:
 			dt = dateutil.parser.parse(cmd.args)
@@ -138,12 +132,9 @@ def timezones(cmd):
 	else:
 		dt = datetime.datetime.utcnow()
 	if not dt.tzinfo:
-		dt = dt.replace(tzinfo=utc)
-	response = '{:%a %-d %-I:%M %p %Z}\n{:%a %-d %-I:%M %p %Z}\n{:%a %-d %H:%M %Z}\n'
-	response += '{:%a %-d %H:%M %Z}\n{:%a %-d %-I:%M %p %Z}'
-	response = response.format(dt.astimezone(pacific), dt.astimezone(eastern), dt.astimezone(utc),
-			dt.astimezone(korean), dt.astimezone(australian))
-	cmd.reply(response)
+		dt = dt.replace(tzinfo=datetime.timezone.utc)
+	ts = int(dt.timestamp())
+	cmd.reply(r'<t:%d> (<t:%d:R>) \<t:%d\>' % (ts, ts, ts))
 
 def weather(cmd):
 	if not cmd.args:
