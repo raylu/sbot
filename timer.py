@@ -4,7 +4,6 @@ import command
 import config
 
 timer_usage = 'usage: `!timer list`, `!timer add thing in 1d2h3m`, `!timer del thing`'
-dt_format = '%Y-%m-%d %H:%M:%S'
 
 @command.command('per-channel reminders', {
 	'type': command.OPTION_TYPE.SUB_COMMAND,
@@ -86,11 +85,10 @@ def timer(cmd):
 			cmd.reply(timer_usage)
 
 def _timer_list(cmd):
-	now = datetime.datetime.utcnow()
 	reply = []
-	for name, time in config.state.timers.get(cmd.channel_id, {}).items():
-		rel = readable_rel(time - now)
-		reply.append('%s: %s (%s)' % (name, time.strftime(dt_format), rel))
+	for name, dt in config.state.timers.get(cmd.channel_id, {}).items():
+		dt = dt.replace(tzinfo=datetime.timezone.utc)
+		reply.append('%s: %s' % (name, format_dt(dt)))
 	if reply:
 		cmd.reply('\n'.join(reply))
 	else:
@@ -99,21 +97,25 @@ def _timer_list(cmd):
 def _timer_add(cmd, name, arg):
 	timers = config.state.timers.get(cmd.channel_id, {})
 	if name in timers:
-		time_str = timers[name].strftime(dt_format)
+		time_str = format_dt(timers[name].replace(tzinfo=datetime.timezone.utc))
 		cmd.reply('%s: "%s" already set for %s' % (cmd.sender['username'], name, time_str))
 		return
 
-	try:
-		time = parse_rel(arg)
-	except RelativeTimeParsingException as e:
-		cmd.reply('%s: %s' % (cmd.sender['username'], e.message))
+	try: # parse as timestamp (981173106)
+		dt = datetime.datetime.utcfromtimestamp(int(arg))
+	except ValueError:
+		# parse as relative time (1d2h3m)
+		try:
+			dt = parse_rel(arg)
+		except RelativeTimeParsingException as e:
+			cmd.reply('%s: %s' % (cmd.sender['username'], e.message))
 
-	timers[name] = time
+	timers[name] = dt
 	config.state.timers[cmd.channel_id] = timers
 	config.state.save()
 	with cmd.bot.timer_condvar:
 		cmd.bot.timer_condvar.notify()
-	cmd.reply('"%s" set for %s (%s)' % (name, time.strftime(dt_format), readable_rel(td)))
+	cmd.reply('"%s" set for %s' % (name, format_dt(dt)))
 
 def _timer_del(cmd, name):
 	try:
@@ -122,6 +124,10 @@ def _timer_del(cmd, name):
 		cmd.reply('deleted "%s"' % name)
 	except KeyError:
 		cmd.reply('%s: couldn\'t find "%s" in this channel' % (cmd.sender['username'], name))
+
+def format_dt(dt):
+	ts = dt.timestamp()
+	return '<t:%d> (<t:%d:R>)' % (ts, ts)
 
 def readable_rel(rel):
 	seconds = rel.total_seconds()
@@ -149,15 +155,15 @@ def parse_rel(arg):
 			continue
 		try:
 			td_args[unit] = int(n_units)
-		except ValueError:
-			raise RelativeTimeParsingException('"%s" not an int for unit %s' % (n_units, unit))
+		except ValueError as e:
+			raise RelativeTimeParsingException('"%s" not an int for unit %s' % (n_units, unit)) from e
 	if arg:
 		raise RelativeTimeParsingException('"%s" left over after parsing time' % arg)
 	try:
 		td = datetime.timedelta(**td_args)
 		return datetime.datetime.utcnow() + td
-	except OverflowError:
-		raise RelativeTimeParsingException('time not in range')
+	except OverflowError as e:
+		raise RelativeTimeParsingException('time not in range') from e
 
 class RelativeTimeParsingException(Exception):
 	def __init__(self, message):
