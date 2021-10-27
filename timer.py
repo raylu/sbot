@@ -103,26 +103,10 @@ def _timer_add(cmd, name, arg):
 		cmd.reply('%s: "%s" already set for %s' % (cmd.sender['username'], name, time_str))
 		return
 
-	td_args = {'days': 0, 'hours': 0, 'minutes': 0}
-	for char, unit in zip('dhm', ['days', 'hours', 'minutes']):
-		try:
-			n_units, arg = arg.split(char, 1)
-		except ValueError:
-			continue
-		try:
-			td_args[unit] = int(n_units)
-		except ValueError:
-			cmd.reply('%s: "%s" not an int for unit %s' % (cmd.sender['username'], n_units, unit))
-			return
-	if arg:
-		cmd.reply('%s: "%s" left over after parsing time' % (cmd.sender['username'], arg))
-		return
 	try:
-		td = datetime.timedelta(**td_args)
-		time = datetime.datetime.utcnow() + td
-	except OverflowError:
-		cmd.reply('%s: time not in range' % cmd.sender['username'])
-		return
+		time = parse_rel(arg)
+	except RelativeTimeParsingException as e:
+		cmd.reply('%s: %s' % (cmd.sender['username'], e.message))
 
 	timers[name] = time
 	config.state.timers[cmd.channel_id] = timers
@@ -155,3 +139,27 @@ def readable_rel(rel):
 	if not s:
 		return '%d seconds' % seconds
 	return ' '.join(s)
+
+def parse_rel(arg):
+	td_args = {'days': 0, 'hours': 0, 'minutes': 0}
+	for char, unit in zip('dhm', ['days', 'hours', 'minutes']):
+		try:
+			n_units, arg = arg.split(char, 1)
+		except ValueError:
+			continue
+		try:
+			td_args[unit] = int(n_units)
+		except ValueError:
+			raise RelativeTimeParsingException('"%s" not an int for unit %s' % (n_units, unit))
+	if arg:
+		raise RelativeTimeParsingException('"%s" left over after parsing time' % arg)
+	try:
+		td = datetime.timedelta(**td_args)
+		return datetime.datetime.utcnow() + td
+	except OverflowError:
+		raise RelativeTimeParsingException('time not in range')
+
+class RelativeTimeParsingException(Exception):
+	def __init__(self, message):
+		super().__init__(message)
+		self.message = message
