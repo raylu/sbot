@@ -384,7 +384,7 @@ class Bot:
 	def timer_loop(self):
 		while True:
 			wakeups = []
-			now = datetime.datetime.utcnow()
+			now = datetime.datetime.now(datetime.timezone.utc)
 			hour_from_now = now + datetime.timedelta(hours=1)
 			for channel_id, timers in config.state.timers.items():
 				for name, dt in copy.copy(timers).items():

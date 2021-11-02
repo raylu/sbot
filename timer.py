@@ -109,6 +109,8 @@ def _timer_add(cmd, name, arg):
 			dt = parse_rel(arg)
 		except RelativeTimeParsingException as e:
 			cmd.reply('%s: %s' % (cmd.sender['username'], e.message))
+			return
+	dt = dt.replace(tzinfo=datetime.timezone.utc)
 
 	timers[name] = dt
 	config.state.timers[cmd.channel_id] = timers
