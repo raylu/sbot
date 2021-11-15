@@ -7,6 +7,7 @@ import traceback
 import urllib.parse
 
 import dateutil.parser
+import dateutil.tz
 import requests
 import websocket
 
@@ -122,10 +123,20 @@ def roll(cmd):
 	result = split[1].split('=', 1)[1]
 	cmd.reply('%s %s' % (result, details))
 
+tzinfos = {
+	"PST": dateutil.tz.gettz("America/Los_Angeles"),
+	"PDT": dateutil.tz.gettz("America/Los_Angeles"),
+	"MST": dateutil.tz.gettz("America/Denver"),
+	"MDT": dateutil.tz.gettz("America/Denver"),
+	"CST": dateutil.tz.gettz("America/Chicago"),
+	"CDT": dateutil.tz.gettz("America/Chicago"),
+	"EST": dateutil.tz.gettz("America/New_York"),
+	"EDT": dateutil.tz.gettz("America/New_York"),
+}
 def time(cmd):
 	if cmd.args:
 		try:
-			dt = dateutil.parser.parse(cmd.args)
+			dt = dateutil.parser.parse(cmd.args, tzinfos=tzinfos, fuzzy=True)
 		except (ValueError, AttributeError) as e:
 			cmd.reply(str(e))
 			return
