@@ -44,14 +44,9 @@ def price(cmd):
 def _get_league_names():
 	html = rs.get('https://poe.ninja/')
 	prefix = 'window.economyLeagues = '
-	for line in html.text.split('\n'):
-		if prefix in line:
-			start = line.index(prefix) + len(prefix)
-			end = line.find('];</script>') + 1
-			doc = line[start:end]
-			break
-	else:
-		raise Exception("Couldn't find leagues JSON")
+	start = html.text.index(prefix) + len(prefix)
+	end = html.text.find('];</script>', start) + 1
+	doc = html.text[start:end]
 
 	leagues = json.loads(doc)
 	ret = []
