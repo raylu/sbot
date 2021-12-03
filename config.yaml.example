@@ -39,6 +39,10 @@ steam_news: # set this to null to disable
 warframe: # set this to null to disable
     channel: '326069638477774861'
 acnh_db: 'acnh.sqlite' # set this to null to disable
+advent_of_code: # set this to null to disable
+    - leaderboard: 660957 # Frosty-nee
+      channel: '282441291327864834' # bot-testing
+      session: null
 autoreload: false
 debug: false
 

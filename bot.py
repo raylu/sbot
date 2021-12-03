@@ -16,6 +16,7 @@ import _thread  # pylint: disable=wrong-import-order
 import requests
 import websocket
 
+import advent_of_code
 import instagram
 import command
 import config
@@ -43,6 +44,7 @@ class Bot:
 		self.twitter_post_condvar = threading.Condition()
 		self.instagram_thread = None
 		self.steam_news_thread = None
+		self.advent_of_code_thread = None
 		self.user_id = None
 		self.seq = None
 		self.guilds = {} # guild id -> Guild
@@ -232,6 +234,8 @@ class Bot:
 			self.instagram_thread = _thread.start_new_thread(self.instagram_loop, ())
 		if config.bot.steam_news is not None:
 			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
+		if config.bot.advent_of_code is not None and datetime.date.today().month in (12, 1):
+			self.advent_of_code_thread = _thread.start_new_thread(self.advent_of_code_loop, ())
 
 	def handle_message_create(self, d):
 		if d['author'].get('bot'):
@@ -526,6 +530,16 @@ class Bot:
 				log.write('steam news: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('steam news: %s' % e)
+
+	def advent_of_code_loop(self):
+		while True:
+			time.sleep(60 * 15)
+			try:
+				advent_of_code.check_leaderboards(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('advent of code: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('advent of code: %s' % e)
 
 class Guild:
 	def __init__(self, d):

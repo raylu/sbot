@@ -1,3 +1,5 @@
+import time
+
 import yaml
 
 import log
@@ -29,7 +31,14 @@ class YamlAttrs:
 bot = YamlAttrs('config.yaml')
 state = YamlAttrs('state.yaml',
 	defaults={
-		'gateway_url': None, 'timers': {}, 'reddit_access_token': None, 'steam_news_ids': {},
-		'tweet_ids': {}, 'twitter_last_post_time': None, 'twitter_queue': [], 'instagram': {},
+		'advent_of_code_last_check': int(time.time()),
+		'gateway_url': None,
+		'instagram': {},
+		'reddit_access_token': None,
+		'steam_news_ids': {},
+		'timers': {},
+		'tweet_ids': {},
 		'twitch_last_times': {},
+		'twitter_last_post_time': None,
+		'twitter_queue': [],
 	})
