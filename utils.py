@@ -117,11 +117,15 @@ def units(cmd):
 def roll(cmd):
 	args = cmd.args or '1d6'
 	response = rs.get('https://rolz.org/api/?' + args) # don't urlencode
+	response.raise_for_status()
 	split = response.text.split('\n')
-	details = split[2].split('=', 1)[1].strip()
-	details = details.replace(' +', ' + ').replace(' +  ', ' + ')
-	result = split[1].split('=', 1)[1]
-	cmd.reply('%s %s' % (result, details))
+	try:
+		details = split[2].split('=', 1)[1].strip()
+		details = details.replace(' +', ' + ').replace(' +  ', ' + ')
+		result = split[1].split('=', 1)[1]
+		cmd.reply('%s %s' % (result, details))
+	except IndexError:
+		cmd.reply('%s: error rolling' % cmd.sender['username'])
 
 tzinfos = {
 	"PST": dateutil.tz.gettz("America/Los_Angeles"),
