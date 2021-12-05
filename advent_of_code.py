@@ -23,6 +23,8 @@ def check_leaderboards(bot):
 
 		new_completions = collections.defaultdict(list)
 		for member in r.json()['members'].values():
+			if member['name'] is None: # anonymous user
+				continue
 			last_star_ts = member['last_star_ts']
 			if last_star_ts == '0' or last_star_ts < last_check: # yes, it's a string sometimes
 				continue
@@ -30,7 +32,7 @@ def check_leaderboards(bot):
 			for day, parts in sorted_dict(member['completion_day_level']):
 				for part, part_info in sorted_dict(parts):
 					if part_info['get_star_ts'] > last_check:
-						new_completions[member['name']].append('day %s part %s' % (day, part))
+						new_completions[member['name']].append('day %s.%s' % (day, part))
 
 		if new_completions:
 			output = '\n'.join('%s got %s' % (name, ', '.join(completions))
