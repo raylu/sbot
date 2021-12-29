@@ -188,27 +188,39 @@ def ohyes(cmd):
 
 def ddd(cmd):
 	guild_id = cmd.d['guild_id']
-	if cmd.args:
-		user_id = cmd.args
-		if guild_id == '181866934353133570':
-			# https://github.com/strinking/statbot/blob/8873bb8f5e0e3ae4d475807eba522d69fd76149d/statbot/util.py#L44-L48
-			hashed = hashlib.sha512(struct.pack('>q', int(user_id))).digest()
-			user_id = str(struct.unpack('>q', hashed[24:32])[0])
-		r = rs.get('https://ddd.raylu.net/guild/%s/by_channel.json?int_user_id=%s' %
-				(guild_id, user_id))
-		r.raise_for_status()
-		channels = r.json()[:5]
-		if channels:
-			max_len = max(len(channel['name']) for channel in channels)
-			lines = []
-			for channel in channels:
-				name = (channel['name'] + ':').ljust(max_len + 1)
-				filled = int(channel['percentage'] / 5)
-				bar = '#' * filled + ' ' * (20 - filled)
-				lines.append('{} {:9,d} {}'.format(name, channel['count'], bar))
-			embed = {'description': '```%s```' % '\n'.join(lines)}
-		else:
-			embed = {'description': 'no messages found for ' + user_id}
-		cmd.reply('https://ddd.raylu.net/guild/181866934353133570/?int_user_id=' + user_id, embed)
-	else:
+	if not cmd.args:
 		cmd.reply('https://ddd.raylu.net/guild/%s/' % guild_id)
+		return
+	user_id = cmd.args
+	if guild_id == '181866934353133570':
+		# https://github.com/strinking/statbot/blob/8873bb8f5e0e3ae4d475807eba522d69fd76149d/statbot/util.py#L44-L48
+		hashed = hashlib.sha512(struct.pack('>q', int(user_id))).digest()
+		user_id = str(struct.unpack('>q', hashed[24:32])[0])
+
+	r = rs.get('https://ddd.raylu.net/guild/%s/by_channel.json?int_user_id=%s' %
+			(guild_id, user_id))
+	r.raise_for_status()
+	channels = r.json()[:5]
+	if not channels:
+		cmd.reply('no messages found for ' + user_id)
+		return
+	max_len = max(len(channel['name']) for channel in channels)
+	lines = []
+	for channel in channels:
+		name = (channel['name'] + ':').ljust(max_len + 1)
+		filled = int(channel['percentage'] / 5)
+		bar = '#' * filled + ' ' * (20 - filled)
+		lines.append('{} {:9,d} {}'.format(name, channel['count'], bar))
+
+	r = rs.get('https://ddd.raylu.net/guild/%s/by_user.json?int_user_id=%s' % (guild_id, user_id))
+	r.raise_for_status()
+	username = r.json()[0]['name']
+
+	embed = {
+		'description': '```%s```' % '\n'.join(lines),
+		'author': {
+			'name': username,
+			'url': 'https://ddd.raylu.net/guild/%s/?int_user_id=%s' % (guild_id, user_id),
+		},
+	}
+	cmd.reply('', embed)
