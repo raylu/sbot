@@ -22,6 +22,7 @@ commands = {
 	'weather': utils.weather,
 	'ohno': utils.ohno,
 	'ohyes': utils.ohyes,
+	'ddd': utils.ddd,
 
 	'timer': timer.timer,
 
