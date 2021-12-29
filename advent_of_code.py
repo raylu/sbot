@@ -30,9 +30,18 @@ def check_leaderboards(bot):
 				continue
 
 			for day, parts in sorted_dict(member['completion_day_level']):
+				day_completions = []
 				for part, part_info in sorted_dict(parts):
-					if part_info['get_star_ts'] > last_check:
-						new_completions[member['name']].append('day %s.%s' % (day, part))
+					if part_info['get_star_ts'] < last_check:
+						continue
+					if part == '1':
+						star = '✩'
+					else:
+						star = '⭐'
+					day_completions.append(star)
+				if len(day_completions) > 0:
+					new_completions[member['name']].append(
+							'day %s %s' % (day, ''.join(day_completions)))
 
 		if new_completions:
 			output = '\n'.join('%s got %s' % (name, ', '.join(completions))
