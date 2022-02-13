@@ -45,7 +45,7 @@ def _get_league_names():
 	html = rs.get('https://poe.ninja/')
 	prefix = 'window.economyLeagues = '
 	start = html.text.index(prefix) + len(prefix)
-	end = html.text.find('];</script>', start) + 1
+	end = html.text.find('];window.oldEconomyLeagues', start) + 1
 	doc = html.text[start:end]
 
 	leagues = json.loads(doc)
