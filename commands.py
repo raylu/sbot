@@ -46,7 +46,7 @@ commands = {
 	'headpat': reddit.headpat,
 
 	'pc': poe.price,
-	'poe': poe.wiki,
+	'poe': poe.poedb,
 
 	'fc': friend_code.friend_code,
 	'stalks': animal_crossing.stalk_market,
