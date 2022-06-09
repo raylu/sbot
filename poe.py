@@ -201,7 +201,7 @@ def poedb(cmd):
 	parser.feed(r.text)
 	embed = {
 		'title': parser.og['title'],
-		'description': parser.og['description'],
+		'description': parser.og.get('description'),
 		'image': {'url': parser.og['image']},
 		'url': url,
 	}
