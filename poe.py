@@ -90,8 +90,8 @@ def _build_responses(lines):
 			if line.get('corrupted'):
 				name += ' (corrupted)'
 			response = '%s: %.1f chaos' % (name, line['chaosValue'])
-			if line['exaltedValue'] > 1.0:
-				response += ', %.1f exalted' % line['exaltedValue']
+			if line['divineValue'] > 1.0:
+				response += ', %.1f divine' % line['divineValue']
 		responses.append(response)
 	return responses
 
