@@ -33,7 +33,7 @@ class MockBot:
 		response = requests.get('https://discord.com/api' + path, headers={
 			'Authorization': 'Bot ' + config.bot.token,
 			'User-Agent': 'DiscordBot (https://github.com/raylu/sbot 0.0)',
-		})
+		}, timeout=5.0)
 		response.raise_for_status()
 		return response.json()
 

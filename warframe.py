@@ -1,7 +1,7 @@
 import requests
 
 def alert_analysis():
-	r = requests.get('http://content.warframe.com/dynamic/worldState.php')
+	r = requests.get('http://content.warframe.com/dynamic/worldState.php', timeout=5.0)
 	r.raise_for_status()
 	warframe_state = r.json()
 
