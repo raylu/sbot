@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import html.parser
-import json
 import time
 
 import requests
@@ -41,13 +40,10 @@ def price(cmd):
 		cmd.reply('', embed=embed)
 
 def _get_league_names():
-	r = rs.get('https://poe.ninja/')
-	prefix = 'window.economyLeagues = '
-	start = r.text.index(prefix) + len(prefix)
-	end = r.text.find('];window.oldEconomyLeagues', start) + 1
-	doc = r.text[start:end]
+	r = rs.get('https://poe.ninja/api/data/getindexstate')
+	r.raise_for_status()
+	leagues = r.json()['economyLeagues']
 
-	leagues = json.loads(doc)
 	ret = []
 	standard_league = None
 	for league_info in leagues:

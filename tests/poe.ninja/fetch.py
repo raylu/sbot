@@ -8,7 +8,7 @@ def main():
 	league = sys.argv[1]
 
 	rs = requests.Session()
-	download(rs, '/', {}, 'index.html')
+	download(rs, '/api/data/getindexstate', {}, 'index_state.json')
 	download(rs, '/api/data/economysearch', {
 		'league': league,
 		'language': 'fr',

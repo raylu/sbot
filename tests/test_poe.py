@@ -75,9 +75,10 @@ class TestPoe(unittest.TestCase):
 		''')
 
 def get(url, params=None):
-	if url == 'https://poe.ninja/':
-		with open(path.join(fixtures_dir, 'index.html')) as f:
-			return mock.Mock(text=f.read())
+	if url == 'https://poe.ninja/api/data/getindexstate':
+		with open(path.join(fixtures_dir, 'index_state.json')) as f:
+			data = json.load(f)
+		return mock.Mock(json=mock.Mock(return_value=data))
 	elif url == 'https://poe.ninja/api/data/economysearch' and params == {'league': 'Kalandra', 'language': 'fr'}:
 		with open(path.join(fixtures_dir, 'economysearch_kalandra_fr.json')) as f:
 			data = json.load(f)
