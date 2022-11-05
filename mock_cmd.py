@@ -9,7 +9,7 @@ import sbds
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'monso'
+		self.args = 'giant'
 		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()

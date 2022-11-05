@@ -1,5 +1,6 @@
 import dataclasses
 import itertools
+import re
 import typing
 
 import requests
@@ -18,11 +19,11 @@ class SBDS:
 		try:
 			translated = translations[key]
 		except KeyError:
-			if query in key.casefold():
+			if query == key.casefold():
 				return 'en'
 		else:
 			for lang, translation in translated.items():
-				if query in translation.casefold():
+				if query == translation.casefold():
 					return lang
 
 	def translate(self, key: str, lang: str):
@@ -32,6 +33,11 @@ class SBDS:
 			return key
 		else:
 			return translated[lang]
+
+	def translate_all(self, s: str, lang: str):
+		def ttl(m: re.Match):
+			return str(self.translate(m.group(0), lang))
+		return re.sub(r'\b[A-Z_]+\b', ttl, s)
 
 def sbds(cmd: 'bot.CommandEvent'):
 	if not cmd.args:
@@ -49,6 +55,28 @@ def sbds(cmd: 'bot.CommandEvent'):
 				'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{spell_id}.png'}
 			})
 			return
+	for aura_pair in data.spells['AURA']:
+		for aura in aura_pair:
+			if lang := data.matches_key(query, aura['titleText']):
+				cmd.reply('', {
+					'title': data.translate(aura['titleText'], lang),
+					'description': data.translate_all(aura['description'], lang),
+					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{aura["titleText"]}.png'}
+				})
+				return
+	for buff_pair in data.buffs:
+		for buff in buff_pair:
+			if not buff:
+				continue
+			if lang := data.matches_key(query, buff['shrineText']):
+				embed = {
+					'title': data.translate(buff['shrineText'], lang),
+					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/buffs/{buff["shrineText"]}.png'}
+				}
+				if 'notificationText' in buff:
+					embed['description'] = data.translate(buff['notificationText'], lang)
+				cmd.reply('', embed)
+				return
 
 	cmd.reply(f'couldn\'t find "{query}"')
 
@@ -60,7 +88,7 @@ def _get_data():
 
 	data = SBDS()
 	rs = requests.Session()
-	for filename in SBDS.__dataclass_fields__:
+	for filename in SBDS.__dataclass_fields__: # pylint: disable=no-member
 		r = rs.get(f'https://sbds.fly.dev/static/data/{filename}.json', timeout=5)
 		r.raise_for_status()
 		setattr(data, filename, r.json())
