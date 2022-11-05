@@ -557,7 +557,7 @@ class Guild:
 			self.roles[role['name']] = role
 
 class CommandEvent:
-	def __init__(self, d, args, bot):
+	def __init__(self, d, args: str, bot):
 		self.d = d
 		self.channel_id = d['channel_id']
 		# sender = {

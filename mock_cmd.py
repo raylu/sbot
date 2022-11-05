@@ -5,11 +5,11 @@ from pprint import pprint
 import requests
 
 import config
-import poe
+import sbds
 
 class MockCmd:
 	def __init__(self):
-		self.args = 'le stratège'
+		self.args = 'monso'
 		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()
@@ -48,4 +48,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-poe.price(MockCmd())
+sbds.sbds(MockCmd())

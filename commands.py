@@ -6,6 +6,7 @@ import friend_code
 import management
 import poe
 import reddit
+import sbds
 import timer
 import twitter
 import utils
@@ -47,6 +48,8 @@ commands = {
 
 	'pc': poe.price,
 	'poe': poe.poedb,
+
+	'sbds': sbds.sbds,
 
 	'fc': friend_code.friend_code,
 	'stalks': animal_crossing.stalk_market,
