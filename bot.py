@@ -5,6 +5,7 @@ import importlib
 import json
 import mimetypes
 import os
+import re
 import sys
 import threading
 import time
@@ -21,6 +22,7 @@ import instagram
 import command
 import config
 import log
+import sbds
 import steam_news
 from timer import readable_rel
 import twitch
@@ -145,11 +147,14 @@ class Bot:
 			print('->', raw_data)
 		self.ws.send(raw_data)
 
-	def send_message(self, channel_id, text, embed=None, files=None):
+	def send_message(self, channel_id, text: str, embed=None, files=None):
 		if files is None:
 			data = {'content': text}
 			if embed is not None:
-				data['embed'] = embed
+				if isinstance(embed, list):
+					data['embeds'] = embed
+				else:
+					data['embed'] = embed
 			self.post('/channels/%s/messages' % channel_id, data)
 		else:
 			assert text is None
@@ -250,7 +255,11 @@ class Bot:
 			cmd = CommandEvent(d, None, self)
 			self.commands['ohyes'](cmd)
 			return
-		if not content.startswith('!'):
+		elif matches := re.findall(r'\[\[(.+?)\]\]', content): # respond to [[tennado]]
+			embeds = list(filter(None, (sbds.get_embed(m) for m in matches)))[:4]
+			if len(embeds) > 0:
+				self.send_message(d['channel_id'], '', embeds)
+		elif not content.startswith('!'):
 			return
 
 		lines = content[1:].split('\n', 1)
@@ -557,7 +566,7 @@ class Guild:
 			self.roles[role['name']] = role
 
 class CommandEvent:
-	def __init__(self, d, args: str, bot):
+	def __init__(self, d, args: str, bot: Bot):
 		self.d = d
 		self.channel_id = d['channel_id']
 		# sender = {
