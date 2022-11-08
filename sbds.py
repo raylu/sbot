@@ -42,8 +42,8 @@ class SBDS:
 def sbds(cmd: 'bot.CommandEvent'):
 	if not cmd.args:
 		return
-	name = cmd.args.casefold()
-	embed = get_embed(name)
+	name = cmd.args
+	embed = get_embed(cmd.args)
 	if embed is None:
 		cmd.reply(f'couldn\'t find "{name}"')
 	else:
@@ -51,6 +51,7 @@ def sbds(cmd: 'bot.CommandEvent'):
 
 def get_embed(name: str) -> dict:
 	data = _get_data()
+	name = name.casefold()
 	for spell_id, spell in itertools.chain(data.spells['SPELL'].items(), data.spells['EVOLVED'].items()):
 		if spell['spellName'] is None:
 			continue
