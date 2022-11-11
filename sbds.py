@@ -2,6 +2,7 @@ import dataclasses
 import itertools
 import re
 import typing
+import urllib.parse
 
 import requests
 
@@ -56,27 +57,36 @@ def get_embed(name: str) -> dict:
 		if spell['spellName'] is None:
 			continue
 		if lang := data.matches_key(name, spell['spellName']):
+			translatedName = data.translate(spell['spellName'], lang)
 			return {
-				'title': data.translate(spell['spellName'], lang),
+				'title': translatedName,
 				'description': data.translate(spell['levelUpDescriptions'][0], lang),
-				'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{spell_id}.png'}
+				'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{spell_id}.png'},
+				'url': 'https://sbds.fly.dev/spells?' + urllib.parse.urlencode(
+					{'q': translatedName, 'lang': lang}),
 			}
 	for aura_pair in data.spells['AURA']:
 		for aura in aura_pair:
 			if lang := data.matches_key(name, aura['titleText']):
+				translatedName = data.translate(aura['titleText'], lang)
 				return {
-					'title': data.translate(aura['titleText'], lang),
+					'title': translatedName,
 					'description': data.translate_all(aura['description'], lang),
-					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{aura["titleText"]}.png'}
+					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/spells/{aura["titleText"]}.png'},
+					'url': 'https://sbds.fly.dev/spells?' + urllib.parse.urlencode(
+						{'q': translatedName, 'lang': lang}),
 				}
 	for player_buff, enemy_buff in data.buffs:
 		for buff in (player_buff, enemy_buff):
 			if not buff:
 				continue
 			if lang := data.matches_key(name, buff['shrineText']):
+				translated = data.translate(buff['shrineText'], lang)
 				embed = {
-					'title': data.translate(buff['shrineText'], lang),
-					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/buffs/{player_buff["shrineText"]}.png'}
+					'title': translated,
+					'thumbnail': {'url': f'https://sbds.fly.dev/static/data/buffs/{player_buff["shrineText"]}.png'},
+					'url': 'https://sbds.fly.dev/buffs?' + urllib.parse.urlencode(
+						{'q': translated, 'lang': lang}),
 				}
 				if 'notificationText' in buff:
 					embed['description'] = data.translate(buff['notificationText'], lang)
