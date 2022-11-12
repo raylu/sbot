@@ -180,15 +180,23 @@ def poedb(cmd):
 		return
 
 	query = cmd.args.casefold()
-	results = [i for i in _poedb_autocomplete() if query in i['label'].casefold()]
-	if len(results) == 0:
-		cmd.reply('no results found for %r' % cmd.args)
-		return
-	elif len(results) > 1:
-		cmd.reply(', '.join(i['label'] for i in results))
-		return
+	results: list[dict[str, str]] = []
+	for item in _poedb_autocomplete():
+		label = item['label'].casefold()
+		if query == label:
+			result = item
+			break
+		elif query in label:
+			results.append(item)
+	else:
+		if len(results) == 0:
+			cmd.reply('no results found for %r' % cmd.args)
+			return
+		elif len(results) > 1:
+			cmd.reply(', '.join(i['label'] for i in results))
+			return
+		[result] = results # pylint: disable=unbalanced-tuple-unpacking
 
-	[result] = results
 	url = 'https://poedb.tw/us/' + result['value']
 	r = rs.get(url)
 	r.raise_for_status()

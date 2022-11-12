@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 
 from pprint import pprint
+import sys
 
 import requests
 
 import config
-import sbds
+import poe
 
 class MockCmd:
 	def __init__(self):
-		self.args = '竜巻'
+		if len(sys.argv) == 2:
+			self.args = sys.argv[1]
+		else:
+			self.args = ''
 		self.sender = {'username': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()
@@ -48,4 +52,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-sbds.sbds(MockCmd())
+poe.poedb(MockCmd())
