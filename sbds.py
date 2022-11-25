@@ -33,7 +33,8 @@ class SBDS:
 		except KeyError:
 			return key
 		else:
-			return translated[lang]
+			translation = translated[lang]
+			return translation.replace('[b]', '**').replace('[/b]', '**')
 
 	def translate_all(self, s: str, lang: str):
 		def ttl(m: re.Match):
