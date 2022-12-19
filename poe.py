@@ -203,10 +203,14 @@ def poedb(cmd):
 
 	parser = OpenGraphParser()
 	parser.feed(r.text)
+	try:
+		image = {'url': parser.og['image']}
+	except KeyError:
+		image = None
 	embed = {
 		'title': parser.og['title'],
 		'description': parser.og.get('description'),
-		'image': {'url': parser.og['image']},
+		'image': image,
 		'url': url,
 	}
 	cmd.reply('', embed=embed)
