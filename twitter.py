@@ -55,6 +55,8 @@ def new_tweets(bot):
 		config.state.tweet_ids[account] = tweets[0]['id']
 	config.state.save()
 
+MAX_SIZE = 5000000
+
 def post(bot, message_id):
 	rs = requests.Session()
 	channel = config.bot.twitter_post['channel']
@@ -70,10 +72,10 @@ def post(bot, message_id):
 		media = rs.get(attachment['url']).content
 
 		media_type, _ = mimetypes.guess_type(attachment['filename'])
-		if attachment['size'] > 5000000 and media_type.startswith('image/'):
+		if media_type.startswith('image/'):
 			media = optimize_image(media)
 			media_type = 'image/jpeg'
-			if len(media) > 5000000:
+			if len(media) > MAX_SIZE:
 				log.write("skipping %s %s because we couldn't compress to under 5MB" %
 						(message_id, attachment['filename']))
 				continue
@@ -146,18 +148,22 @@ def sign(method, url, signing_params, consumer_secret, token_secret):
 	mac = hmac.HMAC(signing_key.encode('ascii'), base_string.encode('ascii'), 'sha1')
 	return base64.b64encode(mac.digest()).decode('ascii')
 
-def optimize_image(media):
+def optimize_image(media: bytes) -> bytes:
 	image = PIL.Image.open(io.BytesIO(media))
 	if image.mode == 'RGBA':
 		image = image.convert('RGB') # JPEG doesn't support alpha
+
 	max_dim = max(image.width, image.height)
+	if max_dim <= 8192 and len(media) <= MAX_SIZE: # no optimization needed
+		return media
+
 	if max_dim > 8192:
 		divisor = math.ceil(max_dim / 8192)
 		image = image.resize((image.width // divisor, image.height // divisor))
 
 	output = io.BytesIO()
 	image.save(output, 'JPEG', optimize=True)
-	if len(output.getbuffer()) > 5000000:
+	if len(output.getbuffer()) > MAX_SIZE:
 		output = io.BytesIO()
 		image.save(output, 'JPEG', optimize=True, quality='web_low')
 	return output.getvalue()

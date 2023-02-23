@@ -1,8 +1,12 @@
+import io
 import unittest
+
+import PIL.Image
 
 from tests import mock_config
 
 unittest.TestCase.assert_equal = unittest.TestCase.assertEqual
+unittest.TestCase.assert_less_equal = unittest.TestCase.assertLessEqual
 
 class TestTwitter(unittest.TestCase):
 	@classmethod
@@ -41,3 +45,12 @@ class TestTwitter(unittest.TestCase):
 		url = 'https://upload.twitter.com/1.1/media/upload.json'
 		self.assert_equal(self.twitter.sign('POST', url, params, consumer_secret, token_secret),
 				's0fC9HSsyxFWP5jCHEC+UM93avc=')
+
+	def test_optimize_image(self):
+		image = PIL.Image.new('RGB', (10000, 2))
+		output = io.BytesIO()
+		image.save(output, 'JPEG')
+
+		result = self.twitter.optimize_image(output.getvalue())
+		image = PIL.Image.open(io.BytesIO(result))
+		self.assert_less_equal(image.width, 8192)
