@@ -111,10 +111,8 @@ def jumps(cmd):
 		if len(matches) == 0:
 			cmd.reply('no systems found for {}'.format(split[i]))
 			return
-		elif len(matches) == 1:
-			results.append(matches[0])
-		else:
-			raise Exception('more than 1 system found', split[i])
+		assert len(matches) == 1, f'more than 1 system found for {split[i]}'
+		results.append(matches[0])
 
 	if len(split) == 3 and split[2] in ['safe', 'secure']:
 		flag = 'secure'
