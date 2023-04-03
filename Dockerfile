@@ -4,5 +4,4 @@ FROM python:3
 # python:3 ships with sqlite3.sqlite_version = '3.27.2'
 
 ADD requirements.txt .
-RUN pip install --requirement requirements.txt
-RUN pip install pylint
+RUN pip install --requirement requirements.txt ruff

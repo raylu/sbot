@@ -63,9 +63,9 @@ def post(bot, message_id):
 	message = bot.get_message(channel, message_id)
 
 	oauth = requests_oauthlib.OAuth1(config.bot.twitter_post['consumer_key'],
-	  client_secret=config.bot.twitter_post['consumer_secret'],
-	  resource_owner_key=config.bot.twitter_post['token'],
-	  resource_owner_secret=config.bot.twitter_post['token_secret'])
+			client_secret=config.bot.twitter_post['consumer_secret'],
+			resource_owner_key=config.bot.twitter_post['token'],
+			resource_owner_secret=config.bot.twitter_post['token_secret'])
 	media_ids = []
 	upload_url = 'https://upload.twitter.com/1.1/media/upload.json'
 	for attachment in message['attachments'][:4]:

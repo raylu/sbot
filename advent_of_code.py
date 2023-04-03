@@ -57,7 +57,6 @@ def sorted_dict(d: dict[str, Any]):
 	return sorted(d.items(), key=lambda pair: int(pair[0]))
 
 def main():
-	# pylint: disable=import-outside-toplevel
 	import bot
 
 	check_leaderboards(bot.Bot({}))

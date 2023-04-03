@@ -1,5 +1,5 @@
 name: 'CI'
-description: 'run unittest and pylint'
+description: 'run commands inside docker with newer py3 with newer sqlite3'
 
 inputs:
   cmd:

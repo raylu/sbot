@@ -50,7 +50,6 @@ def post_media(bot, channel_ids, media):
 		bot.send_message(channel_id, '<%s>' % media['permalink'], embed)
 
 def main():
-	# pylint: disable=import-outside-toplevel
 	import bot
 
 	new_media(bot.Bot({}))

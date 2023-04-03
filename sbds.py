@@ -101,7 +101,7 @@ def _get_data():
 
 	data = SBDS()
 	rs = requests.Session()
-	for filename in SBDS.__dataclass_fields__: # pylint: disable=no-member
+	for filename in SBDS.__dataclass_fields__:
 		r = rs.get(f'https://sbds.fly.dev/static/data/{filename}.json', timeout=5)
 		r.raise_for_status()
 		setattr(data, filename, r.json())

@@ -1,7 +1,7 @@
 from datetime import datetime
 import sys
 
-logfile = open('sbot.log', 'a', encoding='utf-8') # pylint: disable=consider-using-with
+logfile = open('sbot.log', 'a', encoding='utf-8')
 stdout = sys.stdout.isatty()
 
 def write(text):

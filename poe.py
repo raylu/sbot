@@ -195,7 +195,7 @@ def poedb(cmd):
 		elif len(results) > 1:
 			cmd.reply(', '.join(i['label'] for i in results))
 			return
-		[result] = results # pylint: disable=unbalanced-tuple-unpacking
+		[result] = results
 
 	url = 'https://poedb.tw/us/' + result['value']
 	r = rs.get(url)
@@ -226,7 +226,7 @@ def _poedb_autocomplete():
 		poedb_autocomplete = r.json()
 	return poedb_autocomplete
 
-class OpenGraphParser(html.parser.HTMLParser): # pylint: disable=abstract-method
+class OpenGraphParser(html.parser.HTMLParser):
 	def __init__(self):
 		super().__init__()
 		self.og = {}

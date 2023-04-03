@@ -107,7 +107,6 @@ def units(cmd):
 			else:
 				split[i] = 'temp%s' % (match.group(2))
 	units_cmd = ['units', '--compact', '--one-line', '--quiet', '--'] + split
-	# pylint: disable=consider-using-with
 	# in case we get in interactive mode, PIPE stdin so communicate will close it
 	proc = subprocess.Popen(units_cmd, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()

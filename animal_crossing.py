@@ -23,7 +23,7 @@ def stalk_market(cmd):
 - !stalks sell: will list all currently available sell offers.
 - !stalks sell <value>: will add a new offer listed at <value> bells.
 - !stalks trigger <value>: will ping you if a new offer is listed above <value> bells. 
-		''')
+		''') # noqa: E501
 		return
 
 	split = cmd.args.split(' ', 1)

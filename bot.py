@@ -12,7 +12,7 @@ import time
 import traceback
 import urllib.parse
 import zlib
-import _thread  # pylint: disable=wrong-import-order
+import _thread
 
 import requests
 import websocket
