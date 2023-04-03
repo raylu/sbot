@@ -9,17 +9,16 @@ on:
     branches: '*'
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: install
+      run: pip3 install --quiet --requirement requirements.txt ruff
     - name: unittest
-      uses: ./ # use action.yaml in this repo
-      with:
-        cmd: python3 -m unittest -v
+      run: python3 -m unittest --verbose
     - name: ruff
-      uses: ./
-      with:
-        cmd: ruff check --format=github .
+      run: ruff check --format=github .
