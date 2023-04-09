@@ -167,9 +167,10 @@ def _query(page, league):
 			return data
 
 	params = {'league': league, 'type': page}
-	r = rs.get('https://poe.ninja/api/data/itemoverview', params=params)
-	if r.status_code == 404:
+	if page == 'Currency':
 		r = rs.get('https://poe.ninja/api/data/currencyoverview', params=params)
+	else:
+		r = rs.get('https://poe.ninja/api/data/itemoverview', params=params)
 	r.raise_for_status()
 	data = r.json()
 	cache[(page, league)] = now, data
