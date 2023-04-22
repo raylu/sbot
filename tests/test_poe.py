@@ -1,7 +1,7 @@
 import json
-from os import path
 import textwrap
 import unittest
+from os import path
 from unittest import mock
 
 import poe
@@ -53,10 +53,10 @@ class TestPoe(unittest.TestCase):
 			"Warlord's Exalted Orb",
 			"Crusader's Exalted Orb",
 			"Hunter's Exalted Orb",
-			"Eldritch Exalted Orb",
-			"Tainted Exalted Orb",
-			"Exalted Orb",
-			"Exalted Shard",
+			'Eldritch Exalted Orb',
+			'Tainted Exalted Orb',
+			'Exalted Orb',
+			'Exalted Shard',
 		])
 		self.assert_reply('promesse d',
 				matches=["promesse d'atziri", 'la promesse du lapidaire', 'promesse de gangresang'])

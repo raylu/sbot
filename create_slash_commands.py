@@ -5,8 +5,8 @@ import time
 
 import requests
 
-from commands import commands
 import config
+from commands import commands
 
 def main():
 	parser = argparse.ArgumentParser()

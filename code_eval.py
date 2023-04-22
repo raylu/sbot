@@ -1,5 +1,5 @@
-from os import path
 import subprocess
+from os import path
 
 chroot_dir = path.join(path.dirname(path.abspath(__file__)), 'chroot')
 MB = 1024 * 1024

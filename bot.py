@@ -1,4 +1,4 @@
-from collections import defaultdict
+import _thread
 import copy
 import datetime
 import importlib
@@ -12,22 +12,22 @@ import time
 import traceback
 import urllib.parse
 import zlib
-import _thread
+from collections import defaultdict
 
 import requests
 import websocket
 
 import advent_of_code
-import instagram
 import command
 import config
+import instagram
 import log
 import sbds
 import steam_news
-from timer import readable_rel
 import twitch
 import twitter
 import warframe
+from timer import readable_rel
 
 class Bot:
 	def __init__(self, commands):
@@ -213,7 +213,7 @@ class Bot:
 			},
 			'compress': True,
 			'large_threshold': 50,
-			'shard': [0, 1]
+			'shard': [0, 1],
 		})
 
 	def handle_dispatch(self, event, d):

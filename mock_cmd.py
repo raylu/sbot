@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from pprint import pprint
 import sys
+from pprint import pprint
 
 import requests
 

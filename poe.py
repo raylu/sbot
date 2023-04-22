@@ -92,7 +92,7 @@ def _build_responses(lines):
 	return responses
 
 def _search(league, q) -> tuple[set[str], list[dict]]:
-	q = q.casefold().replace('’', "'") # replace U+2019 with apostrophe
+	q = q.casefold().replace('’', "'") # replace U+2019 with apostrophe # noqa: RUF001
 	matches = []
 	q, names, page = _page(league, q)
 	if not page:
@@ -151,7 +151,7 @@ def _page(league, q):
 				if q in item['name'].casefold():
 					return q, names, page
 	elif len(fr_q) > 1:
-		names = set(fr for en, fr in fr_q)
+		names = {fr for en, fr in fr_q}
 		return None, names, None
 	else:
 		return None, names, None

@@ -161,7 +161,7 @@ def _stalk_set_sell_price(cmd, price):
 	sunday = _date_to_sunday(current_time)
 	with db:
 		cur = db.execute('SELECT week_index, price FROM price WHERE user_id = ? AND week_local = ?',
-				(user_id, str(sunday),))
+				(user_id, str(sunday)))
 		week_price_rows = cur.fetchall()
 	week_prices = [None] * 13
 	for row in week_price_rows:

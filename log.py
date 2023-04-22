@@ -1,5 +1,5 @@
-from datetime import datetime
 import sys
+from datetime import datetime
 
 logfile = open('sbot.log', 'a', encoding='utf-8')
 stdout = sys.stdout.isatty()

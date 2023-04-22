@@ -1,7 +1,7 @@
-from math import sqrt
 import operator
 import sqlite3
 import time
+from math import sqrt
 
 import requests
 

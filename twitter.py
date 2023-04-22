@@ -1,9 +1,9 @@
 import base64
 import datetime
-import math
-import mimetypes
 import hmac
 import io
+import math
+import mimetypes
 import time
 import urllib.parse
 

@@ -106,7 +106,7 @@ def units(cmd):
 				split[i] = 'temp%s(%s)' % (match.group(2), match.group(1))
 			else:
 				split[i] = 'temp%s' % (match.group(2))
-	units_cmd = ['units', '--compact', '--one-line', '--quiet', '--'] + split
+	units_cmd = ['units', '--compact', '--one-line', '--quiet', '--', *split]
 	# in case we get in interactive mode, PIPE stdin so communicate will close it
 	proc = subprocess.Popen(units_cmd, universal_newlines=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 	output, _ = proc.communicate()
@@ -129,14 +129,14 @@ def roll(cmd):
 		cmd.reply('%s: error rolling' % cmd.sender['username'])
 
 tzinfos = {
-	"PST": dateutil.tz.gettz("America/Los_Angeles"),
-	"PDT": dateutil.tz.gettz("America/Los_Angeles"),
-	"MST": dateutil.tz.gettz("America/Denver"),
-	"MDT": dateutil.tz.gettz("America/Denver"),
-	"CST": dateutil.tz.gettz("America/Chicago"),
-	"CDT": dateutil.tz.gettz("America/Chicago"),
-	"EST": dateutil.tz.gettz("America/New_York"),
-	"EDT": dateutil.tz.gettz("America/New_York"),
+	'PST': dateutil.tz.gettz('America/Los_Angeles'),
+	'PDT': dateutil.tz.gettz('America/Los_Angeles'),
+	'MST': dateutil.tz.gettz('America/Denver'),
+	'MDT': dateutil.tz.gettz('America/Denver'),
+	'CST': dateutil.tz.gettz('America/Chicago'),
+	'CDT': dateutil.tz.gettz('America/Chicago'),
+	'EST': dateutil.tz.gettz('America/New_York'),
+	'EDT': dateutil.tz.gettz('America/New_York'),
 }
 def time(cmd):
 	if cmd.args:

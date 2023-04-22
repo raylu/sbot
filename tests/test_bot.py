@@ -35,7 +35,7 @@ class TestInteractionEvent(unittest.TestCase):
 				'joined_at': '2015-10-30T01:53:30.907000+00:00',
 				'is_pending': False,
 				'deaf': False,
-				'avatar': None
+				'avatar': None,
 			},
 			'id': '869800892336066580',
 			'guild_id': '109469702010478592',
@@ -59,7 +59,7 @@ class TestInteractionEvent(unittest.TestCase):
 					},
 				],
 				'name': 'timer',
-				'id': '869795468882894888'
+				'id': '869795468882894888',
 			},
 			'channel_id': '282441291327864834',
 			'application_id': '713159744516259880',

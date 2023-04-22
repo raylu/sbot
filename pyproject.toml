@@ -1,2 +1,13 @@
 [tool.ruff]
 line-length = 120
+select = [
+	'E', 'F', 'I',
+	'YTT', 'COM', 'T10', 'ISC', 'G', 'PIE', 'Q', 'RSE',
+	'PLC', 'PLE',
+	'RUF',
+]
+[tool.ruff.flake8-quotes]
+inline-quotes = 'single'
+multiline-quotes = 'single'
+[tool.ruff.isort]
+lines-after-imports = 1
