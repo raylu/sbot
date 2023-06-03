@@ -313,6 +313,9 @@ class Bot:
 		return handler
 
 	def handle_reaction_add(self, d):
+		if config.bot.twitter_post is None:
+			return
+
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
 				d['emoji']['name'] != 'shrfood_twitter' or d['user_id'] == self.user_id:
 			return
@@ -344,6 +347,9 @@ class Bot:
 			self.twitter_post_condvar.notify()
 
 	def handle_reaction_remove(self, d):
+		if config.bot.twitter_post is None:
+			return
+
 		if d['channel_id'] != config.bot.twitter_post['channel'] or \
 				d['emoji']['name'] != 'shrfood_twitter':
 			return
