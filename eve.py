@@ -196,21 +196,24 @@ def who(cmd):
 	}
 
 	def get_char_info(char_id):
-		r = rs.get('https://esi.evetech.net/latest/characters/{}/'.format(char_id), params={'datasource': 'tranquility'})
+		r = rs.get('https://esi.evetech.net/latest/characters/{}/'.format(char_id),
+				params={'datasource': 'tranquility'})
 		r.raise_for_status()
 		char_info = r.json()
 		killed, lost = get_zkill_stats(char_id, 0)
 		return char_info, killed, lost
 
 	def get_corp_info(corp_id):
-		r = rs.get('https://esi.evetech.net/latest/corporations/{}/'.format(corp_id), params={'datasource': 'tranquility'})
+		r = rs.get('https://esi.evetech.net/latest/corporations/{}/'.format(corp_id),
+				params={'datasource': 'tranquility'})
 		r.raise_for_status()
 		corp_info = r.json()
 		active_members = get_group_actives(corp_id, 1)
 		return corp_info, active_members
 
 	def get_alliance_info(alliance_id):
-		r = rs.get('https://esi.evetech.net/latest/alliances/{}/'.format(alliance_id), params={'datasource': 'tranquility'})
+		r = rs.get('https://esi.evetech.net/latest/alliances/{}/'.format(alliance_id),
+				params={'datasource': 'tranquility'})
 		r.raise_for_status()
 		alliance_info = r.json()
 		active_members = get_group_actives(alliance_id, 2)
