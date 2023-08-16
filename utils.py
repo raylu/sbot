@@ -97,6 +97,8 @@ def units(cmd):
 		split = [options[0]['value'], options[1]['value']]
 	else:
 		split = cmd.args.split(' in ', 1)
+		if len(split) == 1:
+			split = cmd.args.split(' to ', 1)
 
 	for i, part in enumerate(split):
 		match = temp_re.match(part)
