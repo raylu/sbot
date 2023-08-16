@@ -1,4 +1,4 @@
-# https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: CI
 
@@ -16,6 +16,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
+        cache: pip
     - name: install
       run: pip3 install --quiet --requirement requirements.txt ruff
     - name: unittest
