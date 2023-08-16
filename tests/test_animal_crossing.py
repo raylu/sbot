@@ -6,7 +6,7 @@ from unittest import mock
 unittest.TestCase.assert_equal = unittest.TestCase.assertEqual
 
 class TestAnimalCrossing(unittest.TestCase):
-	user = {'id': '1', 'username': 'testuser'}
+	user = {'id': '1', 'username': 'testuser'} # noqa: RUF012
 
 	@classmethod
 	def setUpClass(cls):
