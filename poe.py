@@ -47,7 +47,7 @@ def _get_league_names():
 	ret = []
 	standard_league = None
 	for league_info in leagues:
-		if league_info['url'] in ('challenge', 'event'):
+		if league_info['indexed'] and not league_info['hardcore']:
 			ret.append(league_info['name'])
 		elif league_info['url'] == 'standard':
 			standard_league = league_info['name']
