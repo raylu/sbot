@@ -34,7 +34,7 @@ class TestPoe(unittest.TestCase):
 
 	def test_price(self):
 		self.assert_reply('the strat', 'The Strategist: 125.0 chaos')
-		self.assert_reply('le stratège', 'The Strategist: 125.0 chaos')
+		self.assert_reply('of mirror', 'House of Mirrors: 3570.6 chaos, 21.0 divine')
 
 	def test_exact(self):
 		self.assert_reply('enlighten support', '''
@@ -58,8 +58,7 @@ class TestPoe(unittest.TestCase):
 			'Exalted Orb',
 			'Exalted Shard',
 		])
-		self.assert_reply('promesse d',
-				matches=["promesse d'atziri", 'la promesse du lapidaire', 'promesse de gangresang'])
+		self.assert_reply('promise', matches=["Gemcutter's Promise", 'Broken Promises'])
 
 	def test_no_match(self):
 		self.assert_reply('fishing', matches=["couldn't find fishing"])
@@ -79,7 +78,7 @@ def get(url, params=None):
 		with open(path.join(fixtures_dir, 'index_state.json')) as f:
 			data = json.load(f)
 		return mock.Mock(json=mock.Mock(return_value=data))
-	elif url == 'https://poe.ninja/api/data/economysearch' and params == {'league': 'Kalandra', 'language': 'fr'}:
+	elif url == 'https://poe.ninja/api/data/economysearch' and params == {'league': 'Kalandra'}:
 		with open(path.join(fixtures_dir, 'economysearch_kalandra_fr.json')) as f:
 			data = json.load(f)
 		return mock.Mock(json=mock.Mock(return_value=data))

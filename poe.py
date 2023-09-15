@@ -2,6 +2,7 @@
 
 import html.parser
 import time
+import typing
 
 import requests
 
@@ -122,9 +123,9 @@ def _search(league, q) -> tuple[set[str], list[dict]]:
 
 pages = {}
 
-def _page(league, q):
+def _page(league, q) -> tuple[typing.Optional[str], set[str], typing.Optional[str]]:
 	if len(pages) == 0:
-		r = rs.get('https://poe.ninja/api/data/economysearch', params={'league': league, 'language': 'fr'})
+		r = rs.get('https://poe.ninja/api/data/economysearch', params={'league': league})
 		r.raise_for_status()
 		pages.update(r.json())
 
@@ -135,30 +136,11 @@ def _page(league, q):
 				# there may be other matches on other pages, but we won't bother finding them
 				return q, names, page
 
-	# couldn't find it in english; try french
-	fr_q = []
-	for en, fr in pages['language']['translations'].items():
-		fr = fr.casefold()
-		if q == fr:
-			fr_q = [(en.casefold(), fr)]
-			break
-		elif q in fr:
-			fr_q.append((en.casefold(), fr))
-	if len(fr_q) == 1:
-		q = fr_q[0][0]
-		for page, items in pages['items'].items():
-			for item in items:
-				if q in item['name'].casefold():
-					return q, names, page
-	elif len(fr_q) > 1:
-		names = {fr for en, fr in fr_q}
-		return None, names, None
-	else:
-		return None, names, None
+	return None, names, None
 
 cache = {}
 
-def _query(page, league):
+def _query(page: str, league):
 	cached = cache.get((page, league))
 	now = time.time()
 	if cached is not None:
