@@ -173,7 +173,7 @@ def lightyears(cmd):
 	]
 	jdc = []
 	for ship, jump_range in ship_ranges:
-		for level in range(0, 6):
+		for level in range(6):
 			if dist <= jump_range * (1 + level * 0.2):
 				jdc.append('%s%d' % (ship, level))
 				break
