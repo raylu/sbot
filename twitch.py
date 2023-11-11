@@ -13,7 +13,7 @@ if config.bot.twitch is not None:
 
 	access_token_expiration = None
 
-	ANNOUNCE_FREQ = 4 * 60 * 60 # announce once every 4h
+	ANNOUNCE_FREQ = 8 * 60 * 60 # announce once every 8h
 	ANNOUNCE_DELAY = datetime.timedelta(minutes=5) # wait for thumbnails to generate
 
 def live_streams(bot):
