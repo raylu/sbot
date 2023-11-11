@@ -22,4 +22,4 @@ jobs:
     - name: unittest
       run: python3 -m unittest --verbose
     - name: ruff
-      run: ruff check --format=github .
+      run: ruff check --output-format=github .
