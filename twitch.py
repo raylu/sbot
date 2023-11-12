@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import datetime
 import time
+import typing
 
 import requests
 
 import config
+
+if typing.TYPE_CHECKING:
+	from bot import Bot
 
 if config.bot.twitch is not None:
 	rs = requests.Session()
@@ -16,7 +22,7 @@ if config.bot.twitch is not None:
 	ANNOUNCE_FREQ = 8 * 60 * 60 # announce once every 8h
 	ANNOUNCE_DELAY = datetime.timedelta(minutes=5) # wait for thumbnails to generate
 
-def live_streams(bot):
+def live_streams(bot: Bot) -> None:
 	now = time.time()
 	_access_token(now)
 
@@ -49,7 +55,7 @@ def live_streams(bot):
 				'image': {'url': thumbnail_url},
 			}
 			# store user_id because the stream URL cannot be derived from the stream['user_name']
-			user_to_announce[user_id] = (announce['channel'], embed)
+			user_to_announce[user_id] = (announce, embed)
 
 	if user_to_announce:
 		# get stream URLs for all user_ids
@@ -57,13 +63,16 @@ def live_streams(bot):
 		r = rs.get('https://api.twitch.tv/helix/users', params=params)
 		r.raise_for_status()
 		for user in r.json()['data']:
-			channel, embed = user_to_announce[user['id']]
+			announce, embed = user_to_announce[user['id']]
 			embed['url'] = 'https://www.twitch.tv/' + user['login']
 			embed['author'] = {
 				'name': user['display_name'],
 				'icon_url': user['profile_image_url'],
 			}
-			bot.send_message(channel, '<%s>' % embed['url'], embed)
+			text = '<%s>' % embed['url']
+			if announce['mention'] is not None:
+				text = '<@%s> %s' % (announce['mention'], text)
+			bot.send_message(announce['channel'], text, embed)
 			time.sleep(2)
 
 	# clean up last announce times older than ANNOUNCE_FREQ

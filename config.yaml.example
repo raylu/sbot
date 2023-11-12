@@ -32,8 +32,10 @@ twitch: # set this to null to disable
     announces:
         - game_id: 65360 # go
           channel: '282441291327864834' # bot-testing
+          mention: null
         - user_id: 23526807 # lurayl
           channel: '282441291327864834'
+          mention: '&1173144877127696394' # test role
 steam_news: # set this to null to disable
     427520: '282441291327864834' # factorio -> #bot-testing
 warframe: # set this to null to disable
