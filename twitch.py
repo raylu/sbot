@@ -49,7 +49,8 @@ def live_streams(bot: Bot) -> None:
 				continue
 			config.state.twitch_last_times[user_id] = now
 
-			thumbnail_url = stream['thumbnail_url'].replace('{width}', '256').replace('{height}', '144')
+			thumbnail_url = stream['thumbnail_url'].replace('{width}', '256').replace('{height}', '144') + \
+					'?%d' % time.time() # https://discuss.dev.twitch.com/t/thumbnail-urls-in-helix-users-endpoint/26792/4
 			embed = {
 				'title': stream['title'],
 				'image': {'url': thumbnail_url},
