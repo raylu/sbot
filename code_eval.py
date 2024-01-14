@@ -9,14 +9,14 @@ def nodejs(cmd):
 			'--rlimit_as', '700', '--chroot', chroot_dir,
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '7', '--quiet', '--',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '10', '--quiet', '--',
 			'/usr/bin/nodejs', '--print', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = proc.communicate()
 	if proc.returncode == 0:
 		output = stdout
-	elif proc.returncode == 109:
+	elif proc.returncode == 137:
 		output = 'timed out'
 	else:
 		split = stderr.split('\n', 5)
