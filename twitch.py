@@ -55,6 +55,9 @@ def live_streams(bot: Bot) -> None:
 				'title': stream['title'],
 				'image': {'url': thumbnail_url},
 			}
+			if 'game_id' in stream:
+				embed['thumbnail'] = {'url': 'https://static-cdn.jtvnw.net/ttv-boxart/%s-57x76.jpg' % stream['game_id']}
+				embed['footer'] = {'text': stream['game_name']}
 			# store user_id because the stream URL cannot be derived from the stream['user_name']
 			user_to_announce[user_id] = (announce, embed)
 
