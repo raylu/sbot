@@ -55,7 +55,7 @@ def timer(cmd):
 			name = options[0]['options'][0]['value']
 			_timer_del(cmd, name)
 		else:
-			raise AssertionError('unexpeced timer sub-command: %r' % subcmd)
+			raise AssertionError('unexpected timer sub-command: %r' % subcmd)
 	else:
 		if not cmd.args:
 			cmd.reply(timer_usage)
@@ -68,17 +68,17 @@ def timer(cmd):
 			try:
 				name, arg = split[1].rsplit(' in ', 1)
 			except IndexError:
-				cmd.reply('%s: missing args to `add`; %s' % (cmd.sender['username'], timer_usage))
+				cmd.reply('%s: missing args to `add`; %s' % (cmd.sender['pretty_name'], timer_usage))
 				return
 			except ValueError:
-				cmd.reply('%s: must specify timer name and time delta' % cmd.sender['username'])
+				cmd.reply('%s: must specify timer name and time delta' % cmd.sender['pretty_name'])
 				return
 			_timer_add(cmd, name, arg)
 		elif subcmd == 'del':
 			try:
 				name = split[1]
 			except IndexError:
-				cmd.reply('%s: missing args to `del`; %s' % (cmd.sender['username'], timer_usage))
+				cmd.reply('%s: missing args to `del`; %s' % (cmd.sender['pretty_name'], timer_usage))
 				return
 			_timer_del(cmd, name)
 		else:
@@ -98,7 +98,7 @@ def _timer_add(cmd, name, arg):
 	timers = config.state.timers.get(cmd.channel_id, {})
 	if name in timers:
 		time_str = format_dt(timers[name].replace(tzinfo=datetime.timezone.utc))
-		cmd.reply('%s: "%s" already set for %s' % (cmd.sender['username'], name, time_str))
+		cmd.reply('%s: "%s" already set for %s' % (cmd.sender['pretty_name'], name, time_str))
 		return
 
 	try: # parse as timestamp (981173106)
@@ -108,7 +108,7 @@ def _timer_add(cmd, name, arg):
 		try:
 			dt = parse_rel(arg)
 		except RelativeTimeParsingException as e:
-			cmd.reply('%s: %s' % (cmd.sender['username'], e.message))
+			cmd.reply('%s: %s' % (cmd.sender['pretty_name'], e.message))
 			return
 	dt = dt.replace(tzinfo=datetime.timezone.utc)
 
@@ -125,7 +125,7 @@ def _timer_del(cmd, name):
 		config.state.save()
 		cmd.reply('deleted "%s"' % name)
 	except KeyError:
-		cmd.reply('%s: couldn\'t find "%s" in this channel' % (cmd.sender['username'], name))
+		cmd.reply('%s: couldn\'t find "%s" in this channel' % (cmd.sender['pretty_name'], name))
 
 def format_dt(dt):
 	ts = dt.timestamp()

@@ -20,7 +20,7 @@ def headpat(cmd):
 			'image': {'url': image_url, 'width': image['width'], 'height': image['height']},
 		}
 	except Exception:
-		cmd.reply('%s: error getting an /r/headpat image' % cmd.sender['username'])
+		cmd.reply('%s: error getting an /r/headpat image' % cmd.sender['pretty_name'])
 	else:
 		cmd.reply('', embed)
 

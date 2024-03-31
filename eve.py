@@ -244,12 +244,12 @@ def who(cmd):
 				json=[cmd.args])
 		r.raise_for_status()
 	except requests.exceptions.HTTPError:
-		cmd.reply('{}: esi error'.format(cmd.sender['username']))
+		cmd.reply('{}: esi error'.format(cmd.sender['pretty_name']))
 		return
 
 	initial_id = r.json()
 	if len(initial_id) == 0:
-		cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['username'])
+		cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['pretty_name'])
 		return
 
 	corp_id = alliance_id = None
@@ -258,7 +258,7 @@ def who(cmd):
 		try:
 			char_info, killed, lost = get_char_info(initial_id['characters'][0]['id'])
 		except requests.exceptions.HTTPError:
-			cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['username'])
+			cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['pretty_name'])
 
 		corp_id = char_info['corporation_id']
 		output += '{name} ({security:.2f}) [{killed}/{lost}]\n'.format(

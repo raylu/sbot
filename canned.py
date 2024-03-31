@@ -82,17 +82,17 @@ def canned(cmd):
 			try:
 				name, text = split[1].split(' ', 1)
 			except IndexError:
-				cmd.reply('%s: missing args to `set`; %s' % (cmd.sender['username'], can_usage))
+				cmd.reply('%s: missing args to `set`; %s' % (cmd.sender['pretty_name'], can_usage))
 				return
 			except ValueError:
-				cmd.reply('%s: must specify can name and text' % cmd.sender['username'])
+				cmd.reply('%s: must specify can name and text' % cmd.sender['pretty_name'])
 				return
 			_can_set(cmd, name, text)
 		elif subcmd == 'del':
 			try:
 				name = split[1]
 			except IndexError:
-				cmd.reply('%s: missing args to `del`; %s' % (cmd.sender['username'], can_usage))
+				cmd.reply('%s: missing args to `del`; %s' % (cmd.sender['pretty_name'], can_usage))
 				return
 			_can_del(cmd, name)
 		else:
