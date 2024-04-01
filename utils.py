@@ -22,12 +22,12 @@ rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
 def help(cmd):
 	if cmd.args: # only reply on "!help"
 		return
-	commands = cmd.bot.commands.keys()
+	commands = list(cmd.bot.commands.keys())
 	guild_id = cmd.bot.channels[cmd.channel_id]
 	if config.bot.roles is None or guild_id != config.bot.roles['server']:
 		for name, func in cmd.bot.commands.items():
 			if func.__module__ == 'management':
-				del commands[name]
+				commands.remove(name)
 	reply = 'commands: `!%s`' % '`, `!'.join(commands)
 	cmd.reply(reply)
 
