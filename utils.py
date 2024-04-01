@@ -27,7 +27,7 @@ def help(cmd):
 	if config.bot.roles is None or guild_id != config.bot.roles['server']:
 		for name, func in cmd.bot.commands.items():
 			if func.__module__ == 'management':
-				commands.remove(name)
+				del commands[name]
 	reply = 'commands: `!%s`' % '`, `!'.join(commands)
 	cmd.reply(reply)
 
