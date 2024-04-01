@@ -22,7 +22,7 @@ def stalk_market(cmd):
 - !stalks buy <value>: will add a new offer listed at <value> bells.
 - !stalks sell: will list all currently available sell offers.
 - !stalks sell <value>: will add a new offer listed at <value> bells.
-- !stalks trigger <value>: will ping you if a new offer is listed above <value> bells. 
+- !stalks trigger <value>: will ping you if a new offer is listed above <value> bells.
 		''') # noqa: E501
 		return
 
@@ -88,7 +88,7 @@ def _stalk_list_buy_prices(cmd):
 	current_time = datetime.datetime.now(datetime.timezone.utc)
 	sunday = _date_to_sunday(current_time)
 	cur = db.execute('''
-	SELECT username, expiration, price FROM price 
+	SELECT username, expiration, price FROM price
 	JOIN user ON user_id = user.id
 	WHERE week_local = ? AND week_index = 0
 	''', (str(sunday),))
@@ -182,7 +182,7 @@ def _stalk_check_sell_triggers(cmd, price, expires_in):
 	if triggers:
 		msg = ' '.join(['<@!%s>' % (x) for x in triggers])
 		msg += (': %s has reported a sell price of %s, above your configured trigger. Their offer will expire in %s.' %
-			(cmd.sender['username'], price, expires_in))
+			(cmd.sender['pretty_name'], price, expires_in))
 		cmd.reply(msg)
 
 def _stalk_list_sale_prices(cmd):

@@ -81,6 +81,6 @@ def _user_remove(cmd):
 		''', (cmd.sender['id'],))
 
 	if cur.rowcount:
-		cmd.reply('Successfully removed friend code for %s.' % (cmd.sender['username']))
+		cmd.reply('Successfully removed friend code for %s.' % (cmd.sender['pretty_name']))
 	else:
 		cmd.reply('No friend code removed. Have you registered?')

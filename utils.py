@@ -22,7 +22,7 @@ rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
 def help(cmd):
 	if cmd.args: # only reply on "!help"
 		return
-	commands = set(cmd.bot.commands.keys())
+	commands = list(cmd.bot.commands.keys())
 	guild_id = cmd.bot.channels[cmd.channel_id]
 	if config.bot.roles is None or guild_id != config.bot.roles['server']:
 		for name, func in cmd.bot.commands.items():
@@ -128,7 +128,7 @@ def roll(cmd):
 		result = split[1].split('=', 1)[1]
 		cmd.reply('%s %s' % (result, details))
 	except IndexError:
-		cmd.reply('%s: error rolling' % cmd.sender['username'])
+		cmd.reply('%s: error rolling' % cmd.sender['pretty_name'])
 
 tzinfos = {
 	'PST': dateutil.tz.gettz('America/Los_Angeles'),
@@ -174,7 +174,7 @@ def weather(cmd):
 		response = rs.get(url)
 		response.raise_for_status()
 	except Exception:
-		cmd.reply('%s: error getting weather at %s' % (cmd.sender['username'], url),
+		cmd.reply('%s: error getting weather at %s' % (cmd.sender['pretty_name'], url),
 				{'description': '```%s```' % traceback.format_exc()[-500:]})
 		return
 	cmd.reply(None, files={'weather.png': response.content})

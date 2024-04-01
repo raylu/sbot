@@ -275,6 +275,9 @@ class Bot:
 			if len(lines) == 2:
 				arg += '\n' + lines[1]
 			cmd = CommandEvent(d, arg, self)
+			cmd.sender['pretty_name'] = cmd.d['member']['nick'] or \
+										cmd.sender['global_name'] or \
+										cmd.sender['username']
 			handler(cmd)
 
 	def handle_interaction_create(self, d):
