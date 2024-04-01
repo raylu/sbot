@@ -131,14 +131,16 @@ def roll(cmd):
 		cmd.reply('%s: error rolling' % cmd.sender['pretty_name'])
 
 tzinfos = {
-	'PST': dateutil.tz.gettz('America/Los_Angeles'),
-	'PDT': dateutil.tz.gettz('America/Los_Angeles'),
-	'MST': dateutil.tz.gettz('America/Denver'),
-	'MDT': dateutil.tz.gettz('America/Denver'),
-	'CST': dateutil.tz.gettz('America/Chicago'),
-	'CDT': dateutil.tz.gettz('America/Chicago'),
-	'EST': dateutil.tz.gettz('America/New_York'),
-	'EDT': dateutil.tz.gettz('America/New_York'),
+	'PST':  dateutil.tz.gettz('America/Los_Angeles'),
+	'PDT':  dateutil.tz.gettz('America/Los_Angeles'),
+	'MST':  dateutil.tz.gettz('America/Denver'),
+	'MDT':  dateutil.tz.gettz('America/Denver'),
+	'CST':  dateutil.tz.gettz('America/Chicago'),
+	'CDT':  dateutil.tz.gettz('America/Chicago'),
+	'EST':  dateutil.tz.gettz('America/New_York'),
+	'EDT':  dateutil.tz.gettz('America/New_York'),
+	'WET':  dateutil.tz.gettz('Europe/Lisbon'),
+	'WEST': dateutil.tz.gettz('Europe/Lisbon'),
 }
 def time(cmd):
 	if cmd.args:
@@ -157,27 +159,25 @@ def time(cmd):
 def weather(cmd):
 	if not cmd.args:
 		return
-	split = cmd.args.split()
-	if split[0].startswith('-'):
-		flags = split[0][1:]
-		location = ' '.join(split[1:])
-	elif split[-1].startswith('-'):
-		flags = split[-1][1:]
-		location = ' '.join(split[:-1])
-	else:
-		flags = '1Fp'
-		location = cmd.args
-		if location.isdecimal() and len(location) == 5:
-			location += '-us'
-	url = 'https://wttr.in/%s.png?%s' % (urllib.parse.quote_plus(location), flags)
+	flags = "format=**%l:**+%c+++🌡+`%t(%f)`++💦+`%h`++💨+`%w`++**☔**+`%p/3h`++**UVI:**+`%u`\
+				\n**Time:**+`%T`++**Sunrise:**+`%S`++**Sunset:**+`%s`++**Moon:**+%m"
+	location = cmd.args
+	if location.isdecimal() and len(location) == 5:
+		location += '-us'
+	url = f'https://wttr.in/{urllib.parse.quote_plus(location)}?{flags}'
 	try:
 		response = rs.get(url)
 		response.raise_for_status()
 	except Exception:
-		cmd.reply('%s: error getting weather at %s' % (cmd.sender['pretty_name'], url),
-				{'description': '```%s```' % traceback.format_exc()[-500:]})
+		if response.status_code == 503:
+			cmd.reply(f'{cmd.sender["pretty_name"]}: service unavailable for {location}')
+		elif response.status_code == 404:
+			cmd.reply(f'{cmd.sender["pretty_name"]}: {location} not found')
+		else:
+			cmd.reply(f'{cmd.sender["pretty_name"]}: error getting weather at {url}',
+					{'description': f'```{traceback.format_exc()[-500:]}```'})
 		return
-	cmd.reply(None, files={'weather.png': response.content})
+	cmd.reply(response.content.decode())
 
 def ohno(cmd):
 	url = 'https://www.raylu.net/f/ohno/ohno%03d.png' % random.randint(1, 294)
