@@ -159,8 +159,8 @@ def time(cmd):
 def weather(cmd):
 	if not cmd.args:
 		return
-	flags = 'format=**%l:**+%c+++🌡+`%t(%f)`++💦+`%h`++💨+`%w`++**☔**+`%p/3h`++**UVI:**+`%u`\n' \
-					'**Time:**+`%T`++**Sunrise:**+`%S`++**Sunset:**+`%s`++**Moon:**+%m'
+	flags = ('format=**%l:**+%c+++🌡+`%t(%f)`++💦+`%h`++💨+`%w`++**☔**+`%p/3h`++**UVI:**+`%u`\n'
+					'**Time:**+`%T`++**Sunrise:**+`%S`++**Sunset:**+`%s`++**Moon:**+%m')
 	location = cmd.args
 	if location.isdecimal() and len(location) == 5:
 		location += '-us'
