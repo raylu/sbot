@@ -6,7 +6,7 @@ from pprint import pprint
 import requests
 
 import config
-import poe
+import code_eval
 
 class MockCmd:
 	def __init__(self):
@@ -14,7 +14,7 @@ class MockCmd:
 			self.args = sys.argv[1]
 		else:
 			self.args = ''
-		self.sender = {'username': 'testname', 'id': '1'}
+		self.sender = {'username': 'testname', 'pretty_name': 'testname', 'id': '1'}
 		self.channel_id = '1'
 		self.bot = MockBot()
 
@@ -52,4 +52,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-poe.price(MockCmd())
+code_eval.nodejs(MockCmd())

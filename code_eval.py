@@ -6,7 +6,7 @@ MB = 1024 * 1024
 
 def nodejs(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
-			'--rlimit_as', '700', '--chroot', chroot_dir,
+			'--rlimit_as', '1000', '--chroot', chroot_dir,
 			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '10', '--quiet', '--',
