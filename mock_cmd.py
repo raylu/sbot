@@ -5,8 +5,8 @@ from pprint import pprint
 
 import requests
 
-import config
 import code_eval
+import config
 
 class MockCmd:
 	def __init__(self):
