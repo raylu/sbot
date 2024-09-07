@@ -588,11 +588,11 @@ class CommandEvent:
 		#     'discriminator': '8396',
 		#     'avatar': '464d73d2ca17733636282ab58b8cc3f5',
 		# }
-		self.sender = d['author']
+		self.sender: dict = d['author']
 		self.args = args
 		self.bot = bot
 
-	def reply(self, message, embed=None, files=None):
+	def reply(self, message: str, embed: dict | None=None, files=None) -> None:
 		self.bot.send_message(self.channel_id, message, embed, files)
 
 	def react(self, emoji):

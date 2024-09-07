@@ -1,3 +1,4 @@
+cryptolyzer
 pillow
 python-dateutil
 PyYAML

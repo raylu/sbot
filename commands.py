@@ -1,6 +1,7 @@
 import animal_crossing
 import canned
 import code_eval
+import cryptolyze
 import eve
 import friend_code
 import management
@@ -36,6 +37,8 @@ commands = {
 	'ruby': code_eval.ruby,
 	'py2': code_eval.python2,
 	'py3': code_eval.python3,
+
+	'cryptolyze': cryptolyze.cryptolyze,
 
 	'join': management.join,
 	'leave': management.leave,
