@@ -1,34 +1,45 @@
 from __future__ import annotations
 
-import subprocess
 import typing
 
 if typing.TYPE_CHECKING:
-	from bot import CommandEvent
+	from cryptolyzer.tls.versions import AnalyzerResultVersions
+	from cryptolyzer.tls.vulnerabilities import AnalyzerResultVulnerabilities
 
+	from bot import CommandEvent
 
 def cryptolyze(cmd: CommandEvent) -> None:
 	if not cmd.args:
 		return
-	base_cmd = ['cryptolyze', '--output-format', 'markdown', 'tls']
 	try:
-		versions = subprocess.run([*base_cmd, 'versions', cmd.args], check=True, capture_output=True, text=True)
-		output_lines = versions.stdout.splitlines()
+		versions_result, vulns_result = analyze(cmd.args)
+	except Exception as e:
+		cmd.reply(f'{cmd.sender['pretty_name']}: {e}')
+	else:
+		vulns = []
+		for category in vulns_result.ciphers, vulns_result.dhparams, vulns_result.versions:
+			for vuln in (getattr(category, a.name) for a in category.__attrs_attrs__): # pyright: ignore[reportAttributeAccessIssue]
+				if vuln is not None and vuln.value:
+					vulns.append(vuln.get_name())
+		embed = {
+			'title': versions_result.target.address,
+			'description': versions_result.target.ip,
+			'fields': [
+				{'name': 'versions', 'value': ' '.join(map(str, versions_result.versions)), 'inline': True},
+				{'name': 'vulnerabilities', 'value': '\n'.join(vulns) or 'none!', 'inline': True},
+			],
+		}
+		cmd.reply('', embed=embed)
 
-		vulns = subprocess.run([*base_cmd, 'vulns', cmd.args], check=True, capture_output=True, text=True)
-		vuln_lines = vulns.stdout.splitlines()
-		assert vuln_lines[0] == '* Target:'
-		for start, line in enumerate(vuln_lines[1:], 1):
-			if line.startswith('* '):
-				break
-		else:
-			raise AssertionError("couldn't find second heading in vulns output")
-		for line in vuln_lines[start:]:
-			if line.endswith('yes'):
-				line = line.removesuffix('yes') + '**yes**'
-			output_lines.append(line)
+def analyze(host: str) -> tuple[AnalyzerResultVersions, AnalyzerResultVulnerabilities]:
+	from cryptolyzer.common.utils import LogSingleton
+	from cryptolyzer.tls.client import L7ClientTls
+	from cryptolyzer.tls.versions import AnalyzerVersions
+	from cryptolyzer.tls.vulnerabilities import AnalyzerVulnerabilities
 
-		output = '\n'.join(line[2:] if line.startswith('    ') else line for line in output_lines)
-		cmd.reply('', embed={'description': output})
-	except subprocess.CalledProcessError as e:
-		cmd.reply(f'{cmd.sender['pretty_name']}: {e.stderr}')
+	LogSingleton.log = lambda *args, **kwargs: None
+
+	client = L7ClientTls(host, 443) # pyright: ignore[reportCallIssue]
+	versions_result = AnalyzerVersions().analyze(client, None)
+	vulns_result = AnalyzerVulnerabilities().analyze(client, None)
+	return versions_result, vulns_result
