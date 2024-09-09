@@ -6,7 +6,6 @@ import eve
 import friend_code
 import management
 import poe
-import reddit
 import sbds
 import timer
 import twitter
@@ -46,8 +45,6 @@ commands = {
 	'groups': management.list_roles,
 	'cleanup': management.cleanup,
 	'massban': management.mass_ban,
-
-	'headpat': reddit.headpat,
 
 	'pc': poe.price,
 	'poe': poe.poedb,

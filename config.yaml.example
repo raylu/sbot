@@ -7,9 +7,6 @@ eve_db: 'sqlite-latest.sqlite'
 zkillboard: # set this to null to disable
     alliance: 99002172
     channel: '282441291327864834'
-reddit:
-    api_id: null
-    api_secret: null
 twitter: # set this to null to disable
     bearer_token: null
     accounts:
