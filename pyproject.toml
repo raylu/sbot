@@ -1,3 +1,17 @@
+[project]
+name = 'sbot'
+dynamic = ['version']
+dependencies = [
+	'cryptolyzer',
+	'pillow',
+	'pyfend',
+	'python-dateutil',
+	'PyYAML',
+	'requests',
+	'requests_oauthlib',
+	'websocket-client',
+]
+
 [tool.ruff]
 line-length = 120
 [tool.ruff.lint]

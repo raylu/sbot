@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import hashlib
 import random
@@ -6,15 +8,20 @@ import struct
 import subprocess
 import sys
 import traceback
+import typing
 import urllib.parse
 
 import dateutil.parser
 import dateutil.tz
+import pyfend
 import requests
 import websocket
 
 import command
 import config
+
+if typing.TYPE_CHECKING:
+	from bot import CommandEvent
 
 rs = requests.Session()
 rs.headers['User-Agent'] = 'sbot (github.com/raylu/sbot)'
@@ -55,18 +62,16 @@ def ping(cmd):
 	delta = datetime.datetime.now(datetime.timezone.utc) - dt
 	cmd.reply('%.3f ms' % (delta.total_seconds() * 1000))
 
-def calc(cmd):
+def calc(cmd: CommandEvent) -> None:
 	if not cmd.args:
 		return
-	response = rs.post('https://api.mathjs.org/v4/', json={'expr': cmd.args})
-	if response.status_code in (200, 400):
-		data = response.json()
-		if data['error']:
-			cmd.reply('<@!%s>: %s' % (cmd.sender['id'], data['error']))
-		else:
-			cmd.reply(data['result'][:1000])
-	else:
-		cmd.reply('<@!%s>: error calculating' % cmd.sender['id'])
+	try:
+		context = pyfend.Context()
+		context.set_output_mode_terminal()
+		output = pyfend.evaluate(cmd.args, context)
+		cmd.reply('', {'description': '```\n%s```' % output})
+	except pyfend.FendError as e:
+		cmd.reply('<@!%s>: %s' % (cmd.sender['id'], e))
 
 def unicode(cmd):
 	if not cmd.args:

@@ -1,7 +1,0 @@
-cryptolyzer
-pillow
-python-dateutil
-PyYAML
-requests
-requests_oauthlib
-websocket-client
