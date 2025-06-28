@@ -7,6 +7,10 @@ select = [
 	'PLC', 'PLE',
 	'RUF',
 ]
+ignore = [
+	'PLC0415', # import-outside-top-level
+	'RUF021', # parenthesize-chained-operators
+]
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = 'single'
 multiline-quotes = 'single'
