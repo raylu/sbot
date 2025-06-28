@@ -11,6 +11,10 @@ dependencies = [
 	'requests_oauthlib',
 	'websocket-client',
 ]
+[dependency-groups]
+dev = [
+    'ruff',
+]
 
 [tool.ruff]
 line-length = 120

@@ -13,13 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - uses: astral-sh/setup-uv@v5
     - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
-        cache: pip
-    - name: install
-      run: pip3 install --quiet --requirement requirements.txt ruff
     - name: unittest
-      run: python3 -m unittest --verbose
+      run: uv run -m unittest --verbose
     - name: ruff
-      run: ruff check --output-format=github .
+      run: uv run ruff check --output-format=github .
