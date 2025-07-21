@@ -74,7 +74,7 @@ class TestPoe(unittest.TestCase):
 		''')
 
 def get(url, params=None):
-	if url == 'https://poe.ninja/api/data/getindexstate':
+	if url == 'https://poe.ninja/api/data/index-state':
 		with open(path.join(fixtures_dir, 'index_state.json')) as f:
 			data = json.load(f)
 		return mock.Mock(json=mock.Mock(return_value=data))

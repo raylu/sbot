@@ -41,7 +41,7 @@ def price(cmd):
 		cmd.reply('', embed=embed)
 
 def _get_league_names():
-	r = rs.get('https://poe.ninja/api/data/getindexstate')
+	r = rs.get('https://poe.ninja/api/data/index-state')
 	r.raise_for_status()
 	leagues = r.json()['economyLeagues']
 
