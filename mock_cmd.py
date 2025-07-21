@@ -5,13 +5,13 @@ from pprint import pprint
 
 import requests
 
-import code_eval
+import commands
 import config
 
 class MockCmd:
 	def __init__(self):
-		if len(sys.argv) == 2:
-			self.args = sys.argv[1]
+		if len(sys.argv) == 3:
+			self.args = sys.argv[2]
 		else:
 			self.args = ''
 		self.sender = {'username': 'testname', 'pretty_name': 'testname', 'id': '1'}
@@ -52,4 +52,4 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-code_eval.nodejs(MockCmd())
+commands.commands[sys.argv[1]](MockCmd())
