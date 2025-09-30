@@ -1,6 +1,6 @@
 [project]
 name = 'sbot'
-dynamic = ['version']
+version = '0'
 dependencies = [
 	'cryptolyzer',
 	'pillow',
