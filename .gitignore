@@ -3,4 +3,5 @@ __pycache__
 /config.yaml
 /state.yaml
 /sbot.log
+/uv.lock
 *.sqlite

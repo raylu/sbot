@@ -68,7 +68,7 @@ def calc(cmd: CommandEvent) -> None:
 	try:
 		context = pyfend.Context()
 		context.set_output_mode_terminal()
-		output = pyfend.evaluate(cmd.args, context)
+		output = pyfend.evaluate(cmd.args, context)[:1500]
 		cmd.reply('', {'description': '```\n%s```' % output})
 	except pyfend.FendError as e:
 		cmd.reply('<@!%s>: %s' % (cmd.sender['id'], e))
