@@ -601,6 +601,7 @@ class CommandEvent:
 		#     'avatar': '464d73d2ca17733636282ab58b8cc3f5',
 		# }
 		self.sender: dict = d['author']
+		self.sender_nick = self.sender.get('global_name') or self.sender['username']
 		self.args = args
 		self.bot = bot
 
@@ -615,6 +616,7 @@ class InteractionEvent:
 		self.token = d['token']
 		self.channel_id = d['channel_id']
 		self.sender = d['member']['user']
+		self.sender_nick = self.sender.get('global_name') or self.sender['username']
 		self.options = d['data'].get('options', [])
 		self.args = ' '.join(InteractionEvent.iter_option_values(self.options))
 		self.bot = bot
