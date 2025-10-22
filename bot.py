@@ -49,8 +49,8 @@ class Bot:
 		self.advent_of_code_thread = None
 		self.user_id = None
 		self.seq = None
-		self.guilds = {} # guild id -> Guild
-		self.channels = {} # channel id -> guild id
+		self.guilds: dict[str, Guild] = {}
+		self.channels: dict[str, str] = {} # channel id -> guild id
 
 
 		self.handlers = {
@@ -113,9 +113,20 @@ class Bot:
 					log.write(tb)
 					if config.bot.err_channel:
 						try:
+							sender: dict = data['d'].get('author', data['d'].get('member', {}).get('user', {}))
+							guild = self.guilds.get(data['d'].get('guild_id'))
+							channel = data['d'].get('channel')
+							err = '\n'.join([
+								't: ' + data['t'],
+								'sender: %s %s %r' % (
+									sender.get('username', ''), sender.get('global_name'), sender.get('id')),
+								'guild: ' + (guild.name if guild else data['d'].get('guild_id')),
+								'channel: ' + repr(channel.get('name') if channel else data['d'].get('channel_id')),
+								'data: %s' % data['d'].get('content', data['d'].get('data')),
+							])
 							# messages can be up to 2000 characters
 							self.send_message(config.bot.err_channel,
-									'```\n%s\n```\n```\n%s\n```' % (raw_data[:800], tb[:1000]))
+									'```\n%s\n```\n```\n%s\n```' % (err[:800], tb[:1000]))
 						except Exception:
 							log.write('error sending to err_channel:\n' + traceback.format_exc())
 			log.flush()
@@ -565,6 +576,7 @@ class Bot:
 
 class Guild:
 	def __init__(self, d):
+		self.name: str = d['name']
 		self.roles = {} # name -> {
 		#	'color': 0,
 		#	'hoist': False,
