@@ -566,7 +566,7 @@ class Bot:
 
 	def advent_of_code_loop(self):
 		while True:
-			time.sleep(60 * 30)
+			time.sleep(12 * 60 * 60)
 			try:
 				advent_of_code.check_leaderboards(self)
 			except requests.exceptions.HTTPError as e:
