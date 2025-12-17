@@ -5,6 +5,7 @@ import importlib
 import json
 import mimetypes
 import os
+import random
 import re
 import sys
 import threading
@@ -34,7 +35,14 @@ class Bot:
 		self.ws = None
 		self.rs = requests.Session()
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
-		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot 0.0)'
+		# https://discord.com/developers/docs/reference#user-agent
+		self.rs.headers['User-Agent'] = 'DiscordBot (https://github.com/raylu/sbot, 0.0)'
+		self.session_id = None
+		self.resume_gateway_url = None
+		self.user_id = None
+		self.seq = None
+		self.guilds: dict[str, Guild] = {}
+		self.channels: dict[str, str] = {} # channel id -> guild id
 		self.heartbeat_thread = None
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
@@ -47,15 +55,11 @@ class Bot:
 		self.instagram_thread = None
 		self.steam_news_thread = None
 		self.advent_of_code_thread = None
-		self.user_id = None
-		self.seq = None
-		self.guilds: dict[str, Guild] = {}
-		self.channels: dict[str, str] = {} # channel id -> guild id
-
 
 		self.handlers = {
 			OP.HELLO: self.handle_hello,
 			OP.DISPATCH: self.handle_dispatch,
+			OP.RECONNECT: self.handle_reconnect,
 		}
 		self.events = {
 			'READY': self.handle_ready,
@@ -106,7 +110,7 @@ class Bot:
 			handler = self.handlers.get(data['op'])
 			if handler:
 				try:
-					handler(data['t'], data['d'])
+					handler(data.get('t'), data['d'])
 				except Exception:
 					tb = traceback.format_exc()
 					log.write(data)
@@ -236,9 +240,21 @@ class Bot:
 		if handler:
 			handler(d)
 
+	def handle_reconnect(self, _, d):
+		log.write('reconnecting...')
+		self.ws.close()
+		# https://discord.com/developers/docs/events/gateway#resuming
+		self.ws = websocket.create_connection(self.resume_gateway_url + '?v=9&encoding=json')
+		self.ws.send(OP.RESUME, {'token': config.bot.token, 'session_id': self.session_id, 'seq': self.seq})
+
 	def handle_ready(self, d):
 		log.write('connected as ' + d['user']['username'])
+		self.session_id = d['session_id']
+		self.resume_gateway_url = d['resume_gateway_url']
 		self.user_id = d['user']['id']
+
+		if self.timer_thread is not None:
+			return
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
 		if config.bot.zkillboard is not None:
 			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
@@ -414,6 +430,10 @@ class Bot:
 
 	def heartbeat_loop(self, interval_ms):
 		interval_s = interval_ms / 1000
+		# delay first heartbeat with jitter
+		# https://discord.com/developers/docs/events/gateway#heartbeat-interval
+		time.sleep(random.random() * interval_s)
+		self.send(OP.HEARTBEAT, self.seq)
 		while True:
 			time.sleep(interval_s)
 			self.send(OP.HEARTBEAT, self.seq)
