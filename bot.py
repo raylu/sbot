@@ -21,6 +21,7 @@ import websocket
 import advent_of_code
 import command
 import config
+import flights
 import instagram
 import log
 import sbds
@@ -124,7 +125,7 @@ class Bot:
 								't: ' + data['t'],
 								'sender: %s %s %r' % (
 									sender.get('username', ''), sender.get('global_name'), sender.get('id')),
-								'guild: ' + (guild.name if guild else data['d'].get('guild_id')),
+								'guild: ' + (guild.name if guild else data['d'].get('guild_id', '')),
 								'channel: ' + repr(channel.get('name') if channel else data['d'].get('channel_id')),
 								'data: %s' % data['d'].get('content', data['d'].get('data')),
 							])
@@ -272,6 +273,7 @@ class Bot:
 			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
 		if config.bot.advent_of_code is not None and datetime.date.today().month in (12, 1):
 			self.advent_of_code_thread = _thread.start_new_thread(self.advent_of_code_loop, ())
+		self.flights_thread = _thread.start_new_thread(self.flights_loop, ())
 
 	def handle_message_create(self, d):
 		if d['author'].get('bot'):
@@ -594,6 +596,16 @@ class Bot:
 			except requests.exceptions.RequestException as e:
 				log.write('advent of code: %s' % e)
 
+	def flights_loop(self):
+		while True:
+			time.sleep(15 * 60)
+			try:
+				flights.check_flights(self)
+			except requests.exceptions.HTTPError as e:
+				log.write('flights: %s\n%s' % (e, e.response.text[:1000]))
+			except requests.exceptions.RequestException as e:
+				log.write('flights: %s' % e)
+
 class Guild:
 	def __init__(self, d):
 		self.name: str = d['name']
@@ -633,9 +645,13 @@ class CommandEvent:
 
 class InteractionEvent:
 	def __init__(self, d, bot):
+		# https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
 		self.token = d['token']
 		self.channel_id = d['channel_id']
-		self.sender = d['member']['user']
+		if 'member' in d: # in guild
+			self.sender = d['member']['user']
+		else: # DM
+			self.sender = d['user']
 		self.sender_nick = self.sender.get('global_name') or self.sender['username']
 		self.options = d['data'].get('options', [])
 		self.args = ' '.join(InteractionEvent.iter_option_values(self.options))

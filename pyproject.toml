@@ -2,7 +2,9 @@
 name = 'sbot'
 version = '0'
 dependencies = [
+	'bs4',
 	'cryptolyzer',
+	'lxml',
 	'pillow',
 	'pyfend',
 	'python-dateutil',
@@ -26,6 +28,7 @@ select = [
 	'RUF',
 ]
 ignore = [
+	'ISC003', # explicit-string-concatenation
 	'PLC0415', # import-outside-top-level
 	'RUF021', # parenthesize-chained-operators
 ]

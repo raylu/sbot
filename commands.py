@@ -3,6 +3,7 @@ import canned
 import code_eval
 import cryptolyze
 import eve
+import flights
 import friend_code
 import management
 import poe
@@ -48,6 +49,8 @@ commands = {
 
 	'pc': poe.price,
 	'poe': poe.poedb,
+
+	'flight': flights.track_flight,
 
 	'sbds': sbds.sbds,
 

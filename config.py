@@ -32,6 +32,7 @@ bot = YamlAttrs('config.yaml')
 state = YamlAttrs('state.yaml',
 	defaults={
 		'advent_of_code_last_check': int(time.time()),
+		'flights': [],
 		'gateway_url': None,
 		'instagram': {},
 		'reddit_access_token': None,
