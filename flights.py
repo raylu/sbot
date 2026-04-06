@@ -139,7 +139,9 @@ def _iter_flight_rows(rs: requests.Session, number: str) -> typing.Iterator[bs4.
 	response = rs.get('https://www.flightradar24.com/data/flights/' + number)
 	response.raise_for_status()
 	soup = bs4.BeautifulSoup(response.content, 'lxml')
-	yield from soup.find('table', id='tbl-datatable').find('tbody').find_all('tr', class_='data-row')
+	if (table := soup.find('table', id='tbl-datatable')) is None:
+		return
+	yield from table.find('tbody').find_all('tr', class_='data-row')
 
 @dataclasses.dataclass(eq=False, slots=True)
 class FlightState:
