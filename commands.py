@@ -1,6 +1,7 @@
 import animal_crossing
 import canned
 import code_eval
+import cosm
 import cryptolyze
 import eve
 import flights
@@ -46,6 +47,8 @@ commands = {
 	'groups': management.list_roles,
 	'cleanup': management.cleanup,
 	'massban': management.mass_ban,
+
+	'corp': cosm.price_mat,
 
 	'pc': poe.price,
 	'poe': poe.poedb,
