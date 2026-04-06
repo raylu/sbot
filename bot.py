@@ -243,10 +243,11 @@ class Bot:
 
 	def handle_reconnect(self, _, d):
 		log.write('reconnecting...')
+		assert self.ws is not None and self.resume_gateway_url is not None
 		self.ws.close()
 		# https://discord.com/developers/docs/events/gateway#resuming
 		self.ws = websocket.create_connection(self.resume_gateway_url + '?v=9&encoding=json')
-		self.ws.send(OP.RESUME, {'token': config.bot.token, 'session_id': self.session_id, 'seq': self.seq})
+		self.send(OP.RESUME, {'token': config.bot.token, 'session_id': self.session_id, 'seq': self.seq})
 
 	def handle_ready(self, d):
 		log.write('connected as ' + d['user']['username'])
