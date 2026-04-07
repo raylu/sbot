@@ -52,4 +52,5 @@ class MockGuild:
 			'cats': {'position': 2, 'name': 'cats', 'color': 13369480, 'id': '2222'},
 		}
 
-commands.commands[sys.argv[1]](MockCmd())
+if __name__ == '__main__':
+	commands.commands[sys.argv[1]](MockCmd())

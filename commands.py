@@ -3,13 +3,13 @@ import typing
 import animal_crossing
 import canned
 import code_eval
-import cosm
 import cryptolyze
 import eve
 import flights
 import friend_code
 import management
 import poe
+import prun
 import sbds
 import timer
 import utils
@@ -49,7 +49,7 @@ commands: typing.Mapping[str, typing.Callable[..., None]] = {
 	'cleanup': management.cleanup,
 	'massban': management.mass_ban,
 
-	'corp': cosm.price_mat,
+	'corp': prun.price_mat,
 
 	'pc': poe.price,
 	'poe': poe.poedb,

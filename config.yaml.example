@@ -3,6 +3,9 @@ token: null
 err_channel: null
 roles: # set this to null to disable
     server: '109469702010478592' # secret hiding room
+autoreload: false
+debug: false
+
 eve_db: 'sqlite-latest.sqlite'
 instagram: # set this to null to disable
     - user_id: 17841443895269721 # cocoshibanut
@@ -19,6 +22,12 @@ twitch: # set this to null to disable
         - user_id: 23526807 # lurayl
           channel: '282441291327864834'
           mention: '&1173144877127696394' # test role
+prun_upkeep: # set this to null to disable
+    Logica:
+        channel: '1119710330449301564'
+        popi:
+            SAFETY_STATION: 2
+            UNIVERSITY: 1
 steam_news: # set this to null to disable
     427520: '282441291327864834' # factorio -> #bot-testing
 acnh_db: 'acnh.sqlite' # set this to null to disable
@@ -26,7 +35,5 @@ advent_of_code: # set this to null to disable
     - leaderboard: 660957 # Frosty-nee
       channel: '282441291327864834' # bot-testing
       session: null
-autoreload: false
-debug: false
 
 # vim: set ft=yaml:

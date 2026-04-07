@@ -13,6 +13,7 @@ import advent_of_code
 import config
 import instagram
 import log
+import prun
 import steam_news
 import twitch
 from bot import Bot
@@ -25,6 +26,8 @@ def main() -> None:
 		# https://developers.facebook.com/docs/graph-api/overview/rate-limiting#platform-rate-limits
 		# 240 * users / hour is 4× what we'll need
 		jobs.append(CronJob(60, instagram.new_media))
+	if config.bot.prun_upkeep is not None:
+		jobs.append(CronJob(60 * 60, prun.planetary_upkeep))
 	if config.bot.steam_news is not None:
 		jobs.append(CronJob(60, steam_news.news))
 	if config.bot.twitch is not None:
