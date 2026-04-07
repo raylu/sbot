@@ -8,10 +8,11 @@ import requests
 import config
 
 def news(bot):
+	assert config.bot.steam_news is not None
 	rs = requests.Session()
 
 	for game_id, channel_id in config.bot.steam_news.items():
-		last_ann_id = config.state.steam_news_ids.get(game_id, 0)
+		last_ann_id = config.cron_state.steam_news_ids.get(game_id, 0)
 		first_ann_id = None
 		embeds = []
 		r = rs.get('https://steamcommunity.com/games/%s/rss' % game_id)
@@ -37,5 +38,5 @@ def news(bot):
 		for embed in reversed(embeds):
 			bot.send_message(channel_id, '<%s>' % embed['url'], embed)
 			time.sleep(2)
-		config.state.steam_news_ids[game_id] = first_ann_id
-	config.state.save()
+		config.cron_state.steam_news_ids[game_id] = first_ann_id
+	config.cron_state.save()

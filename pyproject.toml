@@ -30,6 +30,7 @@ select = [
 ignore = [
 	'ISC003', # explicit-string-concatenation
 	'PLC0415', # import-outside-top-level
+	'RUF003', # ambiguous-unicode-character-comment
 	'RUF021', # parenthesize-chained-operators
 ]
 [tool.ruff.lint.flake8-quotes]

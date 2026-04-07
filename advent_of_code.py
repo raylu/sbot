@@ -8,7 +8,8 @@ import requests
 import config
 
 def check_leaderboards(bot):
-	last_check = getattr(config.state, 'advent_of_code_last_check', int(time.time()))
+	assert config.bot.advent_of_code is not None
+	last_check = config.cron_state.advent_of_code_last_check
 	today = datetime.date.today()
 	year = today.year
 	if today.month != 12:
@@ -48,8 +49,8 @@ def check_leaderboards(bot):
 					for name, completions in new_completions.items())
 			bot.send_message(leaderboard['channel'], 'advent of code', {'description': output})
 
-	config.state.advent_of_code_last_check = int(time.time())
-	config.state.save()
+	config.cron_state.advent_of_code_last_check = int(time.time())
+	config.cron_state.save()
 
 def sorted_dict(d: dict[str, Any]):
 	# the API returns a dict with string days/parts

@@ -10,6 +10,7 @@ import sys
 import threading
 import time
 import traceback
+import typing
 import urllib.parse
 import zlib
 from collections import defaultdict
@@ -17,19 +18,15 @@ from collections import defaultdict
 import requests
 import websocket
 
-import advent_of_code
 import command
 import config
 import flights
-import instagram
 import log
 import sbds
-import steam_news
-import twitch
 from timer import readable_rel
 
 class Bot:
-	def __init__(self, commands):
+	def __init__(self, commands: dict) -> None:
 		self.ws = None
 		self.rs = requests.Session()
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
@@ -44,10 +41,6 @@ class Bot:
 		self.heartbeat_thread = None
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
-		self.twitch_thread = None
-		self.instagram_thread = None
-		self.steam_news_thread = None
-		self.advent_of_code_thread = None
 
 		self.handlers = {
 			OP.HELLO: self.handle_hello,
@@ -79,7 +72,7 @@ class Bot:
 	def connect(self):
 		if config.state.gateway_url is None:
 			data = self.get('/gateway/bot')
-			config.state.gateway_url = data['url']
+			config.state.gateway_url = typing.cast(str, data['url'])
 			config.state.save()
 
 		url = config.state.gateway_url + '?v=9&encoding=json'
@@ -248,14 +241,6 @@ class Bot:
 		if self.timer_thread is not None:
 			return
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
-		if config.bot.twitch is not None:
-			self.twitch_thread = _thread.start_new_thread(self.twitch_loop, ())
-		if config.bot.instagram is not None:
-			self.instagram_thread = _thread.start_new_thread(self.instagram_loop, ())
-		if config.bot.steam_news is not None:
-			self.steam_news_thread = _thread.start_new_thread(self.steam_news_loop, ())
-		if config.bot.advent_of_code is not None and datetime.date.today().month in (12, 1):
-			self.advent_of_code_thread = _thread.start_new_thread(self.advent_of_code_loop, ())
 		self.flights_thread = _thread.start_new_thread(self.flights_loop, ())
 
 	def handle_message_create(self, d):
@@ -360,7 +345,7 @@ class Bot:
 				return True
 		return False
 
-	def heartbeat_loop(self, interval_ms):
+	def heartbeat_loop(self, interval_ms: int) -> None:
 		interval_s = interval_ms / 1000
 		# delay first heartbeat with jitter
 		# https://discord.com/developers/docs/events/gateway#heartbeat-interval
@@ -394,51 +379,7 @@ class Bot:
 			with self.timer_condvar:
 				self.timer_condvar.wait(wakeup)
 
-	def twitch_loop(self):
-		while True:
-			# https://dev.twitch.tv/docs/api/guide#rate-limits
-			# 30 points per minute, streams endpoint costs 1 point
-			time.sleep(15)
-			try:
-				twitch.live_streams(self)
-			except requests.exceptions.HTTPError as e:
-				log.write('twitch: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('twitch: %s' % e)
-
-	def instagram_loop(self):
-		while True:
-			# https://developers.facebook.com/docs/graph-api/overview/rate-limiting#platform-rate-limits
-			# 240 * users / hour is 4✕ what we'll need
-			time.sleep(60)
-			try:
-				instagram.new_media(self)
-			except requests.exceptions.HTTPError as e:
-				log.write('instagram: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('instagram: %s' % e)
-
-	def steam_news_loop(self):
-		while True:
-			time.sleep(60)
-			try:
-				steam_news.news(self)
-			except requests.exceptions.HTTPError as e:
-				log.write('steam news: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('steam news: %s' % e)
-
-	def advent_of_code_loop(self):
-		while True:
-			time.sleep(12 * 60 * 60)
-			try:
-				advent_of_code.check_leaderboards(self)
-			except requests.exceptions.HTTPError as e:
-				log.write('advent of code: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('advent of code: %s' % e)
-
-	def flights_loop(self):
+	def flights_loop(self) -> None:
 		while True:
 			time.sleep(15 * 60)
 			try:

@@ -5,6 +5,7 @@ import requests
 import config
 
 def new_media(bot):
+	assert config.bot.instagram is not None
 	rs = requests.Session()
 	for insta_conf in config.bot.instagram:
 		r = rs.get('https://graph.instagram.com/me/media', params={
@@ -17,7 +18,7 @@ def new_media(bot):
 			continue
 
 		data.sort(key=lambda media: media['timestamp'])
-		last_timestamp = config.state.instagram.get(insta_conf['user_id'])
+		last_timestamp = config.cron_state.instagram.get(insta_conf['user_id'])
 		if last_timestamp is None:
 			# never seen this account before; post only the most recent image
 			post_media(bot, insta_conf['channels'], data[-1])
@@ -30,8 +31,8 @@ def new_media(bot):
 
 		new_last_timestamp = data[-1]['timestamp']
 		if last_timestamp is None or new_last_timestamp > last_timestamp:
-			config.state.instagram[insta_conf['user_id']] = new_last_timestamp
-			config.state.save()
+			config.cron_state.instagram[insta_conf['user_id']] = new_last_timestamp
+			config.cron_state.save()
 
 def post_media(bot, channel_ids, media):
 	embed = {

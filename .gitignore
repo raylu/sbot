@@ -1,7 +1,8 @@
 __pycache__
+/bot_state.yaml
 /cans.yaml
 /config.yaml
-/state.yaml
+/cron_state.yaml
 /sbot.log
 /uv.lock
 *.sqlite

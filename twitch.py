@@ -23,6 +23,7 @@ if config.bot.twitch is not None:
 	ANNOUNCE_DELAY = datetime.timedelta(minutes=5) # wait for thumbnails to generate
 
 def live_streams(bot: Bot) -> None:
+	assert config.bot.twitch is not None
 	now = time.time()
 	_access_token(now)
 
@@ -44,10 +45,10 @@ def live_streams(bot: Bot) -> None:
 
 			user_id = stream['user_id']
 			# don't announce if we've announced in the last ANNOUNCE_FREQ
-			last_announce = config.state.twitch_last_times.get(user_id)
+			last_announce = config.cron_state.twitch_last_times.get(user_id)
 			if last_announce is not None and now - last_announce < ANNOUNCE_FREQ:
 				continue
-			config.state.twitch_last_times[user_id] = now
+			config.cron_state.twitch_last_times[user_id] = now
 
 			thumbnail_url = stream['thumbnail_url'].replace('{width}', '256').replace('{height}', '144') + \
 					'?%d' % time.time() # https://discuss.dev.twitch.com/t/thumbnail-urls-in-helix-users-endpoint/26792/4
@@ -81,15 +82,16 @@ def live_streams(bot: Bot) -> None:
 
 	# clean up last announce times older than ANNOUNCE_FREQ
 	to_del = []
-	for user_id, last_live in config.state.twitch_last_times.items():
+	for user_id, last_live in config.cron_state.twitch_last_times.items():
 		if now - last_live > ANNOUNCE_FREQ:
 			to_del.append(user_id)
 	for user_id in to_del:
-		del config.state.twitch_last_times[user_id]
-	config.state.save()
+		del config.cron_state.twitch_last_times[user_id]
+	config.cron_state.save()
 
-def _access_token(now):
+def _access_token(now: float) -> None:
 	global access_token_expiration
+	assert config.bot.twitch is not None
 
 	if access_token_expiration is not None and now < access_token_expiration - 120:
 		return
