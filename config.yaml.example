@@ -4,20 +4,6 @@ err_channel: null
 roles: # set this to null to disable
     server: '109469702010478592' # secret hiding room
 eve_db: 'sqlite-latest.sqlite'
-zkillboard: # set this to null to disable
-    alliance: 99002172
-    channel: '282441291327864834'
-twitter: # set this to null to disable
-    bearer_token: null
-    accounts:
-        RiskofRain: '282441291327864834'
-twitter_post: # set this to null to disable
-    consumer_key: null # get these from https://developer.twitter.com/en/apps/
-    consumer_secret: null
-    token: null # get these from twitter_key.py
-    token_secret: null
-    server: '109469702010478592' # secret hiding room
-    channel: '316959344681943040' # food
 instagram: # set this to null to disable
     - user_id: 17841443895269721 # cocoshibanut
       channels:
@@ -35,8 +21,6 @@ twitch: # set this to null to disable
           mention: '&1173144877127696394' # test role
 steam_news: # set this to null to disable
     427520: '282441291327864834' # factorio -> #bot-testing
-warframe: # set this to null to disable
-    channel: '326069638477774861'
 acnh_db: 'acnh.sqlite' # set this to null to disable
 advent_of_code: # set this to null to disable
     - leaderboard: 660957 # Frosty-nee

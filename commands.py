@@ -10,7 +10,6 @@ import management
 import poe
 import sbds
 import timer
-import twitter
 import utils
 
 commands = {
@@ -59,8 +58,6 @@ commands = {
 
 	'fc': friend_code.friend_code,
 	'stalks': animal_crossing.stalk_market,
-
-	'twitter_queue': twitter.queue_info,
 
 	'can': canned.canned,
 }

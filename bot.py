@@ -3,7 +3,6 @@ import copy
 import datetime
 import importlib
 import json
-import mimetypes
 import os
 import random
 import re
@@ -27,8 +26,6 @@ import log
 import sbds
 import steam_news
 import twitch
-import twitter
-import warframe
 from timer import readable_rel
 
 class Bot:
@@ -47,12 +44,7 @@ class Bot:
 		self.heartbeat_thread = None
 		self.timer_thread = None
 		self.timer_condvar = threading.Condition()
-		self.zkill_thread = None
-		self.warframe_thread = None
 		self.twitch_thread = None
-		self.twitter_thread = None
-		self.twitter_post_thread = None
-		self.twitter_post_condvar = threading.Condition()
 		self.instagram_thread = None
 		self.steam_news_thread = None
 		self.advent_of_code_thread = None
@@ -66,8 +58,6 @@ class Bot:
 			'READY': self.handle_ready,
 			'MESSAGE_CREATE': self.handle_message_create,
 			'INTERACTION_CREATE': self.handle_interaction_create,
-			'MESSAGE_REACTION_ADD': self.handle_reaction_add,
-			'MESSAGE_REACTION_REMOVE': self.handle_reaction_remove,
 			'GUILD_CREATE': self.handle_guild_create,
 			'GUILD_ROLE_CREATE': self.handle_guild_role_create,
 			'GUILD_ROLE_UPDATE': self.handle_guild_role_update,
@@ -258,16 +248,8 @@ class Bot:
 		if self.timer_thread is not None:
 			return
 		self.timer_thread = _thread.start_new_thread(self.timer_loop, ())
-		if config.bot.zkillboard is not None:
-			self.zkill_thread = _thread.start_new_thread(self.zkill_loop, ())
-		if config.bot.warframe is not None:
-			self.warframe_thread = _thread.start_new_thread(self.warframe_loop, ())
 		if config.bot.twitch is not None:
 			self.twitch_thread = _thread.start_new_thread(self.twitch_loop, ())
-		if config.bot.twitter is not None:
-			self.twitter_thread = _thread.start_new_thread(self.twitter_loop, ())
-		if config.bot.twitter_post is not None:
-			self.twitter_post_thread = _thread.start_new_thread(self.twitter_post_loop, ())
 		if config.bot.instagram is not None:
 			self.instagram_thread = _thread.start_new_thread(self.instagram_loop, ())
 		if config.bot.steam_news is not None:
@@ -349,59 +331,6 @@ class Bot:
 					# continue replacing all the commands in the reloaded file; do not break/return
 		return handler
 
-	def handle_reaction_add(self, d):
-		if config.bot.twitter_post is None:
-			return
-
-		if d['channel_id'] != config.bot.twitter_post['channel'] or \
-				d['emoji']['name'] != 'shrfood_twitter' or d['user_id'] == self.user_id:
-			return
-
-		if d['message_id'] in config.state.twitter_queue:
-			return
-
-		message = self.get_message(d['channel_id'], d['message_id'])
-		attachments = message.get('attachments')
-		if not attachments:
-			self.react(d['channel_id'], d['message_id'], '🙈')
-			return
-
-		for attachment in attachments[:4]:
-			media_type, _ = mimetypes.guess_type(attachment['filename'])
-			if media_type.startswith('video/'):
-				if len(attachments) != 1:
-					self.react(d['channel_id'], d['message_id'], '🧐')
-					return
-				if attachment['size'] > 5000000:
-					self.react(d['channel_id'], d['message_id'], '😓')
-					return
-
-		config.state.twitter_queue.append(d['message_id'])
-		config.state.save()
-
-		self.react(d['channel_id'], d['message_id'], '✅')
-		with self.twitter_post_condvar:
-			self.twitter_post_condvar.notify()
-
-	def handle_reaction_remove(self, d):
-		if config.bot.twitter_post is None:
-			return
-
-		if d['channel_id'] != config.bot.twitter_post['channel'] or \
-				d['emoji']['name'] != 'shrfood_twitter':
-			return
-
-		emoji = '%s:%s' % (d['emoji']['name'], d['emoji']['id'])
-		reactions = self.get_reactions(d['channel_id'], d['message_id'], emoji)
-		if len(reactions) == 0: # no more shrfood_twitter emoji
-			try:
-				config.state.twitter_queue.remove(d['message_id'])
-			except ValueError:
-				return
-			config.state.save()
-
-			self.remove_reaction(d['channel_id'], d['message_id'], '✅')
-
 	def handle_guild_create(self, d):
 		log.write('in guild %s (%d members)' % (d['name'], d['member_count']))
 		self.guilds[d['id']] = Guild(d)
@@ -465,52 +394,6 @@ class Bot:
 			with self.timer_condvar:
 				self.timer_condvar.wait(wakeup)
 
-	def zkill_loop(self):
-		while True:
-			r = self.rs.get('https://redisq.zkillboard.com/listen.php', params={'ttw': 30})
-			if r.ok:
-				data = r.json()
-				if not data or not data['package']:
-					time.sleep(10)
-					continue
-				killmail = data['package']['killmail']
-				victim = killmail['victim']
-
-				characters = killmail['attackers']
-				characters.append(victim)
-				for char in characters:
-					if 'alliance' in char and char['alliance']['id'] == config.bot.zkillboard['alliance']:
-						break
-				else: # alliance not involved in kill
-					continue
-
-				if 'character' not in victim:
-					continue
-				victim_name = victim['character']['name']
-				ship = victim['shipType']['name']
-				cost = data['package']['zkb']['totalValue'] / 1000000
-				url = 'https://zkillboard.com/kill/%d/' % killmail['killID']
-				self.send_message(config.bot.zkillboard['channel'],
-						"%s's **%s** (%d mil) %s" % (victim_name, ship, cost, url))
-			else:
-				log.write('zkill: %s %s\n%s' % (r.status_code, r.reason, r.text[:1000]))
-				time.sleep(30)
-
-	def warframe_loop(self):
-		last_alerts = []
-		while True:
-			time.sleep(5 * 60)
-			try:
-				alerts = warframe.alert_analysis()
-				broadcast_alerts = set(alerts) - set(last_alerts)
-				if len(broadcast_alerts) > 0:
-					self.send_message(config.bot.warframe['channel'], '\n'.join(broadcast_alerts))
-				last_alerts = alerts
-			except requests.exceptions.HTTPError as e:
-				log.write('warframe: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('warframe: %s' % e)
-
 	def twitch_loop(self):
 		while True:
 			# https://dev.twitch.tv/docs/api/guide#rate-limits
@@ -522,48 +405,6 @@ class Bot:
 				log.write('twitch: %s\n%s' % (e, e.response.text[:1000]))
 			except requests.exceptions.RequestException as e:
 				log.write('twitch: %s' % e)
-
-	def twitter_loop(self):
-		while True:
-			# https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
-			# 100,000 in 24 hours is 69.4 a minute, so wait 1 minute per account (1 request per account)
-			time.sleep(60 * len(config.bot.twitter['accounts']))
-			try:
-				twitter.new_tweets(self)
-			except requests.exceptions.HTTPError as e:
-				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('twitter: %s' % e)
-
-	def twitter_post_loop(self):
-		while True:
-			if len(config.state.twitter_queue) == 0:
-				with self.twitter_post_condvar:
-					self.twitter_post_condvar.wait()
-				continue
-
-			sleep = 12 * 60 * 60 # 12 hours
-			if config.state.twitter_last_post_time:
-				sleep = config.state.twitter_last_post_time + sleep - time.time()
-			with self.twitter_post_condvar:
-				self.twitter_post_condvar.wait(sleep)
-			if config.state.twitter_last_post_time and \
-					time.time() < config.state.twitter_last_post_time + 12 * 60 * 60:
-				# we were woken up by a reaction add but it's too early
-				continue
-
-			try:
-				twitter.post(self, config.state.twitter_queue[0])
-				config.state.twitter_queue.pop(0)
-			except requests.exceptions.HTTPError as e:
-				log.write('twitter: %s\n%s' % (e, e.response.text[:1000]))
-			except requests.exceptions.RequestException as e:
-				log.write('twitter: %s' % e)
-			except Exception:
-				log.write('twitter post:\n' + traceback.format_exc())
-			# always update the last post time, even if we failed to tweet
-			config.state.twitter_last_post_time = int(time.time())
-			config.state.save()
 
 	def instagram_loop(self):
 		while True:
