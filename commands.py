@@ -1,3 +1,5 @@
+import typing
+
 import animal_crossing
 import canned
 import code_eval
@@ -12,7 +14,7 @@ import sbds
 import timer
 import utils
 
-commands = {
+commands: typing.Mapping[str, typing.Callable[..., None]] = {
 	'help': utils.help,
 	'botinfo': utils.botinfo,
 	'ping': utils.ping,

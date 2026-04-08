@@ -4,20 +4,22 @@ name: CI
 
 on:
   push:
-    branches: '*'
+    branches: ['*']
   pull_request:
-    branches: '*'
+    branches: ['*']
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: astral-sh/setup-uv@v5
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v6
+    - uses: astral-sh/setup-uv@v7
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.x'
     - name: unittest
       run: uv run -m unittest --verbose
     - name: ruff
-      run: uv run ruff check --output-format=github .
+      run: uv run ruff check --output-format=github
+    - name: ty
+      run: uv run ty check --output-format=github

@@ -12,7 +12,7 @@ rs.headers.update({'User-Agent': 'sbot'})
 if config.bot.eve_db is not None:
 	db = sqlite3.connect(config.bot.eve_db)
 
-esi_price_cache = {'last_update': 0, 'items': {}}
+esi_price_cache: dict = {'last_update': 0, 'items': {}}
 
 
 def price_check(cmd):
@@ -259,6 +259,7 @@ def who(cmd):
 			char_info, killed, lost = get_char_info(initial_id['characters'][0]['id'])
 		except requests.exceptions.HTTPError:
 			cmd.reply("%s: couldn't find your sleazebag" % cmd.sender['pretty_name'])
+			return
 
 		corp_id = char_info['corporation_id']
 		output += '{name} ({security:.2f}) [{killed}/{lost}]\n'.format(

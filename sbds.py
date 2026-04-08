@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import itertools
 import re
@@ -11,9 +13,9 @@ if typing.TYPE_CHECKING:
 
 @dataclasses.dataclass
 class SBDS:
-	translations: dict = None
-	spells: dict = None
-	buffs: dict = None
+	translations: dict
+	spells: dict
+	buffs: dict
 
 	def matches_key(self, query: str, key: str):
 		translations: dict[str, dict[str, str]] = self.translations['translations']
@@ -41,7 +43,7 @@ class SBDS:
 			return str(self.translate(m.group(0), lang))
 		return re.sub(r'\b[A-Z_]+\b', ttl, s)
 
-def sbds(cmd: 'bot.CommandEvent'):
+def sbds(cmd: bot.CommandEvent):
 	if not cmd.args:
 		return
 	name = cmd.args
@@ -51,7 +53,7 @@ def sbds(cmd: 'bot.CommandEvent'):
 	else:
 		cmd.reply('', embed)
 
-def get_embed(name: str) -> dict:
+def get_embed(name: str) -> dict | None:
 	data = _get_data()
 	name = name.casefold()
 	for spell_id, spell in itertools.chain(data.spells['SPELL'].items(), data.spells['EVOLVED'].items()):
@@ -93,17 +95,18 @@ def get_embed(name: str) -> dict:
 					embed['description'] = data.translate(buff['notificationText'], lang)
 				return embed
 
-_cache = None
-def _get_data():
+_cache: SBDS | None = None
+def _get_data() -> SBDS:
 	global _cache
 	if _cache is not None:
 		return _cache
 
-	data = SBDS()
+	data_dict = {}
 	rs = requests.Session()
 	for filename in SBDS.__dataclass_fields__:
 		r = rs.get(f'https://sbds.fly.dev/static/data/{filename}.json', timeout=5)
 		r.raise_for_status()
-		setattr(data, filename, r.json())
+		data_dict[filename] = r.json()
+	data = SBDS(**data_dict)
 	_cache = data
 	return data

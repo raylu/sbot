@@ -98,6 +98,7 @@ def check_flights(bot: bot.Bot) -> None:
 	config.state.flights = new_state
 	config.state.save()
 
+@typing.no_type_check
 def _check_flight(rs: requests.Session, flight_state: FlightState) -> tuple[str | None, typing.Sequence[Flight]]:
 	for row in _iter_flight_rows(rs, flight_state.number):
 		if int(row['data-timestamp']) == flight_state.timestamp:
@@ -141,7 +142,7 @@ def _iter_flight_rows(rs: requests.Session, number: str) -> typing.Iterator[bs4.
 	soup = bs4.BeautifulSoup(response.content, 'lxml')
 	if (table := soup.find('table', id='tbl-datatable')) is None:
 		return
-	yield from table.find('tbody').find_all('tr', class_='data-row')
+	yield from table.find('tbody').find_all('tr', class_='data-row') # ty: ignore[unresolved-attribute]
 
 @dataclasses.dataclass(eq=False, slots=True)
 class FlightState:
@@ -155,7 +156,7 @@ class FlightState:
 	def from_dict(cls, d: typing.Mapping) -> FlightState:
 		if d['last'] is not None:
 			d = {**d, 'last': [Flight(**f) for f in d['last']]}
-		return cls(**d)
+		return cls(**d) # ty: ignore[invalid-argument-type]
 
 @dataclasses.dataclass(eq=False, frozen=True, slots=True)
 class Flight:

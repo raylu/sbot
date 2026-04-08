@@ -27,7 +27,7 @@ from timer import readable_rel
 
 class Bot:
 	def __init__(self, commands: dict) -> None:
-		self.ws = None
+		self.ws: typing.Any = None
 		self.rs = requests.Session()
 		self.rs.headers['Authorization'] = 'Bot ' + config.bot.token
 		# https://discord.com/developers/docs/reference#user-agent
@@ -64,9 +64,9 @@ class Bot:
 			for trigger, handler in commands.items():
 				module_name = handler.__module__
 				module = sys.modules[module_name]
-				path = module.__file__
 				if module_name not in self.mtimes:
-					self.mtimes[module_name] = os.stat(path).st_mtime
+					assert module.__file__ is not None
+					self.mtimes[module_name] = os.stat(module.__file__).st_mtime
 				self.modules[module_name].append(trigger)
 
 	def connect(self):
@@ -249,11 +249,11 @@ class Bot:
 
 		content = d['content']
 		if content.casefold() == 'oh no.':
-			cmd = CommandEvent(d, None, self)
+			cmd = CommandEvent(d, '', self)
 			self.commands['ohno'](cmd)
 			return
 		elif content.casefold() == 'oh yes.':
-			cmd = CommandEvent(d, None, self)
+			cmd = CommandEvent(d, '', self)
 			self.commands['ohyes'](cmd)
 			return
 		elif matches := re.findall(r'\[\[(.+?)\]\]', content): # respond to [[tennado]]
@@ -303,8 +303,8 @@ class Bot:
 	def _autoreload(self, command_name, handler):
 		module_name = handler.__module__
 		module = sys.modules[module_name]
-		path = module.__file__
-		new_mtime = os.stat(path).st_mtime
+		assert module.__file__ is not None
+		new_mtime = os.stat(module.__file__).st_mtime
 		if new_mtime > self.mtimes[module_name]:
 			importlib.reload(module)
 			self.mtimes[module_name] = new_mtime

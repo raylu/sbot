@@ -102,7 +102,7 @@ def _timer_add(cmd, name, arg):
 		return
 
 	try: # parse as timestamp (981173106)
-		dt = datetime.datetime.utcfromtimestamp(int(arg))
+		dt = datetime.datetime.fromtimestamp(int(arg), datetime.UTC)
 	except ValueError:
 		# parse as relative time (1d2h3m)
 		try:
@@ -163,7 +163,7 @@ def parse_rel(arg):
 		raise RelativeTimeParsingException('"%s" left over after parsing time' % arg)
 	try:
 		td = datetime.timedelta(**td_args)
-		return datetime.datetime.utcnow() + td
+		return datetime.datetime.now(tz=datetime.UTC) + td
 	except OverflowError as e:
 		raise RelativeTimeParsingException('time not in range') from e
 

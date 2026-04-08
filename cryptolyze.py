@@ -18,7 +18,7 @@ def cryptolyze(cmd: CommandEvent) -> None:
 	else:
 		vulns = []
 		for category in vulns_result.ciphers, vulns_result.dhparams, vulns_result.versions:
-			for vuln in (getattr(category, a.name) for a in category.__attrs_attrs__): # pyright: ignore[reportAttributeAccessIssue]
+			for vuln in (getattr(category, a.name) for a in category.__attrs_attrs__): # ty: ignore[unresolved-attribute]
 				if vuln is not None and vuln.value:
 					vulns.append(vuln.get_name())
 		embed = {
@@ -37,9 +37,9 @@ def analyze(host: str) -> tuple[AnalyzerResultVersions, AnalyzerResultVulnerabil
 	from cryptolyzer.tls.versions import AnalyzerVersions
 	from cryptolyzer.tls.vulnerabilities import AnalyzerVulnerabilities
 
-	LogSingleton.log = lambda *args, **kwargs: None
+	LogSingleton.log = lambda *args, **kwargs: None # ty: ignore[invalid-assignment]
 
-	client = L7ClientTls(host, 443) # pyright: ignore[reportCallIssue]
+	client = L7ClientTls(host, 443)
 	versions_result = AnalyzerVersions().analyze(client, None)
 	vulns_result = AnalyzerVulnerabilities().analyze(client, None)
 	return versions_result, vulns_result

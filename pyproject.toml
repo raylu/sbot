@@ -1,6 +1,7 @@
 [project]
 name = 'sbot'
 version = '0'
+requires-python = '>=3.13'
 dependencies = [
 	'bs4',
 	'cryptolyzer',
@@ -16,6 +17,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     'ruff',
+    'ty',
 ]
 
 [tool.ruff]
@@ -38,3 +40,8 @@ inline-quotes = 'single'
 multiline-quotes = 'single'
 [tool.ruff.lint.isort]
 lines-after-imports = 1
+
+[tool.ty.analysis]
+replace-imports-with-any = ['pyfend']
+[tool.ty.src]
+exclude = ['tests/*.py']

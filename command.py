@@ -1,4 +1,4 @@
-def command(description, *options):
+def command(description: str, *options: dict):
 	def wrapped(f):
 		f.description = description
 		f.options = options

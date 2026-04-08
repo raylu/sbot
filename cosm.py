@@ -28,7 +28,7 @@ def price_mat(cmd: bot.CommandEvent) -> None:
 	except KeyError:
 		cmd.reply(f"error: couldn't find {mat!r} in price schedule")
 
-price_cache = {'last_update': 0, 'prices': None}
+price_cache: dict = {'last_update': 0, 'prices': None}
 def _get_prices() -> dict:
 	now = time.time()
 	if price_cache['last_update'] < now - 60 * 60 * 24:

@@ -151,13 +151,13 @@ def time(cmd):
 	if cmd.args:
 		try:
 			dt = dateutil.parser.parse(cmd.args, tzinfos=tzinfos, fuzzy=True)
+			if not dt.tzinfo:
+				dt = dt.replace(tzinfo=datetime.UTC)
 		except (ValueError, AttributeError) as e:
 			cmd.reply(str(e))
 			return
 	else:
-		dt = datetime.datetime.utcnow()
-	if not dt.tzinfo:
-		dt = dt.replace(tzinfo=datetime.timezone.utc)
+		dt = datetime.datetime.now(tz=datetime.UTC)
 	ts = int(dt.timestamp())
 	cmd.reply(r'<t:%d> (<t:%d:R>) \<t:%d\>' % (ts, ts, ts))
 

@@ -19,7 +19,9 @@ def news(bot):
 		r.raise_for_status()
 		tree = xml.etree.ElementTree.fromstring(r.text)
 		for item in tree.iter('item'):
-			ann_id = int(item.findtext('guid').rsplit('/', 1)[1])
+			guid = item.findtext('guid')
+			assert guid is not None
+			ann_id = int(guid.rsplit('/', 1)[1])
 			if first_ann_id is None:
 				first_ann_id = ann_id
 			if ann_id <= last_ann_id:
@@ -30,6 +32,7 @@ def news(bot):
 			link = item.findtext('link')
 			author = item.findtext('author')
 
+			assert description is not None
 			description_text = re.sub(r'<[^>]+>', ' ', html.unescape(description))
 			embeds.append({
 				'title': title, 'description': description_text[:1000], 'url': link, 'author': {'name': author},
