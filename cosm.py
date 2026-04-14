@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import csv
-import io
 import time
 import typing
 
@@ -32,16 +30,8 @@ price_cache: dict = {'last_update': 0, 'prices': None}
 def _get_prices() -> dict:
 	now = time.time()
 	if price_cache['last_update'] < now - 60 * 60 * 24:
-		r = requests.get('https://docs.google.com/spreadsheets/d/e/2PACX-1vSG_rqZ_TCSTe12_FzJRw0_mbDCYJ5HnGvnmgI3Sd-CFd0AxkSzc88e3glLeM-5ZpI2ILcFSzEX8Nvg/pub?output=csv')
+		r = requests.get('https://api.punoted.net/v1/corporation/prices')
 		r.raise_for_status()
-		reader = csv.reader(io.StringIO(r.text))
-		prices = {}
-		for row in reader:
-			if row[1] and row[2]:
-				try:
-					prices[row[1]] = float(row[2])
-				except ValueError:
-					pass
-		price_cache['prices'] = prices
+		price_cache['prices'] = {p['ticker']: p['price'] for p in r.json()}
 		price_cache['last_update'] = now
 	return price_cache['prices']
