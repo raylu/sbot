@@ -1,8 +1,6 @@
-import sys
 from datetime import datetime
 
 logfile = open('sbot.log', 'a', encoding='utf-8')
-stdout = sys.stdout.isatty()
 
 def write(text):
 	line = '%s %s' % (datetime.now(), text)
@@ -11,8 +9,7 @@ def write(text):
 	else:
 		line += '\n'
 
-	if stdout:
-		print(line, end='')
+	print(line, end='')
 	logfile.write(line)
 
 def flush():
