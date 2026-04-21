@@ -53,29 +53,34 @@ def planetary_upkeep(bot: bot.Bot) -> None:
 	for planet_name, infras in planet_infra.items():
 		planet_config = configs[planet_name]
 
-		planet_last = datetime.datetime.min.replace(tzinfo=datetime.UTC)
+		planet_last = None
 		if planet_last_ts := config.cron_state.prun_popi_next.get(planet_name):
 			planet_last = datetime.datetime.fromtimestamp(planet_last_ts, tz=datetime.UTC)
 		planet_next = datetime.datetime.max.replace(tzinfo=datetime.UTC)
+		planet_notifs = []
 		for infra in infras:
 			if (target := planet_config.popi.get(infra['Type'])) is None:
 				continue
-			filled = 0
 			fill_by = datetime.datetime.max.replace(tzinfo=datetime.UTC)
+			if fill_by < planet_next:
+				planet_next = fill_by
+			if planet_last is not None and fill_by <= planet_last: # we've previously notified about this consumption
+				continue
+
+			filled = 0
 			for upkeep in infra['Upkeeps']:
 				next_consumption_amount = upkeep['StoreCapacity'] / 30 * upkeep['Duration'] # capacity is always 30 days
 				filled += upkeep['Stored'] >= next_consumption_amount
 				if (next_consumption := datetime.datetime.fromisoformat(upkeep['NextTick'])) < fill_by:
 					fill_by = next_consumption
-			if filled < target and fill_by > planet_last and fill_by - now < datetime.timedelta(hours=36):
+			if filled < target and fill_by - now < datetime.timedelta(hours=36):
 				due_ts = int(fill_by.timestamp())
-				bot.send_message(planet_config.channel,
-						f"{infra['PlanetName']} {infra['Type']} {filled}/{target} filled; "
+				planet_notifs.append(f"{infra['PlanetName']} {infra['Type']} {filled}/{target} filled; "
 						f"due <t:{due_ts}:f> (<t:{due_ts}:R>)")
-			if fill_by < planet_next:
-				planet_next = fill_by
-		config.cron_state.prun_popi_next[planet_name] = planet_next.timestamp()
-		config.cron_state.save()
+		if len(planet_notifs) > 0:
+			bot.send_message(planet_config.channel, '\n'.join(planet_notifs))
+			config.cron_state.prun_popi_next[planet_name] = planet_next.timestamp()
+			config.cron_state.save()
 
 def get_infra(planet_names: typing.Collection[str]) -> typing.Sequence[Infrastructure]:
 	r = requests.get('https://api.fnar.net/infrastructure',
@@ -111,4 +116,4 @@ if __name__ == '__main__':
 		for infra in get_infra(planet_names):
 			for upkeep in infra['Upkeeps']:
 				print(infra['PlanetName'], infra['Type'], upkeep['Ticker'],
-						f"{upkeep['Stored']}/{upkeep['StoreCapacity']}")
+						f"{upkeep['Stored']}/{upkeep['StoreCapacity']}", upkeep['NextTick'])
