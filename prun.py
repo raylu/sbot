@@ -14,22 +14,20 @@ if typing.TYPE_CHECKING:
 	import bot
 
 def price_mat(cmd: bot.CommandEvent) -> None:
-	args = cmd.args.split()
-	if len(args) != 2:
-		cmd.reply('usage: !corp <amount> <mat>')
-		return
-	try:
-		amount = int(args[0])
-	except ValueError:
-		cmd.reply('usage: !corp <amount> <mat>')
-		return
-	mat = args[1].upper()
-
-	try:
-		price = _get_prices()[mat]
-		cmd.reply(f'{amount} {mat} = {amount * price} ICA ({price}/u)')
-	except KeyError:
-		cmd.reply(f"error: couldn't find {mat!r} in price schedule")
+	prices = _get_prices()
+	responses = []
+	for pair in cmd.args.split(','):
+		try:
+			amount, mat = pair.strip().split()
+			amount = int(amount)
+			mat = mat.upper()
+			price = prices[mat]
+			responses.append(f'{amount} {mat} = {amount * price} ICA ({price}/u)')
+		except ValueError:
+			responses.append('usage: !corp <amount> <mat>')
+		except KeyError:
+			responses.append(f"error: couldn't find {mat!r} in price schedule")
+	cmd.reply('\n'.join(responses))
 
 price_cache: dict = {'last_update': 0, 'prices': None}
 def _get_prices() -> dict:
