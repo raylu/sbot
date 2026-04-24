@@ -59,18 +59,20 @@ def planetary_upkeep(bot: bot.Bot) -> None:
 		for infra in infras:
 			if (target := planet_config.popi.get(infra['Type'])) is None:
 				continue
-			fill_by = datetime.datetime.max.replace(tzinfo=datetime.UTC)
-			if fill_by < planet_next:
-				planet_next = fill_by
-			if planet_last is not None and fill_by <= planet_last: # we've previously notified about this consumption
-				continue
 
 			filled = 0
+			fill_by = datetime.datetime.max.replace(tzinfo=datetime.UTC)
 			for upkeep in infra['Upkeeps']:
 				next_consumption_amount = upkeep['StoreCapacity'] / 30 * upkeep['Duration'] # capacity is always 30 days
 				filled += upkeep['Stored'] >= next_consumption_amount
 				if (next_consumption := datetime.datetime.fromisoformat(upkeep['NextTick'])) < fill_by:
 					fill_by = next_consumption
+
+			if fill_by < planet_next:
+				planet_next = fill_by
+			if planet_last is not None and fill_by <= planet_last: # we've previously notified about this consumption
+				continue
+
 			if filled < target and fill_by - now < datetime.timedelta(hours=36):
 				due_ts = int(fill_by.timestamp())
 				planet_notifs.append(f"{infra['PlanetName']} {infra['Type']} {filled}/{target} filled; "

@@ -34,7 +34,7 @@ class BotState:
 class CronState:
 	advent_of_code_last_check: int = dataclasses.field(default_factory=lambda: int(time.time()))
 	instagram: dict = dataclasses.field(default_factory=dict)
-	prun_popi_next: dict = dataclasses.field(default_factory=dict)
+	prun_popi_next: dict[str, float] = dataclasses.field(default_factory=dict)
 	steam_news_ids: dict = dataclasses.field(default_factory=dict)
 	twitch_last_times: dict = dataclasses.field(default_factory=dict)
 
