@@ -7,7 +7,7 @@ MB = 1024 * 1024
 def nodejs(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
 			'--rlimit_as', '1000', '--chroot', chroot_dir,
-			'-R/usr', '-R/lib', '--user', 'nobody', '--group', 'nogroup',
+			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '10', '--quiet', '--',
 			'/usr/bin/nodejs', '--print', prep_input(cmd.args)]
@@ -31,7 +31,7 @@ def nodejs(cmd):
 
 def ruby(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
-			'--chroot', chroot_dir, '-R/usr', '-R/lib',
+			'--chroot', chroot_dir, '-R/usr', '-R/lib', '-R/lib64'
 			'--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '2', '--quiet', '--',
@@ -50,7 +50,7 @@ def ruby(cmd):
 def python2(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
 			'--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
-			'-R/usr', '-R/lib', '--user', 'nobody', '--group', 'nogroup',
+			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/python2', '-ESs', '/run.py']
@@ -73,7 +73,7 @@ def python2(cmd):
 def python3(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
 			'--chroot', chroot_dir, '-E', 'LANG=en_US.UTF-8',
-			'-R/usr', '-R/lib', '--user', 'nobody', '--group', 'nogroup',
+			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '1', '--quiet', '--',
 			'/usr/bin/python3', '-ISq', '/run.py']
