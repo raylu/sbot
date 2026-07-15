@@ -73,7 +73,7 @@ def mass_ban(cmd):
 		cmd.bot.get_message(join_channel, start)
 		cmd.bot.get_message(join_channel, end)
 	except requests.exceptions.HTTPError as e:
-		if e.response.status_code != 404:
+		if e.response.status_code != 404: # ty: ignore[unresolved-attribute]
 			raise
 		cmd.reply('could not find %s or %s in #join' % (start, end))
 		return

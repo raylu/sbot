@@ -55,7 +55,7 @@ def main() -> None:
 			try:
 				job.task(bot)
 			except requests.exceptions.HTTPError as e:
-				log.write(f'{job.task.__name__}: {e}\n{e.response.text[:1000]}')
+				log.write(f'{job.task.__name__}: {e}\n{e.response.text[:1000]}') # ty: ignore[unresolved-attribute]
 			except requests.exceptions.RequestException as e:
 				log.write(f'{job.task.__name__}: {e}')
 			except Exception:

@@ -23,7 +23,7 @@ def cryptolyze(cmd: CommandEvent) -> None:
 					vulns.append(vuln.get_name())
 		embed = {
 			'title': versions_result.target.address,
-			'description': versions_result.target.ip,
+			'description': versions_result.target.ip, # ty: ignore[unresolved-attribute]
 			'fields': [
 				{'name': 'versions', 'value': ' '.join(map(str, versions_result.versions)), 'inline': True},
 				{'name': 'vulnerabilities', 'value': '\n'.join(vulns) or 'none!', 'inline': True},
@@ -37,7 +37,7 @@ def analyze(host: str) -> tuple[AnalyzerResultVersions, AnalyzerResultVulnerabil
 	from cryptolyzer.tls.versions import AnalyzerVersions
 	from cryptolyzer.tls.vulnerabilities import AnalyzerVulnerabilities
 
-	LogSingleton.log = lambda *args, **kwargs: None # ty: ignore[invalid-assignment]
+	LogSingleton.log = lambda *args, **kwargs: None
 
 	client = L7ClientTls(host, 443)
 	versions_result = AnalyzerVersions().analyze(client, None)
