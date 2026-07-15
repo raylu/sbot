@@ -3,6 +3,8 @@ from __future__ import annotations
 import collections
 import dataclasses
 import datetime
+import functools
+import heapq
 import time
 import typing
 
@@ -38,6 +40,115 @@ def _get_prices() -> dict:
 		price_cache['prices'] = {p['ticker']: p['price'] for p in r.json()}
 		price_cache['last_update'] = now
 	return price_cache['prices']
+
+def travel(cmd: bot.CommandEvent) -> None:
+	args = cmd.args.split(' ', 1)
+	if len(args) != 2:
+		cmd.reply('usage: !travel <cx> <planet>')
+		return
+	cx_name, planet_name = args
+
+	cx_name = cx_name.upper()
+	cx = {'ANT': 'AI1', 'BEN': 'CI1', 'ARC': 'CI2', 'HRT': 'IC1', 'MOR': 'NC1', 'HUB': 'NC2'}.get(cx_name, cx_name)
+
+	response = requests.get('https://api.fnar.net/planet/' + planet_name)
+	response.raise_for_status()
+	planet: FIOPlanet = response.json()
+	system_name = planet['NaturalId'][:-1]
+	planet_display = planet['Name']
+	if planet['Name'] != planet['NaturalId']:
+		planet_display += f' ({planet["NaturalId"]})'
+
+	response = requests.get('https://api.fnar.net/map/systems', params={'system': system_name})
+	response.raise_for_status()
+	(system,) = response.json()
+
+	ftl_travel = ftl_distance(cx, system['SystemId'])
+	if ftl_travel.jumps == 0:
+		km = int(planet['SemiMajorAxis'] / 1000)
+		# ENG at 750 SF usage (50% of an SSL) TRAs at ~300,000,000 km/h
+		hours = km / 300_000_000
+		cmd.reply(f'{planet_display} is {km:,} km from star\n'
+				f'SCB: {hours:.1f} hours')
+	else:
+		# SCB JMPs at 4pc/hr. RCT CHRGs in 7m30s. 30m DEP, 1.5hr APP+(TO/LAND)
+		hours = ftl_travel.parsecs / 4 + (ftl_travel.jumps - 1) * 0.125 + 2
+		cmd.reply(f'{system_name} is {ftl_travel.jumps} jumps, {ftl_travel.parsecs:.2f} pc away\n'
+				f'SCB: {hours:.1f} hours')
+
+def ftl_distance(cx: str, system: str) -> FTLTravel:
+	adjacency = get_system_map()
+	cx_systems: dict[str, str] = {
+		'AI1': '8ecf9670ba070d78cfb5537e8d9f1b6c',
+		'CI1': '92029ff27c1abe932bd2c61ee4c492c7',
+		'CI2': 'a4ba8b12739da65efc2b518703652ee1',
+		'IC1': 'f2f57766ebaca9d69efae41ccf4d8853',
+		'NC1': '49b6615d39ccba05752b3be77b2ebf36',
+		'NC2': 'afda9bea7f948f4a066a8882cdfa9055',
+	}
+	destination = cx_systems[cx]
+	if destination == system:
+		return FTLTravel(0, 0)
+
+	best: dict[str, float] = {system: 0}
+	frontier: list[DijkstraNode] = [DijkstraNode(system, 0, 0)]
+
+	while frontier:
+		current = heapq.heappop(frontier)
+		if current.system == destination:
+			return FTLTravel(current.parsecs, current.jumps)
+		if current.parsecs != best.get(current.system):
+			continue
+
+		for neighbor in adjacency.get(current.system, []):
+			total_distance = current.parsecs + neighbor.parsecs
+			if total_distance >= best.get(neighbor.to, float('inf')):
+				continue
+			best[neighbor.to] = total_distance
+			heapq.heappush(frontier, DijkstraNode(neighbor.to, total_distance, current.jumps + 1))
+
+	raise Exception(f'no route from {system} to {cx}')
+
+@functools.cache
+def get_system_map() -> dict[str, typing.Any]:
+	response = requests.get('https://universemap.taiyibureau.de/graph_data.json')
+	response.raise_for_status()
+	edges =  response.json()['edges']
+
+	adjacency: dict[str, list[SystemNode]] = collections.defaultdict(list)
+	for edge in edges:
+		adjacency[edge['start']].append(SystemNode(edge['end'], edge['distance']))
+		adjacency[edge['end']].append(SystemNode(edge['start'], edge['distance']))
+	return adjacency
+
+@dataclasses.dataclass(eq=False, frozen=True, slots=True)
+class FTLTravel:
+	parsecs: float
+	jumps: int
+
+@dataclasses.dataclass(eq=False, frozen=True, slots=True)
+class SystemNode:
+	to: str
+	parsecs: float
+
+@dataclasses.dataclass(eq=False, frozen=True, slots=True)
+class DijkstraNode:
+	system: str
+	parsecs: float
+	jumps: int
+
+	def __lt__(self, other: DijkstraNode) -> bool:
+		return (self.parsecs, self.jumps) < (other.parsecs, other.jumps)
+
+class SystemEdge(typing.TypedDict):
+	start: str
+	end: str
+	distance: float
+
+class FIOPlanet(typing.TypedDict):
+	NaturalId: str
+	Name: str
+	SemiMajorAxis: float
 
 def planetary_upkeep(bot: bot.Bot) -> None:
 	assert config.bot.prun_upkeep is not None

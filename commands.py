@@ -50,6 +50,7 @@ commands: typing.Mapping[str, typing.Callable[..., None]] = {
 	'massban': management.mass_ban,
 
 	'corp': prun.price_mat,
+	'travel': prun.travel,
 
 	'pc': poe.price,
 	'poe': poe.poedb,
