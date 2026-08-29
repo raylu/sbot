@@ -31,7 +31,7 @@ def nodejs(cmd):
 
 def ruby(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
-			'--chroot', chroot_dir, '-R/usr', '-R/lib', '-R/lib64'
+			'--chroot', chroot_dir, '-R/usr', '-R/lib', '-R/lib64',
 			'--user', 'nobody', '--group', 'nogroup',
 			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
 			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '2', '--quiet', '--',
