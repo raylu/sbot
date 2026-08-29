@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import concurrent.futures
 import dataclasses
 import datetime
 import functools
@@ -14,6 +15,8 @@ import config
 
 if typing.TYPE_CHECKING:
 	import bot
+
+# COSM corp prices
 
 def price_mat(cmd: bot.CommandEvent) -> None:
 	prices = _get_prices()
@@ -40,6 +43,8 @@ def _get_prices() -> dict:
 		price_cache['prices'] = {p['ticker']: p['price'] for p in r.json()}
 		price_cache['last_update'] = now
 	return price_cache['prices']
+
+# SCB travel times
 
 def travel(cmd: bot.CommandEvent) -> None:
 	args = cmd.args.split(' ', 1)
@@ -149,6 +154,71 @@ class FIOPlanet(typing.TypedDict):
 	NaturalId: str
 	Name: str
 	SemiMajorAxis: float
+
+# list bases on a planet
+
+def bases(cmd: bot.CommandEvent) -> None:
+	planet_name = cmd.args.strip()
+	if not planet_name:
+		cmd.reply('usage: !bases <planet>')
+		return
+
+	response = requests.get('https://api.fnar.net/planet/sites/' + planet_name)
+	if response.status_code in [204, 400] and ' ' in planet_name:
+		system, letter = planet_name.split(' ', 1)
+		response = requests.get('https://api.fnar.net/map/systems', params={'system': system})
+		response.raise_for_status()
+		systems: typing.Sequence[System] = response.json()
+		if len(systems) != 1:
+			cmd.reply(f'could not find system {system!r}')
+			return
+		planet_name = systems[0]['NaturalId'] + letter
+		response = requests.get('https://api.fnar.net/planet/sites/' + planet_name)
+	response.raise_for_status()
+
+	sites: typing.Sequence[Site] = response.json()
+	bases = [site for site in sites if site['Type'] == 'PLAYER_SITE']
+
+	if len(bases) > 50:
+		cmd.reply(f'{len(bases)} bases on {planet_name}')
+		return
+
+	with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+		companies = executor.map(_get_company, bases)
+	lines = []
+	for co in sorted(companies, key=lambda co: co['CorporationCode'] or '\uffff'):
+		corp = ''
+		if co['CorporationCode'] is not None:
+			corp = f'[{co["CorporationCode"]}]'
+		line = f'{corp:6} {co["UserName"]:20}  {co["CompanyCode"]:4}  {co["CompanyName"]}'
+		lines.append(line)
+	cmd.reply(f'{len(bases)} bases on {planet_name}',
+		embed={'description': '```\n' + '\n'.join(lines) + '\n```'})
+
+def _get_company(base: Site) -> Company:
+	response = requests.get('https://rest.fnar.net/company/code/' + base['OwnerCode'])
+	response.raise_for_status()
+	if response.status_code == 204:
+		return {'UserName': base['OwnerName'], 'CompanyCode': base['OwnerCode'],
+				'CompanyName': '', 'CorporationCode': None}
+	else:
+		return response.json()
+
+class System(typing.TypedDict):
+	NaturalId: str
+
+class Site(typing.TypedDict):
+	Type: str
+	OwnerName: str
+	OwnerCode: str
+
+class Company(typing.TypedDict):
+	UserName: str
+	CompanyCode: str
+	CompanyName: str
+	CorporationCode: str | None
+
+# check if any PopI is missing
 
 def planetary_upkeep(bot: bot.Bot) -> None:
 	assert config.bot.prun_upkeep is not None
