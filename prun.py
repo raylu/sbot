@@ -180,7 +180,10 @@ def bases(cmd: bot.CommandEvent) -> None:
 	bases = [site for site in sites if site['Type'] == 'PLAYER_SITE']
 
 	if len(bases) > 50:
-		cmd.reply(f'{len(bases)} bases on {planet_name}')
+		line = ', '.join(base['OwnerCode'] for base in bases if base['OwnerCode'])
+		if len(line) > 1000:
+			line = line[:1000] + '…'
+		cmd.reply(f'{len(bases)} bases on {planet_name}', embed={'description': line})
 		return
 
 	with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
