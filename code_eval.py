@@ -4,13 +4,13 @@ from os import path
 chroot_dir = path.join(path.dirname(path.abspath(__file__)), 'chroot')
 MB = 1024 * 1024
 
-def nodejs(cmd):
+def bun(cmd):
 	args = ['../nsjail/nsjail', '--use_cgroupv2', '--cgroupv2_mount', '/sys/fs/cgroup/NSJAIL', '-Mo',
 			'--rlimit_as', '1000', '--chroot', chroot_dir,
-			'-R/usr', '-R/lib', '-R/lib64', '--user', 'nobody', '--group', 'nogroup',
-			'--time_limit', '2', '--disable_proc', '--iface_no_lo',
-			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '10', '--quiet', '--',
-			'/usr/bin/nodejs', '--print', prep_input(cmd.args)]
+			'-R/home/raylu/.bun/bin', '-R/usr', '-R/lib', '-R/lib64', '-R/dev',
+			'--user', 'nobody', '--group', 'nogroup', '--time_limit', '2', '--iface_no_lo',
+			'--cgroup_mem_max', str(50 * MB), '--cgroup_pids_max', '2', '--quiet', '--',
+			'/home/raylu/.bun/bin/bun', 'repl', '--print', prep_input(cmd.args)]
 	proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
 			stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = proc.communicate()
@@ -19,14 +19,9 @@ def nodejs(cmd):
 	elif proc.returncode == 137:
 		output = 'timed out'
 	else:
-		split = stderr.split('\n', 5)
-		try:
-			output = split[4]
-		except IndexError:
-			if split[0].startswith('FATAL ERROR:'):
-				output = split[0]
-			else:
-				output = 'unknown error'
+		output = stdout
+		if stderr:
+			output += '\n' + stderr
 	reply(cmd, output)
 
 def ruby(cmd):

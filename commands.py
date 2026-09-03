@@ -35,7 +35,7 @@ commands: typing.Mapping[str, typing.Callable[..., None]] = {
 	'ly': eve.lightyears,
 	'evewho': eve.who,
 
-	'js': code_eval.nodejs,
+	'js': code_eval.bun,
 	'ruby': code_eval.ruby,
 	'py2': code_eval.python2,
 	'py3': code_eval.python3,
