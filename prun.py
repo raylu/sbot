@@ -174,6 +174,9 @@ def bases(cmd: bot.CommandEvent) -> None:
 			return
 		planet_name = systems[0]['NaturalId'] + letter
 		response = requests.get('https://api.fnar.net/planet/sites/' + planet_name)
+	if response.status_code in [204, 400]:
+		cmd.reply(f'could not find planet {planet_name!r}')
+		return
 	response.raise_for_status()
 
 	sites: typing.Sequence[Site] = response.json()
