@@ -1,4 +1,5 @@
 import dataclasses
+import os
 import time
 import typing
 
@@ -27,8 +28,7 @@ class BotState:
 	flights: list = dataclasses.field(default_factory=list)
 
 	def save(self):
-		with open('bot_state.yaml', 'w', encoding='utf-8') as f:
-			yaml.dump(dataclasses.asdict(self), f)
+		_save_yaml('bot_state.yaml', dataclasses.asdict(self))
 
 @dataclasses.dataclass(eq=False, slots=True)
 class CronState:
@@ -39,8 +39,13 @@ class CronState:
 	twitch_last_times: dict = dataclasses.field(default_factory=dict)
 
 	def save(self):
-		with open('cron_state.yaml', 'w', encoding='utf-8') as f:
-			yaml.dump(dataclasses.asdict(self), f)
+		_save_yaml('cron_state.yaml', dataclasses.asdict(self))
+
+def _save_yaml(filename: str, data: dict) -> None:
+	temp_path = filename + '.tmp'
+	with open(temp_path, 'w', encoding='utf-8') as f:
+		yaml.dump(data, f)
+	os.replace(temp_path, filename)
 
 with open('config.yaml', 'r', encoding='utf-8') as f:
 	bot = BotConfig(**yaml.safe_load(f))
