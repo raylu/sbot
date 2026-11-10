@@ -6,7 +6,6 @@ import dataclasses
 import datetime
 import functools
 import heapq
-import time
 import typing
 
 import requests
@@ -15,34 +14,6 @@ import config
 
 if typing.TYPE_CHECKING:
 	import bot
-
-# COSM corp prices
-
-def price_mat(cmd: bot.CommandEvent) -> None:
-	prices = _get_prices()
-	responses = []
-	for pair in cmd.args.split(','):
-		try:
-			amount, mat = pair.strip().split()
-			amount = int(amount)
-			mat = mat.upper()
-			price = prices[mat]
-			responses.append(f'{amount} {mat} = {amount * price} ICA ({price}/u)')
-		except ValueError:
-			responses.append('usage: !corp <amount> <mat>')
-		except KeyError:
-			responses.append(f"error: couldn't find {mat!r} in price schedule")
-	cmd.reply('\n'.join(responses))
-
-price_cache: dict = {'last_update': 0, 'prices': None}
-def _get_prices() -> dict:
-	now = time.time()
-	if price_cache['last_update'] < now - 60 * 60 * 24:
-		r = requests.get('https://api.punoted.net/v1/corporation/prices')
-		r.raise_for_status()
-		price_cache['prices'] = {p['ticker']: p['price'] for p in r.json()}
-		price_cache['last_update'] = now
-	return price_cache['prices']
 
 # SCB travel times
 
