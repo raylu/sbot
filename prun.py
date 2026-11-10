@@ -203,14 +203,14 @@ def planetary_upkeep(bot: bot.Bot) -> None:
 
 	planet_infra: dict[str, list[Infrastructure]] = collections.defaultdict(list)
 	for infra in get_infra(configs.keys()):
-		planet_infra[infra['PlanetName']].append(infra)
+		planet_infra[infra['PlanetNaturalId']].append(infra)
 
 	now = datetime.datetime.now(tz=datetime.UTC)
-	for planet_name, infras in planet_infra.items():
-		planet_config = configs[planet_name]
+	for planet_id, infras in planet_infra.items():
+		planet_config = configs[planet_id]
 
 		planet_last = None
-		if planet_last_ts := config.cron_state.prun_popi_next.get(planet_name):
+		if planet_last_ts := config.cron_state.prun_popi_next.get(planet_id):
 			planet_last = datetime.datetime.fromtimestamp(planet_last_ts, tz=datetime.UTC)
 		planet_next = datetime.datetime.max.replace(tzinfo=datetime.UTC)
 		planet_notifs = []
@@ -233,11 +233,11 @@ def planetary_upkeep(bot: bot.Bot) -> None:
 
 			if filled < target and fill_by - now < datetime.timedelta(hours=36):
 				due_ts = int(fill_by.timestamp())
-				planet_notifs.append(f"{infra['PlanetName']} {infra['Type']} {filled}/{target} filled; "
+				planet_notifs.append(f"{infra['PlanetNaturalId']} {infra['Type']} {filled}/{target} filled; "
 						f"due <t:{due_ts}:f> (<t:{due_ts}:R>)")
 		if len(planet_notifs) > 0:
 			bot.send_message(planet_config.channel, '\n'.join(planet_notifs))
-			config.cron_state.prun_popi_next[planet_name] = planet_next.timestamp()
+			config.cron_state.prun_popi_next[planet_id] = planet_next.timestamp()
 			config.cron_state.save()
 
 def get_infra(planet_names: typing.Collection[str]) -> typing.Sequence[Infrastructure]:
@@ -253,6 +253,7 @@ class UpkeepConfig:
 
 class Infrastructure(typing.TypedDict):
 	PlanetName: str
+	PlanetNaturalId: str
 	Type: str
 	Upkeeps: typing.Sequence[Upkeep]
 
@@ -273,5 +274,5 @@ if __name__ == '__main__':
 	else:
 		for infra in get_infra(planet_names):
 			for upkeep in infra['Upkeeps']:
-				print(infra['PlanetName'], infra['Type'], upkeep['Ticker'],
+				print(infra['PlanetNaturalId'], infra['Type'], upkeep['Ticker'],
 						f"{upkeep['Stored']}/{upkeep['StoreCapacity']}", upkeep['NextTick'])
