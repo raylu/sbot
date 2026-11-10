@@ -36,7 +36,7 @@ def main():
 			r = rs.post(url, json={
 				'name': name,
 				'description': description,
-				'options': handler.options, # ty: ignore[unresolved-attribute]
+				'options': handler.options, # ty: ignore[missing-attribute]
 			})
 			print(r.content)
 			r.raise_for_status()

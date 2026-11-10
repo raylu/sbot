@@ -385,7 +385,7 @@ class Bot:
 			try:
 				flights.check_flights(self)
 			except requests.exceptions.HTTPError as e:
-				log.write('flights: %s\n%s' % (e, e.response.text[:1000])) # ty: ignore[unresolved-attribute]
+				log.write('flights: %s\n%s' % (e, e.response.text[:1000])) # ty: ignore[missing-union-attribute]
 			except requests.exceptions.RequestException as e:
 				log.write('flights: %s' % e)
 

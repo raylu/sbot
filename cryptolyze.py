@@ -18,12 +18,12 @@ def cryptolyze(cmd: CommandEvent) -> None:
 	else:
 		vulns = []
 		for category in vulns_result.ciphers, vulns_result.dhparams, vulns_result.versions:
-			for vuln in (getattr(category, a.name) for a in category.__attrs_attrs__): # ty: ignore[unresolved-attribute]
+			for vuln in (getattr(category, a.name) for a in category.__attrs_attrs__): # ty: ignore[missing-attribute]
 				if vuln is not None and vuln.value:
 					vulns.append(vuln.get_name())
 		embed = {
 			'title': versions_result.target.address,
-			'description': versions_result.target.ip, # ty: ignore[unresolved-attribute]
+			'description': versions_result.target.ip, # ty: ignore[missing-union-attribute]
 			'fields': [
 				{'name': 'versions', 'value': ' '.join(map(str, versions_result.versions)), 'inline': True},
 				{'name': 'vulnerabilities', 'value': '\n'.join(vulns) or 'none!', 'inline': True},

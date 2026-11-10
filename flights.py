@@ -142,7 +142,7 @@ def _iter_flight_rows(rs: requests.Session, number: str) -> typing.Iterator[bs4.
 	soup = bs4.BeautifulSoup(response.content, 'lxml')
 	if (table := soup.find('table', id='tbl-datatable')) is None:
 		return
-	yield from table.find('tbody').find_all('tr', class_='data-row') # ty: ignore[unresolved-attribute]
+	yield from table.find('tbody').find_all('tr', class_='data-row') # ty: ignore[missing-union-attribute]
 
 @dataclasses.dataclass(eq=False, slots=True)
 class FlightState:
