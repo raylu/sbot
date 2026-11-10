@@ -1,7 +1,7 @@
 [project]
 name = 'sbot'
 version = '0'
-requires-python = '>=3.13'
+requires-python = '>=3.13,<3.15' # pyfend uses PyO3 which only supports up to 3.14
 dependencies = [
 	'bs4',
 	'cryptolyzer',
